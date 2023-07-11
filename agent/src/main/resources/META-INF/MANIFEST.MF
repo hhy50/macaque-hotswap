@@ -1,4 +1,0 @@
-Agent-Class: com.hhy.agent.AgentMain
-Can-Redefine-Classes: true
-Can-Retransform-Classes: true
-Manifest-Version: 1.0

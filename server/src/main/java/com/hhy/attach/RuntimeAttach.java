@@ -25,6 +25,7 @@ public class RuntimeAttach implements Attach {
             } else {
                 targetVM = VirtualMachine.attach(virtualMachineDescriptor);
             }
+            targetVM.loadAgent("C:\\Users\\haiyang\\IdeaProjects\\six-eared-macaque\\agent\\build\\libs\\agent-1.0-SNAPSHOT.jar");
         } catch (Exception e) {
             e.printStackTrace();
         }
