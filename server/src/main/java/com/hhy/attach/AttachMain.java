@@ -1,4 +1,4 @@
-//package com.hhy.attach;
+package com.hhy.attach;//package com.hhy.attach;
 //
 //
 //import com.sun.tools.attach.VirtualMachine;
