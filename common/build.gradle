@@ -1,0 +1,14 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.hhy'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+}

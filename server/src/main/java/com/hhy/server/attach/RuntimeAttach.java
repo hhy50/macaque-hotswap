@@ -1,4 +1,4 @@
-package com.hhy.attach;
+package com.hhy.server.attach;
 
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
@@ -8,7 +8,7 @@ import java.util.List;
 public class RuntimeAttach implements Attach {
 
     @Override
-    public void attach(String pid) {
+    public void attach(String pid, String properties) {
         List<VirtualMachineDescriptor> list = VirtualMachine.list();
         VirtualMachineDescriptor virtualMachineDescriptor = null;
         for (VirtualMachineDescriptor descriptor : VirtualMachine.list()) {
@@ -25,7 +25,7 @@ public class RuntimeAttach implements Attach {
             } else {
                 targetVM = VirtualMachine.attach(virtualMachineDescriptor);
             }
-            targetVM.loadAgent("C:\\Users\\haiyang\\IdeaProjects\\six-eared-macaque\\agent\\build\\libs\\agent-1.0-SNAPSHOT.jar");
+            targetVM.loadAgent("C:\\Users\\haiyang\\IdeaProjects\\six-eared-macaque\\agent\\build\\libs\\agent-1.0-SNAPSHOT.jar", properties);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -1,4 +1,4 @@
-package com.hhy.target;
+package com.hhy.server.test.target;
 
 public class A {
     public void exec() {
