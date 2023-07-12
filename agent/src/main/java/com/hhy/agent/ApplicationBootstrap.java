@@ -69,7 +69,7 @@ public class ApplicationBootstrap {
                 return properties;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
         return new Properties();
     }

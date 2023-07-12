@@ -33,7 +33,7 @@ public class JmxMBeanManager {
             try {
                 mBeanServer.registerMBean(mBean, mBean.getMBeanName());
             } catch (Exception e) {
-                e.printStackTrace();
+
             }
         }
     }

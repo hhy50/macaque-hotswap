@@ -16,18 +16,17 @@ public class AgentMain {
         try {
             bootstrapClass = classLoader.loadClass("com.hhy.agent.ApplicationBootstrap");
         } catch (Exception e) {
-            e.printStackTrace();
-            return;
+
         }
 
         if (bootstrapClass != null) {
             try {
                 Method init = bootstrapClass.getMethod("start", String.class, Instrumentation.class);
                 init.invoke(null, args, inst);
+                System.out.println("attach success");
             } catch (Exception e) {
-                e.printStackTrace();
+
             }
-            System.out.println("attach success");
         }
     }
 

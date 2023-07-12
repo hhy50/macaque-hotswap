@@ -13,11 +13,7 @@ public class ClassHotSwap implements ClassHotSwapMBean {
     }
 
     @Override
-    public ObjectName getMBeanName() {
-        try {
-            return new ObjectName(MBeanObjectName.HOT_SWAP_MBEAN);
-        } catch (MalformedObjectNameException e) {
-            throw new RuntimeException(e);
-        }
+    public ObjectName getMBeanName() throws MalformedObjectNameException {
+        return new ObjectName(MBeanObjectName.HOT_SWAP_MBEAN);
     }
 }
