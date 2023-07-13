@@ -6,5 +6,5 @@ public interface Attach {
      * attach process
      * @param pid
      */
-    public void attach(String pid, String properties);
+    public void attach(String pid);
 }

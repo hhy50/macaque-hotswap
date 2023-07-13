@@ -24,7 +24,6 @@ public class JmxClient {
 
     public void connect() throws IOException {
         try {
-            // service:jmx:rmi:///jndi/rmi://0.0.0.0:3300/macaque
             String url = String.format("service:jmx:rmi:///jndi/rmi://%s:%d/macaque", ip, port);
             JMXServiceURL serviceURL = new JMXServiceURL(url);
 

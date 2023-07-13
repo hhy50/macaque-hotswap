@@ -24,7 +24,7 @@ public class JmxMBeanManager {
 
     public void registerAllMBean() {
 
-        // TODO scan package
+        // TODO: scan package
         List<Class<MBean>> classes = loadMBeanClass();
 
         // registerMBean

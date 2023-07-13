@@ -24,11 +24,14 @@ public class ApplicationBootstrap {
             Properties properties = parseArgs(args);
             try {
                 INST = inst;
+                int jmxPort = Integer.parseInt(properties.getProperty("port", "3030"));
 
                 // init jmx, mbeans
-                JMX_MBEAN_MANAGER = initJmxService(Integer.parseInt(properties.getProperty("port", "3030")));
+                JMX_MBEAN_MANAGER = initJmxService(jmxPort);
 
                 START_FLAG.set(true);
+                System.out.printf("attach success, jmx port=%d\n",
+                        jmxPort);
             } catch (Exception e) {
 
             }

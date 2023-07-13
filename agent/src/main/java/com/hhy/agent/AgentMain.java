@@ -23,7 +23,6 @@ public class AgentMain {
             try {
                 Method init = bootstrapClass.getMethod("start", String.class, Instrumentation.class);
                 init.invoke(null, args, inst);
-                System.out.println("attach success");
             } catch (Exception e) {
 
             }
