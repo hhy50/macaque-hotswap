@@ -18,7 +18,6 @@ public class CommendLineUtil {
                 .filter(arg -> arg.startsWith(StringUtil.ARG_PREFIX))
                 .map(arg -> arg.substring(StringUtil.ARG_PREFIX.length()))
                 .map(arg -> {
-                    // 符号
                     boolean assignSymbol = true;
                     int bound = arg.indexOf('=');
                     if (bound == -1) {

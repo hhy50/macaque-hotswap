@@ -1,10 +1,15 @@
 package com.hhy.server.attach;
 
 import com.hhy.server.config.ServerConfig;
+import com.hhy.server.log.LoggerName;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RuntimeAttach implements Attach {
+
+    private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
 
     private final ServerConfig config;
 
@@ -30,10 +35,9 @@ public class RuntimeAttach implements Attach {
                 targetVM = VirtualMachine.attach(virtualMachineDescriptor);
             }
 
-            //
             targetVM.loadAgent(config.getAgentpath(), config.getAgentProperties());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("attach error", e);
         }
     }
 }

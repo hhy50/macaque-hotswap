@@ -8,6 +8,8 @@ public class ServerConfig {
 
     private int agentPort = 3030;
 
+    private String logfilePath;
+
     public String getAgentpath() {
         return agentpath;
     }
@@ -28,12 +30,11 @@ public class ServerConfig {
         return String.format("port=%s", agentPort);
     }
 
-    @Override
-    public String toString() {
-        return "ServerConfig{" +
-                "serverPort=" + serverPort +
-                ", agentpath='" + agentpath + '\'' +
-                ", agentPort=" + agentPort +
-                '}';
+    public String getLogfilePath() {
+        return logfilePath;
+    }
+
+    public void setLogfilePath(String logfilePath) {
+        this.logfilePath = logfilePath;
     }
 }

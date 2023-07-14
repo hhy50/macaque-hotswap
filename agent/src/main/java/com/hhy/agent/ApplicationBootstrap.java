@@ -1,5 +1,6 @@
 package com.hhy.agent;
 
+import com.hhy.agent.env.Context;
 import com.hhy.agent.jmx.JmxMBeanManager;
 
 import javax.management.remote.JMXConnectorServer;
@@ -15,7 +16,6 @@ public class ApplicationBootstrap {
 
     private static final AtomicBoolean START_FLAG = new AtomicBoolean(false);
 
-    public static Instrumentation INST = null;
 
     public static JmxMBeanManager JMX_MBEAN_MANAGER;
 
@@ -23,7 +23,7 @@ public class ApplicationBootstrap {
         if (!START_FLAG.get()) {
             Properties properties = parseArgs(args);
             try {
-                INST = inst;
+                Context.INST = inst;
                 int jmxPort = Integer.parseInt(properties.getProperty("port", "3030"));
 
                 // init jmx, mbeans
@@ -51,13 +51,6 @@ public class ApplicationBootstrap {
             return jmxMBeanManager;
         } catch (Exception e) {
 
-        }
-        return null;
-    }
-
-    public static Instrumentation getInst() {
-        if (START_FLAG.get()) {
-            return INST;
         }
         return null;
     }
