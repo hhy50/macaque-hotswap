@@ -19,10 +19,10 @@ public class MacaqueBootStrap {
         CommendLine commendLine = new CommendLine(args);
         ServerConfig serverConfig = getConfigFromCommendLine(commendLine);
 
-        boolean serverMode = LoggerName.serverMode
-                = commendLine.hasOption("--server");
+        boolean serverMode = commendLine.hasOption("--server");
         consoleLog.info("start mode: {}, serverConfig: {}", serverMode ? "server" : "client", serverConfig);
 
+        System.setProperty("serverModel", Boolean.toString(serverMode));
         if (serverMode) {
             checkServerConfig(commendLine, serverConfig);
             startServer(serverConfig);
