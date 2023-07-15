@@ -1,15 +1,15 @@
-package com.hhy.server.console;
+package com.hhy.server.server;
 
 import com.hhy.common.mbean.MBean;
 import com.hhy.common.mbean.MBeanObjectName;
 import com.hhy.common.rmi.ClassHotSwapRmiData;
 import com.hhy.common.util.FileUtil;
 import com.hhy.common.util.Pair;
-import com.hhy.server.attach.RuntimeAttach;
+import com.hhy.server.attach.AttachFactory;
+import com.hhy.server.attach.DefaultAttachFactory;
 import com.hhy.server.config.ServerConfig;
 import com.hhy.server.jmx.JmxClient;
 import com.hhy.server.log.LoggerName;
-import com.hhy.server.thrad.MacaqueThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,22 +18,31 @@ import java.util.Scanner;
 
 import static com.hhy.server.process.JavaProcessHolder.getJavaProcess;
 
-public class Console extends MacaqueThread {
+class MacaqueConsole implements MacaqueService {
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.CONSOLE);
 
     private ServerConfig serverConfig;
 
-    public Console(ServerConfig serverConfig) {
+    private AttachFactory attachFactory = DefaultAttachFactory.getInstance();
+
+    public MacaqueConsole(ServerConfig serverConfig) {
         this.serverConfig = serverConfig;
     }
 
-    public void run() {
+    @Override
+    public void start() {
         log.info("console staring...");
-        printProcessList();
-        String pid = waitConsoleInputPid();
-        new RuntimeAttach(serverConfig).attach(pid);
 
+        String pid = waitConsoleInputPid();
+        boolean attach = this.attachFactory.createRuntimeAttach(serverConfig)
+                .attach(pid);
+        if (!attach) {
+            System.exit(-1);
+            return;
+        }
+
+        // TODO input comment and exec comment
         try {
             JmxClient jmxClient = new JmxClient("127.0.0.1", serverConfig.getAgentPort());
             jmxClient.connect();
@@ -48,17 +57,18 @@ public class Console extends MacaqueThread {
 
     private void printProcessList() {
         StringBuilder sb = new StringBuilder();
-        sb.append("========================== Process ==========================").append("\n");
+        sb.append("========================== JPS ==========================").append("\n");
         for (Pair<String, String> process : getJavaProcess()) {
             String format = String.format("[%s] %s", process.getFirst(), process.getSecond());
             sb.append(format).append("\n");
         }
-        sb.append("========================== Process ==========================").append("\n");
-        sb.append("input pid:");
+        sb.append("========================== JPS ==========================").append("\n");
         log.info(sb.toString());
     }
 
     public String waitConsoleInputPid() {
+        printProcessList();
+
         String pid = null;
         loop: while (true) {
             try {
@@ -75,5 +85,10 @@ public class Console extends MacaqueThread {
             }
         }
         return pid;
+    }
+
+    @Override
+    public void stop() {
+
     }
 }

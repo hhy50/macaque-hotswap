@@ -18,7 +18,7 @@ public class RuntimeAttach implements Attach {
     }
 
     @Override
-    public void attach(String pid) {
+    public boolean attach(String pid) {
         VirtualMachineDescriptor virtualMachineDescriptor = null;
         for (VirtualMachineDescriptor descriptor : VirtualMachine.list()) {
             if (descriptor.id().equals(pid)) {
@@ -36,8 +36,10 @@ public class RuntimeAttach implements Attach {
             }
 
             targetVM.loadAgent(config.getAgentpath(), config.getAgentProperties());
+            return true;
         } catch (Exception e) {
             log.error("attach error", e);
         }
+        return false;
     }
 }
