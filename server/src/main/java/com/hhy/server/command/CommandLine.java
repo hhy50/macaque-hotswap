@@ -1,7 +1,7 @@
-package com.hhy.server.commend;
+package com.hhy.server.command;
 
 import com.hhy.common.util.ReflectUtil;
-import com.hhy.server.log.LoggerName;
+import com.hhy.server.config.LoggerName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,14 +11,14 @@ import java.util.stream.Collectors;
 
 import static com.hhy.common.util.StringUtil.*;
 
-public class CommendLine {
+public class CommandLine {
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
 
     private List<Option> options;
 
-    public CommendLine(String[] args) {
-        this.options = CommendLineUtil.parse(args);
+    public CommandLine(String[] args) {
+        this.options = CommandLineUtil.parse(args);
     }
 
     public boolean hasOption(String name) {
@@ -55,7 +55,7 @@ public class CommendLine {
                     try {
                         field.set(obj, typeResolver(optionValue, field.getType()));
                     } catch (IllegalAccessException e) {
-                        log.error("CommendLine.toObject() error", e);
+                        log.error("CommandLine.toObject() error", e);
                     }
                 }
             }

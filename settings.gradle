@@ -2,4 +2,5 @@ rootProject.name = 'six-eared-macaque'
 include 'agent'
 include 'server'
 include 'common'
+include 'test'
 

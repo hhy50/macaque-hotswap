@@ -1,4 +1,4 @@
-package com.hhy.server.commend;
+package com.hhy.server.command;
 
 import com.hhy.common.util.StringUtil;
 
@@ -7,9 +7,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CommendLineUtil {
+public class CommandLineUtil {
 
-    public static List<CommendLine.Option> parse(String[] args) {
+    public static List<CommandLine.Option> parse(String[] args) {
         if (args == null || args.length == 0) {
             return Collections.EMPTY_LIST;
         }
@@ -24,7 +24,7 @@ public class CommendLineUtil {
                         assignSymbol = false;
                         bound = arg.length();
                     }
-                    return new CommendLine.Option(arg.substring(0, bound),
+                    return new CommandLine.Option(arg.substring(0, bound),
                             arg.substring(assignSymbol ? bound + 1 : bound),
                             assignSymbol);
                 }).collect(Collectors.toList());

@@ -1,7 +1,7 @@
 package com.hhy.server.jmx;
 
 import com.hhy.common.mbean.MBean;
-import com.hhy.server.log.LoggerName;
+import com.hhy.server.config.LoggerName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

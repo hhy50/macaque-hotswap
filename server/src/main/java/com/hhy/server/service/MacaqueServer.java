@@ -1,4 +1,4 @@
-package com.hhy.server.server;
+package com.hhy.server.service;
 
 import com.hhy.server.config.ServerConfig;
 

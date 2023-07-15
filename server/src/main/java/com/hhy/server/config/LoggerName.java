@@ -1,4 +1,4 @@
-package com.hhy.server.log;
+package com.hhy.server.config;
 
 public class LoggerName {
 

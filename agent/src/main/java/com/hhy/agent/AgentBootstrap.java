@@ -12,14 +12,14 @@ import java.rmi.registry.LocateRegistry;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ApplicationBootstrap {
+public class AgentBootstrap {
 
     private static final AtomicBoolean START_FLAG = new AtomicBoolean(false);
 
 
     public static JmxMBeanManager JMX_MBEAN_MANAGER;
 
-    public static void start(String args, Instrumentation inst) {
+    public static Boolean start(String args, Instrumentation inst) {
         if (!START_FLAG.get()) {
             Properties properties = parseArgs(args);
             try {
@@ -32,16 +32,16 @@ public class ApplicationBootstrap {
                 START_FLAG.set(true);
                 System.out.printf("attach success, jmx port=%d\n",
                         jmxPort);
+                return true;
             } catch (Exception e) {
-
             }
         }
+        return false;
     }
 
     private static JmxMBeanManager initJmxService(int port) {
-        JmxMBeanManager jmxMBeanManager = new JmxMBeanManager();
-
         try {
+            JmxMBeanManager jmxMBeanManager = new JmxMBeanManager();
             LocateRegistry.createRegistry(port);
             JMXServiceURL url = new JMXServiceURL(String.format("service:jmx:rmi:///jndi/rmi://0.0.0.0:%d/macaque", port));
             JMXConnectorServer jcs = JMXConnectorServerFactory.newJMXConnectorServer(url,
@@ -50,7 +50,6 @@ public class ApplicationBootstrap {
 
             return jmxMBeanManager;
         } catch (Exception e) {
-
         }
         return null;
     }
@@ -58,7 +57,7 @@ public class ApplicationBootstrap {
     private static Properties parseArgs(String args) {
         try {
             if (args != null && args.length() > 0) {
-                String s = args.replaceAll(" ", "")
+                String s = args.replaceAll("\\s+", "")
                         .replaceAll(",", "\n");
                 Properties properties = new Properties();
                 properties.load(new ByteArrayInputStream(s.getBytes()));

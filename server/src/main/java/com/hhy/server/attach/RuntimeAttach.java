@@ -1,7 +1,9 @@
 package com.hhy.server.attach;
 
+import com.hhy.server.common.PortNumberGenerator;
 import com.hhy.server.config.ServerConfig;
-import com.hhy.server.log.LoggerName;
+import com.hhy.server.config.LoggerName;
+import com.hhy.server.jmx.JmxClient;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import org.slf4j.Logger;
@@ -35,11 +37,24 @@ public class RuntimeAttach implements Attach {
                 targetVM = VirtualMachine.attach(virtualMachineDescriptor);
             }
 
-            targetVM.loadAgent(config.getAgentpath(), config.getAgentProperties());
-            return true;
+            Integer agentPort = PortNumberGenerator.getPort(Integer.parseInt(pid));
+            String property = String.format("port=%s", agentPort);
+            targetVM.loadAgent(config.getAgentpath(), property);
+
+            JmxClient jmxClient = new JmxClient("127.0.0.1", agentPort);
+            try {
+                return jmxClient.connect();
+            } finally {
+                jmxClient.distory();
+            }
         } catch (Exception e) {
             log.error("attach error", e);
         }
+        return false;
+    }
+
+    @Override
+    public boolean detach(String pid) {
         return false;
     }
 }

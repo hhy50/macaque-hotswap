@@ -12,27 +12,27 @@ import java.lang.instrument.Instrumentation;
 
 public class ClassHotSwap implements ClassHotSwapMBean {
 
-        @Override
-        public RmiResult process(ClassHotSwapRmiData data) {
-            String errMsg = null;
-            try {
-                Instrumentation inst = Context.INST;
-                ClassDefinition classDefinition = new ClassDefinition(Class.forName(data.getClassName()), data.getNewClassByte());
+    @Override
+    public RmiResult process(ClassHotSwapRmiData data) {
+        String errMsg = null;
+        try {
+            Instrumentation inst = Context.INST;
+            ClassDefinition classDefinition = new ClassDefinition(Class.forName(data.getClassName()), data.getNewClassByte());
 
-                inst.redefineClasses(classDefinition);
-                return RmiResult.success();
-            } catch (Exception e) {
-                errMsg = e.getMessage();
+            inst.redefineClasses(classDefinition);
+            return RmiResult.success();
+        } catch (Exception e) {
+            errMsg = e.getMessage();
 
-                if (errMsg == null || "".equals(errMsg)) {
-                    errMsg = e.getCause().getMessage();
-                }
+            if (errMsg == null || "".equals(errMsg)) {
+                errMsg = e.getCause().getMessage();
             }
-            return RmiResult.error(errMsg);
         }
+        return RmiResult.error(errMsg);
+    }
 
-        @Override
-        public ObjectName getMBeanName() throws MalformedObjectNameException {
-            return new ObjectName(MBeanObjectName.HOT_SWAP_MBEAN);
-        }
+    @Override
+    public ObjectName getMBeanName() throws MalformedObjectNameException {
+        return new ObjectName(MBeanObjectName.HOT_SWAP_MBEAN);
+    }
 }

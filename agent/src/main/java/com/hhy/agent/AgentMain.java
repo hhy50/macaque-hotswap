@@ -14,7 +14,7 @@ public class AgentMain {
         ClassLoader classLoader = getClassLoader();
         Class<?> bootstrapClass = null;
         try {
-            bootstrapClass = classLoader.loadClass("com.hhy.agent.ApplicationBootstrap");
+            bootstrapClass = classLoader.loadClass("com.hhy.agent.AgentBootstrap");
         } catch (Exception e) {
 
         }

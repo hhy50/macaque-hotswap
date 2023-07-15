@@ -15,4 +15,5 @@ sourceCompatibility = JavaVersion.VERSION_11
 dependencies {
     implementation project(":common")
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    testImplementation 'junit:junit:4.13.1'
 }
