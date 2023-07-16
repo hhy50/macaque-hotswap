@@ -1,12 +1,22 @@
 package com.hhy.agent.env;
 
 import java.lang.instrument.Instrumentation;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Environment {
 
-    public static final Instrumentation INST = null;
+    private static final AtomicBoolean INIT_FLAG = new AtomicBoolean(false);
+    private static boolean DEBUG = false;
+    public static Instrumentation INST = null;
 
-    static {
+    public synchronized static void initEnv(boolean debug, Instrumentation inst) {
+        if (INIT_FLAG.compareAndSet(false, true)) {
+            Environment.DEBUG = debug;
+            Environment.INST = inst;
+        }
+    }
 
+    public static boolean isDebug() {
+        return DEBUG;
     }
 }

@@ -1,11 +1,13 @@
 package com.hhy.agent.jmx;
 
 
+import com.hhy.agent.env.Environment;
 import com.hhy.agent.jmx.mbeans.ClassHotSwap;
 import com.hhy.common.mbean.MBean;
 
 import javax.management.MBeanServer;
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
 import java.util.List;
 
 public class JmxMBeanManager {
@@ -33,13 +35,16 @@ public class JmxMBeanManager {
             try {
                 mBeanServer.registerMBean(mBean, mBean.getMBeanName());
             } catch (Exception e) {
-
+                if (Environment.isDebug()) {
+                    System.out.println("registerMBean error");
+                    e.printStackTrace();
+                }
             }
         }
     }
 
     private List<Class<MBean>> loadMBeanClass() {
-        return (List) List.of(
+        return (List) Arrays.asList(
                 ClassHotSwap.class);
     }
 
@@ -54,7 +59,10 @@ public class JmxMBeanManager {
             MBean mBean = mBeanClass.newInstance();
             return mBean;
         } catch (Exception e) {
-
+            if (Environment.isDebug()) {
+                System.out.println("createMBean error");
+                e.printStackTrace();
+            }
         }
         return null;
     }

@@ -31,9 +31,9 @@ public class MacaqueBootStrap {
         ServerConfig serverConfig = getConfigFromCommandLine(commandLine);
 
         boolean serverMode = commandLine.hasOption("--server");
+        System.setProperty("serverMode", Boolean.toString(serverMode));
         consoleLog.info("start mode: {}, serverConfig: {}", serverMode ? "server" : "client", serverConfig);
 
-        System.setProperty("serverModel", Boolean.toString(serverMode));
         if (serverMode) {
             checkServerConfig(commandLine, serverConfig);
 

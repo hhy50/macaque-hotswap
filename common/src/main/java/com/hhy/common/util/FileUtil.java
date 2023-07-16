@@ -11,9 +11,14 @@ public class FileUtil {
         if (!file.exists()) {
             return null;
         }
-        byte[] bytes = null;
+        int len = (int) file.length();
+        if (len != file.length()) {
+            throw new RuntimeException("file length too long");
+        }
+        byte[] bytes = new byte[len];
         try (FileInputStream fis = new FileInputStream(file)) {
-            bytes = fis.readAllBytes();
+            fis.read(bytes, 0, len);
+            return bytes;
         } catch (Exception e) {
 
         }

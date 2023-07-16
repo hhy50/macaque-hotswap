@@ -9,6 +9,11 @@ repositories {
     mavenCentral()
 }
 
+jar {
+    archiveBaseName = "macaque-common"
+    archiveVersion = ""
+}
+
 dependencies {
 
 }

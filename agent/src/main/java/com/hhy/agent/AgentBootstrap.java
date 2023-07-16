@@ -1,6 +1,7 @@
 package com.hhy.agent;
 
 import com.hhy.agent.env.Context;
+import com.hhy.agent.env.Environment;
 import com.hhy.agent.jmx.JmxMBeanManager;
 
 import javax.management.remote.JMXConnectorServer;
@@ -24,7 +25,11 @@ public class AgentBootstrap {
             Properties properties = parseArgs(args);
             try {
                 Context.INST = inst;
+                Boolean debug = Boolean.parseBoolean(properties.getProperty("debug", "false"));
                 int jmxPort = Integer.parseInt(properties.getProperty("port", "3030"));
+
+                // init env
+                Environment.initEnv(debug, inst);
 
                 // init jmx, mbeans
                 JMX_MBEAN_MANAGER = initJmxService(jmxPort);
@@ -34,6 +39,10 @@ public class AgentBootstrap {
                         jmxPort);
                 return true;
             } catch (Exception e) {
+                if (Environment.isDebug()) {
+                    System.out.println("start error");
+                    e.printStackTrace();
+                }
             }
         }
         return false;
@@ -50,6 +59,10 @@ public class AgentBootstrap {
 
             return jmxMBeanManager;
         } catch (Exception e) {
+            if (Environment.isDebug()) {
+                System.out.println("initJmxService error");
+                e.printStackTrace();
+            }
         }
         return null;
     }
@@ -64,7 +77,10 @@ public class AgentBootstrap {
                 return properties;
             }
         } catch (Exception e) {
-
+            if (Environment.isDebug()) {
+                System.out.println("parseArgs error");
+                e.printStackTrace();
+            }
         }
         return new Properties();
     }

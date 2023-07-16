@@ -1,6 +1,7 @@
 package com.hhy.agent.jmx.mbeans;
 
 import com.hhy.agent.env.Context;
+import com.hhy.agent.env.Environment;
 import com.hhy.common.mbean.MBeanObjectName;
 import com.hhy.common.rmi.ClassHotSwapRmiData;
 import com.hhy.common.rmi.RmiResult;
@@ -22,8 +23,12 @@ public class ClassHotSwap implements ClassHotSwapMBean {
             inst.redefineClasses(classDefinition);
             return RmiResult.success();
         } catch (Exception e) {
-            errMsg = e.getMessage();
+            if (Environment.isDebug()) {
+                System.out.println("ClassHotSwap.process error");
+                e.printStackTrace();
+            }
 
+            errMsg = e.getMessage();
             if (errMsg == null || "".equals(errMsg)) {
                 errMsg = e.getCause().getMessage();
             }

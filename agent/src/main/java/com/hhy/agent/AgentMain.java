@@ -1,6 +1,8 @@
 package com.hhy.agent;
 
 
+import com.hhy.agent.env.Environment;
+
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
 
@@ -16,7 +18,10 @@ public class AgentMain {
         try {
             bootstrapClass = classLoader.loadClass("com.hhy.agent.AgentBootstrap");
         } catch (Exception e) {
-
+            if (Environment.isDebug()) {
+                System.out.println("load AgentBootstrap.class error");
+                e.printStackTrace();
+            }
         }
 
         if (bootstrapClass != null) {
@@ -24,7 +29,10 @@ public class AgentMain {
                 Method init = bootstrapClass.getMethod("start", String.class, Instrumentation.class);
                 init.invoke(null, args, inst);
             } catch (Exception e) {
-
+                if (Environment.isDebug()) {
+                    System.out.println("AgentBootstrap.start error");
+                    e.printStackTrace();
+                }
             }
         }
     }

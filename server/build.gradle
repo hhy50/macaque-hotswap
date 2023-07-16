@@ -9,11 +9,14 @@ repositories {
     mavenCentral()
 }
 
-targetCompatibility = JavaVersion.VERSION_11
-sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
+    def javaHome = System.getenv 'JAVA_HOME'
+
     implementation project(":common")
+    implementation files("${javaHome}/lib/tools.jar")
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
     testImplementation 'junit:junit:4.13.1'
 }

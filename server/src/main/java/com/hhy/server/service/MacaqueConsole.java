@@ -1,6 +1,7 @@
 package com.hhy.server.service;
 
 import com.hhy.common.util.Pair;
+import com.hhy.server.attach.Attach;
 import com.hhy.server.attach.AttachFactory;
 import com.hhy.server.attach.DefaultAttachFactory;
 import com.hhy.server.command.DefaultCommandExecutor;
@@ -23,6 +24,8 @@ class MacaqueConsole implements MacaqueService {
 
     private AttachFactory attachFactory = DefaultAttachFactory.getInstance();
 
+    private Attach attach = null;
+
     private static List<String> ATTACH_HISTORY = new CopyOnWriteArrayList<>();
 
     public MacaqueConsole(ServerConfig serverConfig) {
@@ -34,9 +37,8 @@ class MacaqueConsole implements MacaqueService {
         log.info("console staring...");
 
         String pid = waitConsoleNextInput(true);
-        boolean attach = this.attachFactory.createRuntimeAttach(serverConfig)
-                .attach(pid);
-        if (!attach) {
+        this.attach = this.attachFactory.createRuntimeAttach(serverConfig);
+        if (!this.attach.attach(pid)) {
             log.error("attach error");
             System.exit(-1);
             return;
