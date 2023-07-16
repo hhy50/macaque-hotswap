@@ -2,16 +2,15 @@ plugins {
     id 'java'
 }
 
-group = 'com.hhy'
-version = '1.0-SNAPSHOT'
+group = 'six.eared.macaque'
 
 repositories {
     mavenCentral()
 }
 
 jar {
-    archiveBaseName = "macaque-common"
-    archiveVersion = ""
+    archiveBaseName = 'macaque-common'
+    archiveVersion = "${projectVersion}"
 }
 
 dependencies {

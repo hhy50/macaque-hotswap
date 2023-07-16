@@ -1,9 +1,10 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
-group = 'com.hhy'
-version = '1.0-SNAPSHOT'
+group = 'six.eared.macaque'
+def projectName = 'macaque-server'
 
 repositories {
     mavenCentral()
@@ -15,8 +16,43 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 dependencies {
     def javaHome = System.getenv 'JAVA_HOME'
 
-    implementation project(":common")
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
     implementation files("${javaHome}/lib/tools.jar")
-    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    implementation project(":common")
     testImplementation 'junit:junit:4.13.1'
 }
+
+jar {
+    archiveBaseName = "${projectName}"
+    archiveVersion = "${projectVersion}"
+    manifest {
+        attributes(
+                'Main-Class': 'six.eared.macaque.server.MacaqueBootStrap',
+                'Manifest-Version': "${projectVersion}",
+                'Class-Path': configurations.runtimeClasspath.files.collect {"../libs/" + it.getName() }.join(' ')
+        )
+    }
+
+    into('lib') {
+        from configurations.runtimeClasspath
+    }
+}
+
+task release(type: Tar, group: build, dependsOn: configurations.archives.artifacts) {
+    from(jar) {
+        into('bin/')
+    }
+
+    from("${rootDir}/bin") {
+        into('bin/')
+    }
+    from(configurations.runtimeClasspath.files) {
+        into('libs/')
+    }
+
+    compression = Compression.GZIP
+    archiveBaseName = "${projectName}"
+    archiveVersion = "${projectVersion}"
+    archiveExtension = 'tar.gz'
+}
+

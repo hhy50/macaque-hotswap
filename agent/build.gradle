@@ -3,8 +3,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
-group = 'com.hhy'
-version = '1.0-SNAPSHOT'
+group = 'six.eared.macaque'
 
 repositories {
     mavenCentral()
@@ -14,37 +13,20 @@ targetCompatibility = JavaVersion.VERSION_1_8
 sourceCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-    implementation project(":common")
+    implementation project(':common')
 }
 
-test {
-
-}
-
-//jar {
-//    manifest {
-//        attributes(
-//                "Agent-Class": "com.hhy.agent.AgentMain",
-//                "Can-Redefine-Classes": "true",
-//                "Can-Retransform-Classes": "true",
-//                "Manifest-Version": "1.0"
-//        )
-//    }
-//    into('lib') {
-//        from configurations.runtimeClasspath
-//    }
-//}
 
 shadowJar {
     archiveBaseName = 'macaque-agent'
-    archiveVersion = '1.0'
+    archiveVersion = "${projectVersion}"
     archiveClassifier = null
     manifest {
         attributes(
-                "Agent-Class": "com.hhy.agent.AgentMain",
-                "Can-Redefine-Classes": "true",
-                "Can-Retransform-Classes": "true",
-                "Manifest-Version": "1.0"
+                'Agent-Class': 'six.eared.macaque.agent.AgentMain',
+                'Can-Redefine-Classes': 'true',
+                'Can-Retransform-Classes': 'true',
+                'Manifest-Version': "${projectVersion}"
         )
     }
 }
