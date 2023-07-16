@@ -1,9 +1,9 @@
 package six.eared.macaque.server.test;
 
-import six.eared.macaque.server.common.PID;
-import six.eared.macaque.server.common.PortNumberGenerator;
 import org.junit.Assert;
 import org.junit.Test;
+import six.eared.macaque.server.common.PID;
+import six.eared.macaque.server.common.PortNumberGenerator;
 
 import java.util.HashMap;
 import java.util.Map;

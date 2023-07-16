@@ -32,10 +32,6 @@ jar {
                 'Class-Path': configurations.runtimeClasspath.files.collect {"../libs/" + it.getName() }.join(' ')
         )
     }
-
-    into('lib') {
-        from configurations.runtimeClasspath
-    }
 }
 
 task release(type: Tar, group: build, dependsOn: configurations.archives.artifacts) {

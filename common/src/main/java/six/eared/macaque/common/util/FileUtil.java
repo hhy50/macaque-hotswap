@@ -2,6 +2,8 @@ package six.eared.macaque.common.util;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class FileUtil {
 
@@ -20,7 +22,19 @@ public class FileUtil {
             fis.read(bytes, 0, len);
             return bytes;
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bytes;
+    }
 
+    public static byte[] is2bytes(InputStream is) {
+        byte[] bytes = null;
+        try {
+            int len = is.available();
+            bytes = new byte[len];
+            is.read(bytes, 0, len);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         return bytes;
     }

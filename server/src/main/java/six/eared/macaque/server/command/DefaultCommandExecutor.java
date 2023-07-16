@@ -1,5 +1,7 @@
 package six.eared.macaque.server.command;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import six.eared.macaque.common.mbean.MBean;
 import six.eared.macaque.common.mbean.MBeanObjectName;
 import six.eared.macaque.common.rmi.ClassHotSwapRmiData;
@@ -8,8 +10,6 @@ import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.jmx.JmxClient;
 import six.eared.macaque.server.jmx.JmxConnectPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DefaultCommandExecutor implements CommandExecutor {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());

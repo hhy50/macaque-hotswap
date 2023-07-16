@@ -1,9 +1,9 @@
 package six.eared.macaque.server.jmx;
 
-import six.eared.macaque.common.mbean.MBean;
-import six.eared.macaque.server.config.LoggerName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import six.eared.macaque.common.mbean.MBean;
+import six.eared.macaque.server.config.LoggerName;
 
 import javax.management.JMX;
 import javax.management.ObjectName;

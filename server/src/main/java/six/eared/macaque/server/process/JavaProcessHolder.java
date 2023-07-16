@@ -1,7 +1,7 @@
 package six.eared.macaque.server.process;
 
-import six.eared.macaque.common.util.Pair;
 import com.sun.tools.attach.VirtualMachine;
+import six.eared.macaque.common.util.Pair;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

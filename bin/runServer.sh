@@ -1,0 +1,1 @@
+java -jar macaque-server-1.0.jar

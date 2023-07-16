@@ -1,13 +1,13 @@
 package six.eared.macaque.server.attach;
 
-import six.eared.macaque.server.common.PortNumberGenerator;
-import six.eared.macaque.server.config.ServerConfig;
-import six.eared.macaque.server.config.LoggerName;
-import six.eared.macaque.server.jmx.JmxClient;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import six.eared.macaque.server.common.PortNumberGenerator;
+import six.eared.macaque.server.config.LoggerName;
+import six.eared.macaque.server.config.ServerConfig;
+import six.eared.macaque.server.jmx.JmxClient;
 
 import java.io.IOException;
 
