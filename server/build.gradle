@@ -29,7 +29,9 @@ jar {
         attributes(
                 'Main-Class': 'six.eared.macaque.server.MacaqueBootStrap',
                 'Manifest-Version': "${projectVersion}",
-                'Class-Path': configurations.runtimeClasspath.files.collect {"../libs/" + it.getName() }.join(' ')
+                'Class-Path': configurations.runtimeClasspath.files.collect {
+                    it.getName().contains("tools.jar") ? "" : "../libs/" + it.getName()
+                }.join(' ')
         )
     }
 }
