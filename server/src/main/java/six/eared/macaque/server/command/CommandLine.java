@@ -1,5 +1,6 @@
 package six.eared.macaque.server.command;
 
+import jdk.nashorn.internal.runtime.regexp.joni.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import six.eared.macaque.common.util.ReflectUtil;
@@ -49,6 +50,9 @@ public class CommandLine {
         for (Field field : ReflectUtil.getDeclaredFields(clazz)) {
             field.setAccessible(true);
             try {
+                if (!hasOption(field.getName())) {
+                    continue;
+                }
                 String optionValue = getOptionValue(field.getName());
                 if (optionValue != null && optionValue.length() > 0) {
                     Object fieldValue = typeResolver(optionValue, field.getType());
