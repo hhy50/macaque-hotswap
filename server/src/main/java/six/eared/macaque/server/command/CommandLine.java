@@ -1,6 +1,5 @@
 package six.eared.macaque.server.command;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import six.eared.macaque.common.util.ReflectUtil;
