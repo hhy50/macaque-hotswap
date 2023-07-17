@@ -38,7 +38,9 @@ task release(type: Tar, group: build, dependsOn: configurations.archives.artifac
     from(jar) {
         into('bin/')
     }
-
+    from(project(":agent").shadowJar) {
+        into('bin/')
+    }
     from("${rootDir}/bin") {
         into('bin/')
     }

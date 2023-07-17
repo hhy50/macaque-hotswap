@@ -19,7 +19,7 @@ dependencies {
 
 shadowJar {
     archiveBaseName = 'macaque-agent'
-    archiveVersion = "${projectVersion}"
+    archiveVersion = ""
     archiveClassifier = null
     manifest {
         attributes(

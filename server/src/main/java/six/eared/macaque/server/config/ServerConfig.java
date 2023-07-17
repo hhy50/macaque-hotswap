@@ -2,8 +2,6 @@ package six.eared.macaque.server.config;
 
 public class ServerConfig {
 
-    private int serverPort = 2020;
-
     private String agentpath;
 
     private boolean debug;
@@ -22,5 +20,13 @@ public class ServerConfig {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    @Override
+    public String toString() {
+        return "ServerConfig{" +
+                "agentpath=" + agentpath +
+                ", debug=" + debug +
+                '}';
     }
 }
