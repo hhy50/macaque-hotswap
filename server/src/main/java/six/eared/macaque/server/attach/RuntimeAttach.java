@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import six.eared.macaque.server.common.PortNumberGenerator;
 import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.config.ServerConfig;
-import six.eared.macaque.server.jmx.JmxClient;
+import six.eared.macaque.server.jmx.JmxClientResource;
 
 import java.io.IOException;
 
@@ -18,6 +18,8 @@ public class RuntimeAttach implements Attach {
     private final ServerConfig config;
 
     private VirtualMachine targetVM;
+
+    private JmxClientResource jmxClientResource = JmxClientResource.getInstance();
 
     public RuntimeAttach(ServerConfig config) {
         this.config = config;
@@ -44,15 +46,7 @@ public class RuntimeAttach implements Attach {
             String property = String.format("port=%s,debug=%s", agentPort, Boolean.toString(this.config.isDebug()));
             this.targetVM.loadAgent(this.config.getAgentpath(), property);
 
-            JmxClient jmxClient = null;
-            try {
-                jmxClient = new JmxClient("127.0.0.1", agentPort);
-                return jmxClient.connect();
-            } finally {
-                if (jmxClient != null) {
-                    jmxClient.distory();
-                }
-            }
+            return jmxClientResource.createResource(pid) != null;
         } catch (Exception e) {
             log.error("attach error", e);
         } finally {

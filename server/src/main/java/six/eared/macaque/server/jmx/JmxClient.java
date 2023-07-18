@@ -3,6 +3,9 @@ package six.eared.macaque.server.jmx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import six.eared.macaque.common.mbean.MBean;
+import six.eared.macaque.common.mbean.MBeanObjectName;
+import six.eared.macaque.common.rmi.EmptyRmiData;
+import six.eared.macaque.common.rmi.RmiData;
 import six.eared.macaque.server.config.LoggerName;
 
 import javax.management.JMX;
@@ -17,9 +20,12 @@ public class JmxClient {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
 
     private String ip;
+
     private Integer port;
 
     private JMXConnector connector;
+
+    private MBean<EmptyRmiData> hearbeatMBean;
 
     public JmxClient(String ip, Integer port) {
         this.ip = ip;
@@ -32,6 +38,7 @@ public class JmxClient {
             url = String.format("service:jmx:rmi:///jndi/rmi://%s:%d/macaque", ip, port);
             JMXServiceURL serviceURL = new JMXServiceURL(url);
             this.connector = JMXConnectorFactory.connect(serviceURL);
+            this.hearbeatMBean = getMBean(MBeanObjectName.HEART_BEAT_MBEAN);
             log.info("connect success url: {}", url);
             return true;
         } catch (IOException e) {
@@ -41,10 +48,15 @@ public class JmxClient {
     }
 
     public boolean isConnect() {
-        return connector != null;
+        try {
+            return connector != null && this.hearbeatMBean != null && this.hearbeatMBean.process(new EmptyRmiData()).isSuccess();
+        } catch (Exception e) {
+            log.error("isConnect error", e);
+            return false;
+        }
     }
 
-    public MBean getMBean(String objectName) {
+    public <T extends RmiData> MBean<T> getMBean(String objectName) {
         try {
             return JMX.newMBeanProxy(this.connector.getMBeanServerConnection(),
                     new ObjectName(objectName), MBean.class);

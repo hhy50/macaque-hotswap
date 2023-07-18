@@ -1,6 +1,5 @@
 package six.eared.macaque.agent;
 
-import six.eared.macaque.agent.env.Context;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.jmx.JmxMBeanManager;
 
@@ -17,14 +16,12 @@ public class AgentBootstrap {
 
     private static final AtomicBoolean START_FLAG = new AtomicBoolean(false);
 
-
     public static JmxMBeanManager JMX_MBEAN_MANAGER;
 
     public static Boolean start(String args, Instrumentation inst) {
         if (!START_FLAG.get()) {
             Properties properties = parseArgs(args);
             try {
-                Context.INST = inst;
                 Boolean debug = Boolean.parseBoolean(properties.getProperty("debug", "false"));
                 int jmxPort = Integer.parseInt(properties.getProperty("port", "3030"));
 

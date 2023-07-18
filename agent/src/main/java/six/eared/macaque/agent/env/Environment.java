@@ -7,7 +7,7 @@ public class Environment {
 
     private static final AtomicBoolean INIT_FLAG = new AtomicBoolean(false);
     private static boolean DEBUG = false;
-    public static Instrumentation INST = null;
+    private static Instrumentation INST = null;
 
     public synchronized static void initEnv(boolean debug, Instrumentation inst) {
         if (INIT_FLAG.compareAndSet(false, true)) {
@@ -18,5 +18,9 @@ public class Environment {
 
     public static boolean isDebug() {
         return DEBUG;
+    }
+
+    public static Instrumentation getInst() {
+        return INST;
     }
 }

@@ -3,6 +3,7 @@ package six.eared.macaque.agent.jmx;
 
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.jmx.mbeans.ClassHotSwap;
+import six.eared.macaque.agent.jmx.mbeans.JmxHeartbeat;
 import six.eared.macaque.common.mbean.MBean;
 
 import javax.management.MBeanServer;
@@ -45,6 +46,7 @@ public class JmxMBeanManager {
 
     private List<Class<MBean>> loadMBeanClass() {
         return (List) Arrays.asList(
+                JmxHeartbeat.class,
                 ClassHotSwap.class);
     }
 

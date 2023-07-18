@@ -3,6 +3,7 @@ package six.eared.macaque.server.attach;
 import six.eared.macaque.server.config.ServerConfig;
 
 public class DefaultAttachFactory implements AttachFactory {
+
     private static final DefaultAttachFactory INSTANCE = new DefaultAttachFactory();
 
     private DefaultAttachFactory() {

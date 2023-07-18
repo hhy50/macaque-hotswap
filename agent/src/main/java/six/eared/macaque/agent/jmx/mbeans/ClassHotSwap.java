@@ -1,6 +1,5 @@
 package six.eared.macaque.agent.jmx.mbeans;
 
-import six.eared.macaque.agent.env.Context;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.mbean.MBeanObjectName;
 import six.eared.macaque.common.rmi.ClassHotSwapRmiData;
@@ -10,17 +9,26 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClassHotSwap implements ClassHotSwapMBean {
 
     @Override
-    public RmiResult process(ClassHotSwapRmiData data) {
+    public RmiResult process(ClassHotSwapRmiData request) {
         String errMsg = null;
         try {
-            Instrumentation inst = Context.INST;
-            ClassDefinition classDefinition = new ClassDefinition(Class.forName(data.getClassName()), data.getNewClassByte());
-
-            inst.redefineClasses(classDefinition);
+            Instrumentation inst = Environment.getInst();
+            List<ClassDefinition> needRedefineClass = new ArrayList<>();
+            for (Class<?> clazz : inst.getAllLoadedClasses()) {
+                if (clazz.getName().equals(request.getClassName())) {
+                    needRedefineClass.add(new ClassDefinition(clazz, request.getNewClassByte()));
+                }
+            }
+            if (Environment.isDebug()) {
+                System.out.printf("[ClassHotSwap.process] className:[%s], find class instance count: [%d]%n", request.getClassName(), needRedefineClass.size());
+            }
+            inst.redefineClasses(needRedefineClass.toArray(new ClassDefinition[0]));
             return RmiResult.success();
         } catch (Exception e) {
             if (Environment.isDebug()) {

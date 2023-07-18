@@ -9,14 +9,15 @@ import six.eared.macaque.common.rmi.RmiResult;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.jmx.JmxClient;
-import six.eared.macaque.server.jmx.JmxConnectPool;
+import six.eared.macaque.server.jmx.JmxClientResource;
 
 public class DefaultCommandExecutor implements CommandExecutor {
+
     private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
 
     private final String pid;
 
-    private JmxConnectPool jmxConnectPool = JmxConnectPool.getINSTANCE();
+    private JmxClientResource jmxClientResource = JmxClientResource.getInstance();
 
     public DefaultCommandExecutor(String pid) {
         this.pid = pid;
@@ -37,7 +38,7 @@ public class DefaultCommandExecutor implements CommandExecutor {
             return;
         }
 
-        JmxClient jmxClient = jmxConnectPool.getResource(pid);
+        JmxClient jmxClient = jmxClientResource.getResource(pid);
         if (jmxClient != null) {
             MBean mBean = jmxClient.getMBean(MBeanObjectName.HOT_SWAP_MBEAN);
             RmiResult result = mBean.process(new ClassHotSwapRmiData(command[0],
