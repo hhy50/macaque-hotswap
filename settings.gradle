@@ -1,6 +1,6 @@
 rootProject.name = 'six-eared-macaque'
-include 'agent'
-include 'server'
-include 'common'
-include 'test'
+include 'macaque-agent'
+include 'macaque-server'
+include 'macaque-common'
+include 'macaque-http'
 

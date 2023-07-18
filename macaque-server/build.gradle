@@ -4,6 +4,7 @@ plugins {
 }
 
 group = 'six.eared.macaque'
+
 def projectName = 'macaque-server'
 
 repositories {
@@ -18,7 +19,7 @@ dependencies {
 
     implementation 'ch.qos.logback:logback-classic:1.2.3'
     implementation files("${javaHome}/lib/tools.jar")
-    implementation project(":common")
+    implementation project(":macaque-common")
     testImplementation 'junit:junit:4.13.1'
 }
 
@@ -36,11 +37,11 @@ jar {
     }
 }
 
-task release(type: Tar, group: build, dependsOn: configurations.archives.artifacts) {
+task release(type: Tar, group: build) {
     from(jar) {
         into('bin/')
     }
-    from(project(":agent").shadowJar) {
+    from(project(":macaque-agent").shadowJar) {
         into('bin/')
     }
     from("${rootDir}/bin") {

@@ -1,1 +1,1 @@
-java -jar macaque-server-1.0.jar
+java -Djava.ext.dirs=%JAVA_HOME%/lib -jar macaque-server-1.0.jar --agentpath=macaque-agent.jar --debug
