@@ -5,12 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.server.HttpServerRequest;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class JsonCodec<Req> implements Codec<Req, String> {
+public class JsonCodec<Req> extends BaseCodec<Req, String> {
 
     @Override
     public Req decode(HttpServerRequest request) {
@@ -33,17 +31,6 @@ public abstract class JsonCodec<Req> implements Codec<Req, String> {
     @Override
     public String encode(Object obj) {
         return JSONObject.toJSONString(obj);
-    }
-
-    @SuppressWarnings("unchecked")
-    public Class<Req> getReqType() {
-        ParameterizedType superGenericSuperclass = (ParameterizedType) this.getClass().getGenericSuperclass();
-        Type[] types = superGenericSuperclass.getActualTypeArguments();
-        try {
-            return (Class<Req>) Class.forName(types[0].getTypeName());
-        } catch (ClassNotFoundException e) {
-            return null;
-        }
     }
 
     private Flux<String> readStrFromRequestBody(HttpServerRequest request) {

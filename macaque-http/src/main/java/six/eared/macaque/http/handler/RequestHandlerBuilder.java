@@ -1,6 +1,5 @@
 package six.eared.macaque.http.handler;
 
-import io.netty.handler.codec.http.HttpHeaders;
 import org.reactivestreams.Publisher;
 import reactor.netty.http.server.HttpServerRoutes;
 import six.eared.macaque.http.annotitions.Path;
