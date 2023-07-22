@@ -8,7 +8,7 @@ import reactor.netty.http.server.HttpServerRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JsonCodec<Req> extends BaseCodec<Req, String> {
+public abstract class JsonCodec<Req> extends BaseCodec<Req, String> {
 
     @Override
     public Req decode(HttpServerRequest request) {

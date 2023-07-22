@@ -1,31 +1,25 @@
 package six.eared.macaque.http;
 
-import io.netty.handler.codec.http.HttpHeaders;
+import reactor.core.publisher.Flux;
 import reactor.netty.http.server.HttpServer;
+import six.eared.macaque.http.handler.RequestHandler;
+import six.eared.macaque.http.handler.RequestHandlerBuilder;
 
 public class MacaqueHttpServer {
 
     private final HttpConfig config;
+    private final Flux<RequestHandler<?>> requestHandlers;
 
-    public MacaqueHttpServer(HttpConfig config) {
+    public MacaqueHttpServer(HttpConfig config, Flux<RequestHandler<?>> requestHandlers) {
         this.config = config;
+        this.requestHandlers = requestHandlers;
     }
 
     public void start() {
+        RequestHandlerBuilder requestHandlerBuilder = new RequestHandlerBuilder(requestHandlers);
         HttpServer.create()
                 .port(this.config.getPort())
-                .route(routes ->
-                        // The server will respond only on POST requests
-                        // where the path starts with /test and then there is path parameter
-                        routes.get("/test/{param}", (request, response) -> {
-
-
-                            return response.sendString(request.receive()
-                                            .asString()
-                                            .map(s -> s + ' ' + request.param("param") + '!')
-                                            .log("http-server"));
-                                }
-                        ))
+                .route(requestHandlerBuilder::buildRouters)
                 .bindNow(); // Starts the server in a blocking fashion, and waits for it to finish its initialization
 
     }

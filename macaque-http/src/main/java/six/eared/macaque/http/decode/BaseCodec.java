@@ -5,6 +5,15 @@ import java.lang.reflect.Type;
 
 public abstract class BaseCodec<Req, Res> implements Codec<Req, Res> {
 
+    protected Req newReqObj() {
+        Class<Req> reqType = getReqType();
+        try {
+            return reqType.newInstance();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     protected Class<Req> getReqType() {
         ParameterizedType superGenericSuperclass = (ParameterizedType) this.getClass().getGenericSuperclass();
