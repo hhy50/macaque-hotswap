@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'java-library'
 }
 
 group = 'six.eared.macaque'
@@ -11,8 +12,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.projectreactor.netty:reactor-netty-core:1.1.9'
-    implementation 'io.projectreactor.netty:reactor-netty-http:1.1.9'
+    api 'io.projectreactor.netty:reactor-netty-core:1.1.9'
+    api 'io.projectreactor.netty:reactor-netty-http:1.1.9'
 
     implementation project(":macaque-common")
     testImplementation 'junit:junit:4.13.1'

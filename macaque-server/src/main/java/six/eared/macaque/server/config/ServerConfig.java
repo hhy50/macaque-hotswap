@@ -2,6 +2,8 @@ package six.eared.macaque.server.config;
 
 public class ServerConfig {
 
+    private Integer serverPort;
+
     private String agentpath;
 
     private boolean debug;
@@ -25,8 +27,17 @@ public class ServerConfig {
     @Override
     public String toString() {
         return "ServerConfig{" +
-                "agentpath=" + agentpath +
+                "serverPort=" + serverPort +
+                ", agentpath=" + agentpath +
                 ", debug=" + debug +
                 '}';
+    }
+
+    public Integer getServerPort() {
+        return serverPort;
+    }
+
+    public void setServerPort(Integer serverPort) {
+        this.serverPort = serverPort;
     }
 }

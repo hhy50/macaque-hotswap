@@ -1,26 +1,35 @@
 package six.eared.macaque.http;
 
-import reactor.core.publisher.Flux;
+import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import six.eared.macaque.http.handler.RequestHandler;
 import six.eared.macaque.http.handler.RequestHandlerBuilder;
 
+import java.util.List;
+
 public class MacaqueHttpServer {
 
     private final HttpConfig config;
-    private final Flux<RequestHandler> requestHandlers;
+    private final List<RequestHandler> requestHandlers;
 
-    public MacaqueHttpServer(HttpConfig config, Flux<RequestHandler> requestHandlers) {
+    private HttpServer server;
+
+    private DisposableServer disposableServer;
+
+    public MacaqueHttpServer(HttpConfig config, List<RequestHandler> requestHandlers) {
         this.config = config;
         this.requestHandlers = requestHandlers;
     }
 
     public void start() {
-        RequestHandlerBuilder requestHandlerBuilder = new RequestHandlerBuilder(requestHandlers);
-        HttpServer.create()
+        RequestHandlerBuilder requestHandlerBuilder = new RequestHandlerBuilder(this.config.getRootPath(), requestHandlers);
+        this.server = HttpServer.create()
                 .port(this.config.getPort())
-                .route(requestHandlerBuilder::buildRouters)
-                .bindNow(); // Starts the server in a blocking fashion, and waits for it to finish its initialization
+                .route(requestHandlerBuilder::buildRouters);
+        this.disposableServer = this.server.bindNow();
+    }
 
+    public void stop() {
+        this.disposableServer.dispose();
     }
 }

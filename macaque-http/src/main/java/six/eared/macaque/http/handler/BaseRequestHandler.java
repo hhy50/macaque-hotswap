@@ -127,7 +127,7 @@ public abstract class BaseRequestHandler<Req> implements RequestHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public Class<Req> getReqType() {
+    protected Class<Req> getReqType() {
         ParameterizedType superGenericSuperclass = (ParameterizedType) this.getClass().getGenericSuperclass();
         Type[] types = superGenericSuperclass.getActualTypeArguments();
         try {

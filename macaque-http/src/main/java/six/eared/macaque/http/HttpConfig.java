@@ -11,6 +11,11 @@ public class HttpConfig {
         this.rootPath = "/";
     }
 
+    public HttpConfig(Integer port, String rootPath) {
+        this.port = port;
+        this.rootPath = rootPath;
+    }
+
     public HttpConfig() {
     }
 

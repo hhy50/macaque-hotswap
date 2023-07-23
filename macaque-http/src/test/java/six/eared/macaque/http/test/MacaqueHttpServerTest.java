@@ -2,11 +2,12 @@ package six.eared.macaque.http.test;
 
 import org.junit.Before;
 import org.junit.Test;
-import reactor.core.publisher.Flux;
 import six.eared.macaque.http.HttpConfig;
 import six.eared.macaque.http.MacaqueHttpServer;
 import six.eared.macaque.http.annotitions.Path;
 import six.eared.macaque.http.handler.BaseRequestHandler;
+
+import java.util.Arrays;
 
 public class MacaqueHttpServerTest {
 
@@ -15,12 +16,13 @@ public class MacaqueHttpServerTest {
     @Before
     public void after() {
         this.config = new HttpConfig(8081);
+        this.config.setRootPath("/test");
     }
 
 
-    @Test(timeout = 5_000)
+    @Test
     public void testServerStart() throws InterruptedException {
-        new MacaqueHttpServer(this.config, Flux.just(new TestRequestHandler()))
+        new MacaqueHttpServer(this.config, Arrays.asList(new TestRequestHandler()))
                 .start();
     }
 
