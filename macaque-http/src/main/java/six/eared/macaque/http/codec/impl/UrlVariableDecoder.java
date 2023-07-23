@@ -1,18 +1,23 @@
-package six.eared.macaque.http.decode;
+package six.eared.macaque.http.codec.impl;
 
 import cn.hutool.core.util.ReflectUtil;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 
 
-public abstract class UrlVariableCodec<Req> extends BaseCodec<Req, Object> {
+public class UrlVariableDecoder<Req> extends BaseDecoder<Req> {
+
+    public UrlVariableDecoder(Class<Req> reqType) {
+        super(reqType);
+    }
+
     @Override
-    public Req decode(HttpServerRequest request) {
+    public Mono<Req> decode(HttpServerRequest request) {
         String uri = request.uri();
 
         if (uri.contains("?")) {
+            Req req = newReqObject();
             String urlParams = uri.split("\\?")[1];
-
-            Req req = newReqObj();
             for (String param : urlParams.split("&")) {
                 String[] kv = param.split("=");
                 try {
@@ -21,13 +26,8 @@ public abstract class UrlVariableCodec<Req> extends BaseCodec<Req, Object> {
 
                 }
             }
-            return req;
+            return Mono.just(req);
         }
-        return null;
-    }
-
-    @Override
-    public Object encode(Object obj) {
-        return null;
+        return Mono.empty();
     }
 }

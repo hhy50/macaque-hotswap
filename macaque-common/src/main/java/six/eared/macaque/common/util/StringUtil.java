@@ -6,4 +6,8 @@ public class StringUtil {
     public static final String[] SPACE_STR = {
             " ", "  ", "   ", "    "
     };
+
+    public static boolean isNotEmpty(String str) {
+        return str != null && !"".equals(str);
+    }
 }

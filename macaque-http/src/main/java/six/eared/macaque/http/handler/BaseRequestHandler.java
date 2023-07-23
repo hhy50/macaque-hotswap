@@ -5,86 +5,82 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ReflectUtil;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
-import six.eared.macaque.http.decode.*;
+import six.eared.macaque.http.codec.*;
+import six.eared.macaque.http.codec.impl.FormDecoder;
+import six.eared.macaque.http.codec.impl.JsonCodec;
+import six.eared.macaque.http.codec.impl.UrlVariableDecoder;
 import six.eared.macaque.http.response.ErrorResponse;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 
-public abstract class BaseRequestHandler<Req> implements RequestHandler<Object> {
+public abstract class BaseRequestHandler<Req> implements RequestHandler {
 
-    private static final String CONTENT_TYPE = "Content-Type";
+    protected static final String CONTENT_TYPE = "Content-Type";
 
-    private final JsonCodec<Req> jsonCodec = new JsonCodec<Req>() {};
+    protected final Class<Req> reqType = getReqType();
 
-    private final String ERROR = jsonCodec.encode(new ErrorResponse("error"));
+    protected final JsonCodec<Req> jsonCodec = new JsonCodec<>(reqType);
+
+    protected final ErrorResponse ERROR = new ErrorResponse("error");
 
     private static final Logger log = LoggerFactory.getLogger(BaseRequestHandler.class);
 
     @SuppressWarnings("unchecked")
     @Override
-    public final Flux<Object> process(HttpServerRequest request, HttpServerResponse response) {
+    public final Publisher<Void> process(HttpServerRequest request, HttpServerResponse response) {
         try {
-            return Flux.just(request)
-                    .mapNotNull(req -> {
-                        AtomicReference<Req> reqReference = new AtomicReference<>();
-                        buildDecoder(request)
-                                .map(encoder -> encoder.decode(request))
-                                .filter(Objects::nonNull)
+            setJsonResponse(response);
+            response.sendString(Flux.just(request)
+                    .map(req -> {
+                        return buildDecoder(request)
+                                .map(encoder -> {
+                                    System.out.println("encoder" + encoder.decode(request));
+                                    return encoder.decode(request);
+                                })
+                                .flatMap(item -> item)
                                 .collectList()
-                                .map((reqs) -> mergeMultiEntry(reqs, getReqType()))
-                                .subscribe(item -> {
-                                    reqReference.set(item);
+                                .map((reqs) -> {
+                                    return mergeMultiEntry(reqs, reqType);
                                 });
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                        return reqReference.get();
                     })
                     .map(this::process0)
-                    .mapNotNull(res -> {
-                        setJsonResponse(response);
+                    .map(res -> {
                         return jsonCodec.encode(res);
-                    });
+                    })
+                    .flatMap(item -> item));
         } catch (Exception e) {
             log.error("http process error", e);
         }
-        return error();
+        return Mono.empty();
     }
 
     private void setJsonResponse(HttpServerResponse response) {
-        response.header(CONTENT_TYPE, "application/json;charset=UTF-8");
+        response.responseHeaders().add(CONTENT_TYPE, "application/json;charset=UTF-8");
     }
 
-    private Flux<Object> error() {
-        return Flux.just(ERROR);
-    }
 
     private Flux<Decoder<Req>> buildDecoder(HttpServerRequest request) {
         Flux<Decoder<Req>> codecChain = null;
-
         boolean get = isGet(request);
         if (get) {
-            codecChain = Flux.just(new UrlVariableCodec<Req>() {});
+            codecChain = Flux.just(new UrlVariableDecoder<>(reqType));
         } else {
             if (isJsonRequest(request)) {
-                codecChain = Flux.just(jsonCodec, new UrlVariableCodec<Req>() {});
+                codecChain = Flux.just(jsonCodec, new UrlVariableDecoder<>(reqType));
             } else {
-                codecChain = Flux.just(new FormCodec<>(),
-                        new FileCodec<>(),
-                        new UrlVariableCodec<Req>() {});
+                codecChain = Flux.just(new FormDecoder<>(reqType),
+                        new UrlVariableDecoder<>(reqType));
             }
         }
         return codecChain;
@@ -129,7 +125,7 @@ public abstract class BaseRequestHandler<Req> implements RequestHandler<Object> 
     }
 
     @SuppressWarnings("unchecked")
-    protected Class<Req> getReqType() {
+    public Class<Req> getReqType() {
         ParameterizedType superGenericSuperclass = (ParameterizedType) this.getClass().getGenericSuperclass();
         Type[] types = superGenericSuperclass.getActualTypeArguments();
         try {
@@ -139,5 +135,5 @@ public abstract class BaseRequestHandler<Req> implements RequestHandler<Object> 
         }
     }
 
-    public abstract Object process0(Req req);
+    public abstract Mono<Object> process0(Mono<Req> req);
 }

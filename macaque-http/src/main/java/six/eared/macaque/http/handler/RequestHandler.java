@@ -4,7 +4,7 @@ import org.reactivestreams.Publisher;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 
-public interface RequestHandler<Res> {
+public interface RequestHandler {
 
-    Publisher<Res> process(HttpServerRequest request, HttpServerResponse response);
+    Publisher<Void> process(HttpServerRequest request, HttpServerResponse response);
 }

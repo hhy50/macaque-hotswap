@@ -3,6 +3,7 @@ package six.eared.macaque.http.test;
 import org.junit.Before;
 import org.junit.Test;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import six.eared.macaque.http.HttpConfig;
 import six.eared.macaque.http.MacaqueHttpServer;
 import six.eared.macaque.http.annotitions.Path;
@@ -20,17 +21,18 @@ public class MacaqueHttpServerTest {
 
     @Test
     public void testServerStart() throws InterruptedException {
-        new MacaqueHttpServer(this.config, Flux.just(new TestRequestHandler<User>() {
-
-        })).start();
+        new MacaqueHttpServer(this.config, Flux.just(new TestRequestHandler())).start();
         Thread.sleep(100000000L);
     }
 
     @Path("/getUser")
-    public static abstract class TestRequestHandler<T> extends BaseRequestHandler<T> {
+    public static class TestRequestHandler extends BaseRequestHandler<User> {
         @Override
-        public Object process0(T user) {
-            return user;
+        public Mono<Object> process0(Mono<User> user) {
+            user.subscribe((u) -> {
+                System.out.println(u);
+            });
+            return (Mono) user;
         }
     }
 

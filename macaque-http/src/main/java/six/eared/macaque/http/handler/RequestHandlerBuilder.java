@@ -2,15 +2,18 @@ package six.eared.macaque.http.handler;
 
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
+import reactor.netty.http.server.HttpServerRequest;
+import reactor.netty.http.server.HttpServerResponse;
 import reactor.netty.http.server.HttpServerRoutes;
 import six.eared.macaque.http.annotitions.Path;
 
+import java.util.function.BiFunction;
+
 public class RequestHandlerBuilder {
 
+    private final Flux<RequestHandler> requestHandlers;
 
-    private final Flux<RequestHandler<?>> requestHandlers;
-
-    public RequestHandlerBuilder(Flux<RequestHandler<?>> requestHandlers) {
+    public RequestHandlerBuilder(Flux<RequestHandler> requestHandlers) {
         this.requestHandlers = requestHandlers;
     }
 
@@ -19,13 +22,14 @@ public class RequestHandlerBuilder {
         requestHandlers.subscribe(requestHandler -> {
             Path path = requestHandler.getClass().getAnnotation(Path.class);
             if (path != null) {
-                router.post(path.value(), (request, response) -> {
-                    return (Publisher) requestHandler.process(request, response);
-                });
-                router.get(path.value(), (request, response) -> {
-                    return (Publisher) requestHandler.process(request, response);
-                });
+                BiFunction<HttpServerRequest, HttpServerResponse, Publisher<Void>> handler =
+                        (request, response) -> {
+                            return requestHandler.process(request, response);
+                        };
+                router.post(path.value(), handler);
+                router.get(path.value(), handler);
             }
         });
     }
+
 }
