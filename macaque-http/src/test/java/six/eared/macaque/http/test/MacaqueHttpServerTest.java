@@ -18,10 +18,10 @@ public class MacaqueHttpServerTest {
     }
 
 
-    @Test
+    @Test(timeout = 5_000)
     public void testServerStart() throws InterruptedException {
-        new MacaqueHttpServer(this.config, Flux.just(new TestRequestHandler())).start();
-        Thread.sleep(100000000L);
+        new MacaqueHttpServer(this.config, Flux.just(new TestRequestHandler()))
+                .start();
     }
 
     @Path("/getUser")
@@ -33,11 +33,8 @@ public class MacaqueHttpServerTest {
         }
     }
 
-
-    public static class User {
-        private String name;
-
-        private Integer age;
+    public static class P {
+        protected Integer age;
 
         public Integer getAge() {
             return age;
@@ -46,6 +43,11 @@ public class MacaqueHttpServerTest {
         public void setAge(Integer age) {
             this.age = age;
         }
+    }
+
+    public static class User extends P {
+        private String name;
+
 
         public String getName() {
             return name;
@@ -58,7 +60,7 @@ public class MacaqueHttpServerTest {
         @Override
         public String toString() {
             return "User{" +
-                    "name='" + name + '\'' +
+                    "name=" + name +
                     ", age=" + age +
                     '}';
         }

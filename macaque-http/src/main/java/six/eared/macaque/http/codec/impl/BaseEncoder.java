@@ -1,6 +1,6 @@
 package six.eared.macaque.http.codec.impl;
 
-import cn.hutool.core.util.ReflectUtil;
+import six.eared.macaque.common.util.ReflectUtil;
 import six.eared.macaque.http.codec.Encoder;
 
 public abstract class BaseEncoder<Res> implements Encoder<Res> {

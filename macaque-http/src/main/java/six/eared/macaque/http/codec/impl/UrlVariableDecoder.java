@@ -1,8 +1,8 @@
 package six.eared.macaque.http.codec.impl;
 
-import cn.hutool.core.util.ReflectUtil;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.server.HttpServerRequest;
+import six.eared.macaque.common.util.ReflectUtil;
 
 
 public class UrlVariableDecoder<Req> extends BaseDecoder<Req> {
