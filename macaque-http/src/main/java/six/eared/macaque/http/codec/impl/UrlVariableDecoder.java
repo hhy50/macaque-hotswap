@@ -1,7 +1,7 @@
 package six.eared.macaque.http.codec.impl;
 
 import cn.hutool.core.util.ReflectUtil;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import reactor.netty.http.server.HttpServerRequest;
 
 
@@ -12,7 +12,7 @@ public class UrlVariableDecoder<Req> extends BaseDecoder<Req> {
     }
 
     @Override
-    public Mono<Req> decode(HttpServerRequest request) {
+    public Flux<Req> decode(HttpServerRequest request) {
         String uri = request.uri();
 
         if (uri.contains("?")) {
@@ -26,8 +26,8 @@ public class UrlVariableDecoder<Req> extends BaseDecoder<Req> {
 
                 }
             }
-            return Mono.just(req);
+            return Flux.just(req);
         }
-        return Mono.empty();
+        return Flux.empty();
     }
 }

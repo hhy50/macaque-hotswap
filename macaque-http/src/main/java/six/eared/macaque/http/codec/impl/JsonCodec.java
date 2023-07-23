@@ -1,7 +1,7 @@
 package six.eared.macaque.http.codec.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import six.eared.macaque.common.util.StringUtil;
@@ -13,22 +13,18 @@ public class JsonCodec<Req> extends BaseCodec<Req, String> {
     }
 
     @Override
-    public Mono<Req> decode(HttpServerRequest request) {
-        String body = readFromRequestBody(request);
-        if (StringUtil.isNotEmpty(body)) {
-            JSONObject jsonObject = JSONObject.parseObject(body);
-            return Mono.just(BeanUtil.toBean(jsonObject, reqType));
-        }
-        return Mono.empty();
+    public Flux<Req> decode(HttpServerRequest request) {
+        return readFromRequestBody(request)
+                .defaultIfEmpty(StringUtil.EMPTY_STR)
+                .map((item) -> JSONObject.parseObject(item, reqType));
     }
 
     @Override
     public Mono<String> encode(Mono<Object> obj) {
-        return Mono.just(JSONObject.toJSONString(obj));
+        return obj.map(JSONObject::toJSONString);
     }
 
-    private String readFromRequestBody(HttpServerRequest request) {
-        return request.receive().asString()
-                .toIterable().iterator().next();
+    private Flux<String> readFromRequestBody(HttpServerRequest request) {
+        return request.receive().asString();
     }
 }

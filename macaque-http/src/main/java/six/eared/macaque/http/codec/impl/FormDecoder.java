@@ -1,10 +1,7 @@
 package six.eared.macaque.http.codec.impl;
 
-import cn.hutool.core.bean.BeanUtil;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import reactor.netty.http.server.HttpServerRequest;
-
-import java.util.Map;
 
 public class FormDecoder<Req> extends BaseDecoder<Req> {
 
@@ -13,11 +10,7 @@ public class FormDecoder<Req> extends BaseDecoder<Req> {
     }
 
     @Override
-    public Mono<Req> decode(HttpServerRequest request) {
-        if (request.isFormUrlencoded()) {
-            Map<String, String> params = request.params();
-            return Mono.just(BeanUtil.toBean(params, reqType));
-        }
-        return Mono.empty();
+    public Flux<Req> decode(HttpServerRequest request) {
+        return Flux.empty();
     }
 }

@@ -1,7 +1,6 @@
 package six.eared.macaque.http;
 
 import reactor.core.publisher.Flux;
-import reactor.netty.NettyOutbound;
 import reactor.netty.http.server.HttpServer;
 import six.eared.macaque.http.handler.RequestHandler;
 import six.eared.macaque.http.handler.RequestHandlerBuilder;

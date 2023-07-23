@@ -3,7 +3,6 @@ package six.eared.macaque.http.test;
 import org.junit.Before;
 import org.junit.Test;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import six.eared.macaque.http.HttpConfig;
 import six.eared.macaque.http.MacaqueHttpServer;
 import six.eared.macaque.http.annotitions.Path;
@@ -28,11 +27,9 @@ public class MacaqueHttpServerTest {
     @Path("/getUser")
     public static class TestRequestHandler extends BaseRequestHandler<User> {
         @Override
-        public Mono<Object> process0(Mono<User> user) {
-            user.subscribe((u) -> {
-                System.out.println(u);
-            });
-            return (Mono) user;
+        public Object process0(User user) {
+            System.out.println(user);
+            return user;
         }
     }
 
@@ -56,6 +53,14 @@ public class MacaqueHttpServerTest {
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return "User{" +
+                    "name='" + name + '\'' +
+                    ", age=" + age +
+                    '}';
         }
     }
 }

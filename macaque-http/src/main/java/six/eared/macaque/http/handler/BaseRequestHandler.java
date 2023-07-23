@@ -12,7 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
-import six.eared.macaque.http.codec.*;
+import six.eared.macaque.http.codec.Decoder;
 import six.eared.macaque.http.codec.impl.FormDecoder;
 import six.eared.macaque.http.codec.impl.JsonCodec;
 import six.eared.macaque.http.codec.impl.UrlVariableDecoder;
@@ -39,30 +39,32 @@ public abstract class BaseRequestHandler<Req> implements RequestHandler {
     @SuppressWarnings("unchecked")
     @Override
     public final Publisher<Void> process(HttpServerRequest request, HttpServerResponse response) {
-        try {
-            setJsonResponse(response);
-            response.sendString(Flux.just(request)
-                    .map(req -> {
-                        return buildDecoder(request)
-                                .map(encoder -> {
-                                    System.out.println("encoder" + encoder.decode(request));
-                                    return encoder.decode(request);
-                                })
-                                .flatMap(item -> item)
-                                .collectList()
-                                .map((reqs) -> {
-                                    return mergeMultiEntry(reqs, reqType);
-                                });
-                    })
-                    .map(this::process0)
-                    .map(res -> {
-                        return jsonCodec.encode(res);
-                    })
-                    .flatMap(item -> item));
-        } catch (Exception e) {
-            log.error("http process error", e);
-        }
-        return Mono.empty();
+        setJsonResponse(response);
+        return response.sendString(Mono.just(request)
+                .map(req -> {
+                    return buildDecoder(request)
+                            .map(encoder -> {
+                                return encoder.decode(request);
+                            })
+                            .flatMap(item -> item)
+                            .collectList()
+                            .map((reqs) -> {
+                                return mergeMultiEntry(reqs, reqType);
+                            });
+                })
+                .flatMap(item -> item)
+                .map((req) -> {
+                    try {
+                        Object res = this.process0(req);
+                        return res == null ? ERROR : res;
+                    } catch (Exception e) {
+                        log.error("http process error", e);
+                    }
+                    return ERROR;
+                })
+                .transform(res -> {
+                    return jsonCodec.encode(res);
+                }));
     }
 
     private void setJsonResponse(HttpServerResponse response) {
@@ -135,5 +137,5 @@ public abstract class BaseRequestHandler<Req> implements RequestHandler {
         }
     }
 
-    public abstract Mono<Object> process0(Mono<Req> req);
+    public abstract Object process0(Req req);
 }
