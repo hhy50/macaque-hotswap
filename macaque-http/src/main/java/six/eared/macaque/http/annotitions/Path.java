@@ -12,5 +12,5 @@ public @interface Path {
 
     String value() default "";
 
-    RequestMethod method() default RequestMethod.POST;
+    RequestMethod[] method() default RequestMethod.POST;
 }

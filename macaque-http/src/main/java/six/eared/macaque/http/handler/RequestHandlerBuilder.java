@@ -5,6 +5,7 @@ import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 import reactor.netty.http.server.HttpServerRoutes;
 import six.eared.macaque.http.annotitions.Path;
+import six.eared.macaque.http.annotitions.RequestMethod;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,8 +32,14 @@ public class RequestHandlerBuilder {
                         (request, response) -> {
                             return requestHandler.process(request, response);
                         };
-                router.post(uri, handler);
-                router.get(uri, handler);
+                for (RequestMethod requestMethod : path.method()) {
+                    if (requestMethod == RequestMethod.POST) {
+                        router.post(uri, handler);
+                    }
+                    if (requestMethod == RequestMethod.GET) {
+                        router.get(uri, handler);
+                    }
+                }
             }
         });
     }
