@@ -57,7 +57,6 @@ task release(type: Tar, group: build) {
 
     from(configurations.runtimeClasspath.files) {
         exclude "macaque-*-${projectVersion}.jar"
-        exclude "macaque-*-${projectVersion}.jar"
         into('libs/')
     }
 

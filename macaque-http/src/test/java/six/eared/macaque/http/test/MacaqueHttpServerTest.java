@@ -5,9 +5,12 @@ import org.junit.Test;
 import six.eared.macaque.http.HttpConfig;
 import six.eared.macaque.http.MacaqueHttpServer;
 import six.eared.macaque.http.annotitions.Path;
+import six.eared.macaque.http.annotitions.RequestMethod;
 import six.eared.macaque.http.handler.BaseRequestHandler;
+import six.eared.macaque.http.request.MultipartFile;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class MacaqueHttpServerTest {
 
@@ -24,14 +27,24 @@ public class MacaqueHttpServerTest {
     public void testServerStart() throws InterruptedException {
         new MacaqueHttpServer(this.config, Arrays.asList(new TestRequestHandler()))
                 .start();
+        Thread.sleep(20000000);
     }
-
-    @Path("/getUser")
+// 组合器
+    @Path(value = "/getUser",method = {RequestMethod.POST, RequestMethod.GET})
     public static class TestRequestHandler extends BaseRequestHandler<User> {
         @Override
         public Object process0(User user) {
             System.out.println(user);
             return user;
+        }
+    }
+
+    @Path("/upload")
+    public static class TestFile extends BaseRequestHandler<MyFile> {
+        @Override
+        public Object process0(MyFile file) {
+
+            return new HashMap<>();
         }
     }
 
@@ -65,6 +78,18 @@ public class MacaqueHttpServerTest {
                     "name=" + name +
                     ", age=" + age +
                     '}';
+        }
+    }
+
+    public static class MyFile extends User {
+        private MultipartFile file;
+
+        public MultipartFile getFile() {
+            return file;
+        }
+
+        public void setFile(MultipartFile file) {
+            this.file = file;
         }
     }
 }

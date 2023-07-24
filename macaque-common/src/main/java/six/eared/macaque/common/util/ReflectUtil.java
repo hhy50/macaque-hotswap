@@ -33,20 +33,40 @@ public class ReflectUtil {
         return null;
     }
 
+    /**
+     * TODO  value对应的类型为基本数据类型, 需要调用对应的set方法
+     * @param obj
+     * @param fieldName
+     * @param value
+     * @param <T>
+     */
     public static <T> void setFieldValue(T obj, String fieldName, Object value) {
         Field[] fields = getFields(obj.getClass());
         for (Field field : fields) {
             if (field.getName().equals(fieldName)) {
-                field.setAccessible(true);
-                try {
-                    if (value.getClass() == String.class && field.getType() == Integer.class) {
-                        value = Integer.parseInt((String) value);
-                    }
-                    field.set(obj, value);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
+                setFieldValue(obj, field, value);
             }
+        }
+    }
+
+    public static Object getFieldValue(Object obj, Field field) {
+        try {
+            field.setAccessible(true);
+            return field.get(obj);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> void setFieldValue(T obj, Field field, Object value) {
+        try {
+            field.setAccessible(true);
+            if (value.getClass() == String.class && field.getType() == Integer.class) {
+                value = Integer.parseInt((String) value);
+            }
+            field.set(obj, value);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -65,5 +85,15 @@ public class ReflectUtil {
             result[t++] = arr2[i];
         }
         return result;
+    }
+
+    public static boolean hasField(Class<?> clazz, String fieldName) {
+        Field[] fields = getFields(clazz);
+        for (Field field : fields) {
+            if (field.getName().equals(fieldName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

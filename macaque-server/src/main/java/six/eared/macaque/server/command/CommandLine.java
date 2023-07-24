@@ -47,7 +47,6 @@ public class CommandLine {
 
         // TODO: 嵌套对象解析 obj.children.field
         for (Field field : ReflectUtil.getDeclaredFields(clazz)) {
-            field.setAccessible(true);
             try {
                 if (!hasOption(field.getName())) {
                     continue;
@@ -56,19 +55,20 @@ public class CommandLine {
                 if (optionValue != null && optionValue.length() > 0) {
                     Object fieldValue = typeResolver(optionValue, field.getType());
                     if (fieldValue != null) {
-                        field.set(obj, typeResolver(optionValue, field.getType()));
+                        ReflectUtil.setFieldValue(obj, field, fieldValue);
                     }
                 } else {
                     Class<?> type = field.getType();
                     if (type == Boolean.class) {
-                        field.set(obj, Boolean.TRUE);
+                        ReflectUtil.setFieldValue(obj, field, Boolean.TRUE);
                     }
                     if (type.getSimpleName().equals("boolean")) {
+                        field.setAccessible(true);
                         field.setBoolean(obj, true);
                     }
                 }
             } catch (IllegalAccessException e) {
-                log.error("CommandLine.toObject() error", e);
+                throw new RuntimeException(e);
             }
         }
         return obj;

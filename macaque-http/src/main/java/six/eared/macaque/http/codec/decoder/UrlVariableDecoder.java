@@ -1,22 +1,17 @@
-package six.eared.macaque.http.codec.impl;
+package six.eared.macaque.http.codec.decoder;
 
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import six.eared.macaque.common.util.ReflectUtil;
 
 
 public class UrlVariableDecoder<Req> extends BaseDecoder<Req> {
 
-    public UrlVariableDecoder(Class<Req> reqType) {
-        super(reqType);
-    }
-
     @Override
-    public Flux<Req> decode(HttpServerRequest request) {
+    public Mono<Req> decode(HttpServerRequest request, Class<Req> reqType) {
         String uri = request.uri();
-
         if (uri.contains("?")) {
-            Req req = newReqObject();
+            Req req = newReqObject(reqType);
             String urlParams = uri.split("\\?")[1];
             for (String param : urlParams.split("&")) {
                 String[] kv = param.split("=");
@@ -26,8 +21,8 @@ public class UrlVariableDecoder<Req> extends BaseDecoder<Req> {
 
                 }
             }
-            return Flux.just(req);
+            return Mono.just(req);
         }
-        return Flux.empty();
+        return Mono.empty();
     }
 }
