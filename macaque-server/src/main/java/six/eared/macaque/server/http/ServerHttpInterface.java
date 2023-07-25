@@ -1,7 +1,7 @@
 package six.eared.macaque.server.http;
 
-import six.eared.macaque.common.rmi.RmiResult;
 import six.eared.macaque.http.handler.BaseRequestHandler;
+import six.eared.macaque.mbean.rmi.RmiResult;
 
 public abstract class ServerHttpInterface<T> extends BaseRequestHandler<T> {
 

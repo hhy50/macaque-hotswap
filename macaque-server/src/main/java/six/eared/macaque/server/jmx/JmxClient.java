@@ -2,10 +2,10 @@ package six.eared.macaque.server.jmx;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.common.mbean.MBean;
-import six.eared.macaque.common.mbean.MBeanObjectName;
-import six.eared.macaque.common.rmi.EmptyRmiData;
-import six.eared.macaque.common.rmi.RmiData;
+import six.eared.macaque.mbean.MBean;
+import six.eared.macaque.mbean.MBeanObjectName;
+import six.eared.macaque.mbean.rmi.EmptyRmiData;
+import six.eared.macaque.mbean.rmi.RmiData;
 import six.eared.macaque.server.config.LoggerName;
 
 import javax.management.JMX;

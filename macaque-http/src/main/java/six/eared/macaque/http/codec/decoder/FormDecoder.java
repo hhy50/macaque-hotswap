@@ -17,7 +17,7 @@ public class FormDecoder<Req> extends BaseDecoder<Req> {
         if (request.method() == HttpMethod.POST) {
             return request.receiveForm()
                     .collectList()
-                    .handle((list, sink) -> {
+                    .map((list) -> {
                         Req reqObj = newReqObject(reqType);
                         loop:
                         for (Field field : ReflectUtil.getFields(reqType)) {
@@ -36,7 +36,7 @@ public class FormDecoder<Req> extends BaseDecoder<Req> {
                                 }
                             }
                         }
-                        sink.next(reqObj);
+                        return reqObj;
                     });
         }
         return Mono.empty();

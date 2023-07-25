@@ -1,9 +1,9 @@
 package six.eared.macaque.agent.jmx.mbeans;
 
 import six.eared.macaque.agent.env.Environment;
-import six.eared.macaque.common.mbean.MBeanObjectName;
-import six.eared.macaque.common.rmi.ClassHotSwapRmiData;
-import six.eared.macaque.common.rmi.RmiResult;
+import six.eared.macaque.mbean.MBeanObjectName;
+import six.eared.macaque.mbean.rmi.ClassHotSwapRmiData;
+import six.eared.macaque.mbean.rmi.RmiResult;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;

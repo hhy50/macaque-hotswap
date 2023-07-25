@@ -4,7 +4,7 @@ package six.eared.macaque.agent.jmx;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.jmx.mbeans.ClassHotSwap;
 import six.eared.macaque.agent.jmx.mbeans.JmxHeartbeat;
-import six.eared.macaque.common.mbean.MBean;
+import six.eared.macaque.mbean.MBean;
 
 import javax.management.MBeanServer;
 import java.lang.management.ManagementFactory;

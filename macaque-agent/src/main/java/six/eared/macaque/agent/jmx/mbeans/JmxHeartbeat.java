@@ -1,12 +1,13 @@
 package six.eared.macaque.agent.jmx.mbeans;
 
-import six.eared.macaque.common.rmi.EmptyRmiData;
-import six.eared.macaque.common.rmi.RmiResult;
+
+import six.eared.macaque.mbean.MBeanObjectName;
+import six.eared.macaque.mbean.rmi.EmptyRmiData;
+import six.eared.macaque.mbean.rmi.RmiResult;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import static six.eared.macaque.common.mbean.MBeanObjectName.HEART_BEAT_MBEAN;
 
 public class JmxHeartbeat implements JmxHeartbeatMBean {
 
@@ -17,6 +18,6 @@ public class JmxHeartbeat implements JmxHeartbeatMBean {
 
     @Override
     public ObjectName getMBeanName() throws MalformedObjectNameException {
-        return new ObjectName(HEART_BEAT_MBEAN);
+        return new ObjectName(MBeanObjectName.HEART_BEAT_MBEAN);
     }
 }

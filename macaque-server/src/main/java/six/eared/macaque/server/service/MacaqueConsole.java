@@ -54,7 +54,7 @@ class MacaqueConsole implements MacaqueService {
     }
 
     private void printBanner() {
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("macaque.txt")) {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("macaque .txt")) {
             byte[] bytes = FileUtil.is2bytes(is);
             if (bytes != null) {
                 log.info(new String(bytes));

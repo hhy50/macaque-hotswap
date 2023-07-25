@@ -19,6 +19,7 @@ dependencies {
 
     implementation files("${javaHome}/lib/tools.jar")
     implementation project(":macaque-common")
+    implementation project(":macaque-mbean")
     implementation project(":macaque-http")
     testImplementation 'junit:junit:4.13.1'
 }
@@ -49,6 +50,9 @@ task release(type: Tar, group: build) {
     }
 
     from(project(":macaque-common").jar) {
+        into('libs/')
+    }
+    from(project(":macaque-mbean").jar) {
         into('libs/')
     }
     from(project(":macaque-http").jar) {

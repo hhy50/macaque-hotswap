@@ -13,7 +13,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 sourceCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-    implementation project(':macaque-common')
+    implementation project(':macaque-mbean')
 }
 
 

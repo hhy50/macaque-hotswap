@@ -3,8 +3,8 @@ package six.eared.macaque.server.http.interfaces;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.common.rmi.RmiResult;
 import six.eared.macaque.http.annotitions.Path;
+import six.eared.macaque.mbean.rmi.RmiResult;
 import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.http.ServerHttpInterface;
 

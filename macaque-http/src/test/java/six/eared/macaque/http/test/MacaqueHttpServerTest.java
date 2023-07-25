@@ -23,11 +23,10 @@ public class MacaqueHttpServerTest {
     }
 
 
-    @Test
+    @Test(timeout = 5000)
     public void testServerStart() throws InterruptedException {
         new MacaqueHttpServer(this.config, Arrays.asList(new TestRequestHandler()))
                 .start();
-        Thread.sleep(20000000);
     }
 // 组合器
     @Path(value = "/getUser",method = {RequestMethod.POST, RequestMethod.GET})

@@ -1,7 +1,9 @@
-package six.eared.macaque.common.mbean;
+package six.eared.macaque.mbean;
 
-import six.eared.macaque.common.rmi.RmiData;
-import six.eared.macaque.common.rmi.RmiResult;
+
+
+import six.eared.macaque.mbean.rmi.RmiData;
+import six.eared.macaque.mbean.rmi.RmiResult;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;

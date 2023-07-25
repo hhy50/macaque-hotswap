@@ -1,4 +1,4 @@
-package six.eared.macaque.common.rmi;
+package six.eared.macaque.mbean.rmi;
 
 import java.io.Serializable;
 
