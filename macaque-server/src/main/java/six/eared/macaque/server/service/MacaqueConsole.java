@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.Pair;
 import six.eared.macaque.server.attach.Attach;
-import six.eared.macaque.server.attach.AttachFactory;
 import six.eared.macaque.server.attach.DefaultAttachFactory;
 import six.eared.macaque.server.command.DefaultCommandExecutor;
 import six.eared.macaque.server.config.LoggerName;
@@ -13,9 +12,7 @@ import six.eared.macaque.server.config.ServerConfig;
 import six.eared.macaque.server.process.JavaProcessHolder;
 
 import java.io.InputStream;
-import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 class MacaqueConsole implements MacaqueService {
 
@@ -23,14 +20,13 @@ class MacaqueConsole implements MacaqueService {
 
     private ServerConfig serverConfig;
 
-    private AttachFactory attachFactory = DefaultAttachFactory.getInstance();
+    private DefaultAttachFactory defaultAttachFactory;
 
     private Attach attach = null;
 
-    private static List<String> ATTACH_HISTORY = new CopyOnWriteArrayList<>();
-
     public MacaqueConsole(ServerConfig serverConfig) {
         this.serverConfig = serverConfig;
+        this.defaultAttachFactory = new DefaultAttachFactory(serverConfig);
     }
 
     @Override
@@ -39,9 +35,8 @@ class MacaqueConsole implements MacaqueService {
         printBanner();
 
         String pid = waitConsoleNextInput(true);
-        this.attach = this.attachFactory.createRuntimeAttach(serverConfig);
-        if (!this.attach.attach(pid)) {
-            log.error("attach error");
+        this.attach = this.defaultAttachFactory.createRuntimeAttach(pid);
+        if (!this.attach.attach()) {
             System.exit(-1);
             return;
         }

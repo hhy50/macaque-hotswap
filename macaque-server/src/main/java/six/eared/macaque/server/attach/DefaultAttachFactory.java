@@ -2,20 +2,27 @@ package six.eared.macaque.server.attach;
 
 import six.eared.macaque.server.config.ServerConfig;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DefaultAttachFactory implements AttachFactory {
 
-    private static final DefaultAttachFactory INSTANCE = new DefaultAttachFactory();
+    private static final Map<String, RuntimeAttach> HISTORY = new HashMap<>();
 
-    private DefaultAttachFactory() {
+    private ServerConfig serverConfig;
 
-    }
-
-    public static DefaultAttachFactory getInstance() {
-        return INSTANCE;
+    public DefaultAttachFactory(ServerConfig serverConfig) {
+        this.serverConfig = serverConfig;
     }
 
     @Override
-    public Attach createRuntimeAttach(ServerConfig serverConfig) {
-        return new RuntimeAttach(serverConfig);
+    public synchronized Attach createRuntimeAttach(String pid) {
+        RuntimeAttach attach = HISTORY.get(pid);
+        if (attach != null) {
+            return attach;
+        }
+        RuntimeAttach runtimeAttach = new RuntimeAttach(pid, this.serverConfig);
+        HISTORY.put(pid, runtimeAttach);
+        return runtimeAttach;
     }
 }

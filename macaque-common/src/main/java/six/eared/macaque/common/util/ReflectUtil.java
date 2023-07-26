@@ -1,6 +1,7 @@
 package six.eared.macaque.common.util;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
 public class ReflectUtil {
@@ -23,18 +24,29 @@ public class ReflectUtil {
         return t;
     }
 
-    public static <T> T newInstance(Class<T> clazz) {
+    public static <T> T newInstance(Class<T> clazz, Object... args) {
         try {
-            T t = clazz.newInstance();
+            T t = null;
+            if (args.length == 0) {
+                t = clazz.newInstance();
+            } else {
+                // TODO 多态类型的构造参数
+                Class[] argsType = new Class[args.length];
+                for (int i = 0; i < args.length; i++) {
+                    argsType[i] = args[i].getClass();
+                }
+                Constructor<T> constructor = clazz.getDeclaredConstructor(argsType);
+                t = constructor.newInstance(args);
+            }
             return t;
         } catch (Exception e) {
-
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     /**
      * TODO  value对应的类型为基本数据类型, 需要调用对应的set方法
+     *
      * @param obj
      * @param fieldName
      * @param value

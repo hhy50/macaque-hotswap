@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import six.eared.macaque.server.common.PortNumberGenerator;
 import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.config.ServerConfig;
-import six.eared.macaque.server.jmx.JmxClientResource;
+import six.eared.macaque.server.jmx.JmxClientResourceManager;
 
 import java.io.IOException;
 
@@ -15,18 +15,24 @@ public class RuntimeAttach implements Attach {
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
 
+    private String pid;
+
     private final ServerConfig config;
 
     private VirtualMachine targetVM;
 
-    private JmxClientResource jmxClientResource = JmxClientResource.getInstance();
+    private volatile boolean attached;
 
-    public RuntimeAttach(ServerConfig config) {
+    public RuntimeAttach(String pid, ServerConfig config) {
+        this.pid = pid;
         this.config = config;
     }
 
     @Override
-    public boolean attach(String pid) {
+    public synchronized boolean attach() {
+        if (this.attached) {
+            return true;
+        }
         VirtualMachineDescriptor virtualMachineDescriptor = null;
         for (VirtualMachineDescriptor descriptor : VirtualMachine.list()) {
             if (descriptor.id().equals(pid)) {
@@ -42,11 +48,13 @@ public class RuntimeAttach implements Attach {
                 this.targetVM = VirtualMachine.attach(virtualMachineDescriptor);
             }
 
-            Integer agentPort = PortNumberGenerator.getPort(Integer.parseInt(pid));
-            String property = String.format("port=%s,debug=%s", agentPort, Boolean.toString(this.config.isDebug()));
-            this.targetVM.loadAgent(this.config.getAgentpath(), property);
-
-            return jmxClientResource.createResource(pid) != null;
+            if (this.targetVM != null) {
+                Integer agentPort = PortNumberGenerator.getPort(Integer.parseInt(pid));
+                String property = String.format("port=%s,debug=%s", agentPort, Boolean.toString(this.config.isDebug()));
+                this.targetVM.loadAgent(this.config.getAgentpath(), property);
+                this.attached = JmxClientResourceManager.getInstance()
+                        .createResource(pid) != null;
+            }
         } catch (Exception e) {
             log.error("attach error", e);
         } finally {
@@ -58,6 +66,6 @@ public class RuntimeAttach implements Attach {
                 }
             }
         }
-        return false;
+        return this.attached;
     }
 }

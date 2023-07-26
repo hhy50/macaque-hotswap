@@ -2,6 +2,7 @@ package six.eared.macaque.server.process;
 
 import com.sun.tools.attach.VirtualMachine;
 import six.eared.macaque.common.util.Pair;
+import six.eared.macaque.server.common.PID;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -9,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class JavaProcessHolder {
 
-    private static List<Pair<String /** pid */,
+    private volatile static List<Pair<String /** pid */,
                                     String /** processName */>> PROCESS_LIST = new CopyOnWriteArrayList<>();
 
     static {
@@ -25,6 +26,8 @@ public class JavaProcessHolder {
                 .map(item -> {
                     // TODO 有些Java进程不显示进程名称, 比如 idea
                     return Pair.of(item.id(), item.displayName());
+                }).filter(item -> {
+                    return !item.getFirst().equals(PID.getCurrentPid().toString());
                 }).collect(Collectors.toList());
     }
 }

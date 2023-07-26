@@ -4,7 +4,6 @@ public interface Attach {
 
     /**
      * attach process
-     * @param pid
      */
-    public boolean attach(String pid);
+    public boolean attach();
 }

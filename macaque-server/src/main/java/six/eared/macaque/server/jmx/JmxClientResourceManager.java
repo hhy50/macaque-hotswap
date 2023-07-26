@@ -7,19 +7,19 @@ import six.eared.macaque.server.config.LoggerName;
 
 import java.io.IOException;
 
-public class JmxClientResource {
+public class JmxClientResourceManager {
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
 
     private static final JmxConnectPool pool = new JmxConnectPool();
 
-    private static JmxClientResource INSTANCE = new JmxClientResource();
+    private static final JmxClientResourceManager INSTANCE = new JmxClientResourceManager();
 
-    private JmxClientResource() {
+    private JmxClientResourceManager() {
 
     }
 
-    public static JmxClientResource getInstance() {
+    public static JmxClientResourceManager getInstance() {
         return INSTANCE;
     }
 

@@ -24,7 +24,7 @@ public class MacaqueBootStrap {
 
     private static final Logger consoleLog = LoggerFactory.getLogger(LoggerName.CONSOLE);
 
-    private static final ServiceFactory serviceFactory = DefaultServiceFactoryImpl.getINSTANCE();
+    private static final ServiceFactory serviceFactory = new DefaultServiceFactoryImpl();
 
     public static void main(String[] args) {
         CommandLine commandLine = new CommandLine(args);

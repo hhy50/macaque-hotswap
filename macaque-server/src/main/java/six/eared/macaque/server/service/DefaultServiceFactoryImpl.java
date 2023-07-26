@@ -4,14 +4,8 @@ import six.eared.macaque.server.config.ServerConfig;
 
 public class DefaultServiceFactoryImpl implements ServiceFactory {
 
-    private static final DefaultServiceFactoryImpl INSTANCE = new DefaultServiceFactoryImpl();
+    public DefaultServiceFactoryImpl() {
 
-    private DefaultServiceFactoryImpl() {
-
-    }
-
-    public static DefaultServiceFactoryImpl getINSTANCE() {
-        return INSTANCE;
     }
 
     @Override

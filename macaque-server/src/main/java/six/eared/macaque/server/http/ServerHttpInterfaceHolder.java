@@ -1,7 +1,8 @@
 package six.eared.macaque.server.http;
 
 
-import six.eared.macaque.server.http.interfaces.HotSwapClassRequestHandler;
+import six.eared.macaque.server.http.interfaces.ClassHotSwapRequestHandler;
+import six.eared.macaque.server.http.interfaces.JpsRequestHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,8 @@ public class ServerHttpInterfaceHolder {
             INTERFACES = new ArrayList<>();
 
     static {
-        addInterface((Class) HotSwapClassRequestHandler.class);
+        addInterface((Class) ClassHotSwapRequestHandler.class);
+        addInterface((Class) JpsRequestHandler.class);
     }
 
     public static void addInterface(Class<ServerHttpInterface> httpInterface) {
