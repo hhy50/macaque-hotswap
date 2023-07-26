@@ -35,11 +35,6 @@ public class ClassHotSwap implements ClassHotSwapMBean {
                 System.out.println("ClassHotSwap.process error");
                 e.printStackTrace();
             }
-
-            errMsg = e.getMessage();
-            if (errMsg == null || "".equals(errMsg)) {
-                errMsg = e.getCause().getMessage();
-            }
         }
         return RmiResult.error(errMsg);
     }
