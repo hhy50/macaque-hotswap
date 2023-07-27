@@ -22,6 +22,9 @@ public class DecoderCombiner<Req> extends BaseDecoder<Req> {
 
     @Override
     public Mono<Req> decode(HttpServerRequest request, Class<Req> reqType) {
+        if (reqType == Object.class) {
+            return Mono.just((Req) new Object());
+        }
         return Flux.fromIterable(head)
                 .map(decoder -> decoder.decode(request, reqType))
                 .flatMap(item -> item)

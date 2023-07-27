@@ -5,7 +5,6 @@ import com.sun.tools.attach.VirtualMachineDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import six.eared.macaque.server.common.PortNumberGenerator;
-import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.config.ServerConfig;
 import six.eared.macaque.server.jmx.JmxClientResourceManager;
 
@@ -13,7 +12,7 @@ import java.io.IOException;
 
 public class RuntimeAttach implements Attach {
 
-    private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
+    private static final Logger log = LoggerFactory.getLogger(RuntimeAttach.class);
 
     private String pid;
 

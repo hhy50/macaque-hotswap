@@ -26,7 +26,7 @@ public class JsonDecoder<Req> extends BaseDecoder<Req> {
         HttpHeaders headers = request.requestHeaders();
 
         String contentType = headers.get(HttpHeaderNames.CONTENT_TYPE);
-        return contentType.contains("application/json");
+        return StringUtil.isNotEmpty(contentType) && contentType.contains("application/json");
     }
 
     private Mono<String> readFromRequestBody(HttpServerRequest request) {

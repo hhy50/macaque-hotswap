@@ -44,4 +44,12 @@ public class RmiResult implements Serializable {
     public void setData(Object data) {
         this.data = data;
     }
+
+    @Override
+    public String toString() {
+        return "RmiResult{" +
+                "success=" + success +
+                ", message='" + message + '\'' +
+                '}';
+    }
 }

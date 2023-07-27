@@ -1,9 +1,6 @@
 package six.eared.macaque.server.command;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import six.eared.macaque.common.util.ReflectUtil;
-import six.eared.macaque.server.config.LoggerName;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -12,8 +9,6 @@ import java.util.stream.Collectors;
 import static six.eared.macaque.common.util.StringUtil.*;
 
 public class CommandLine {
-
-    private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
 
     private List<Option> options;
 

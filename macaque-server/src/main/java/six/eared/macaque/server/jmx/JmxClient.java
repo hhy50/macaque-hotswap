@@ -6,7 +6,6 @@ import six.eared.macaque.mbean.MBean;
 import six.eared.macaque.mbean.MBeanObjectName;
 import six.eared.macaque.mbean.rmi.EmptyRmiData;
 import six.eared.macaque.mbean.rmi.RmiData;
-import six.eared.macaque.server.config.LoggerName;
 
 import javax.management.JMX;
 import javax.management.ObjectName;
@@ -17,7 +16,7 @@ import java.io.IOException;
 
 public class JmxClient {
 
-    private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
+    private static final Logger log = LoggerFactory.getLogger(JmxClient.class);
 
     private String ip;
 

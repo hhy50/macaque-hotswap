@@ -3,13 +3,12 @@ package six.eared.macaque.server.jmx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import six.eared.macaque.server.common.PortNumberGenerator;
-import six.eared.macaque.server.config.LoggerName;
 
 import java.io.IOException;
 
 public class JmxClientResourceManager {
 
-    private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
+    private static final Logger log = LoggerFactory.getLogger(JmxClientResourceManager.class);
 
     private static final JmxConnectPool pool = new JmxConnectPool();
 

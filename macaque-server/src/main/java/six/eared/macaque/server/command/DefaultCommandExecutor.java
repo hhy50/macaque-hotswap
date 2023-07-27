@@ -13,7 +13,7 @@ import six.eared.macaque.server.jmx.JmxClientResourceManager;
 
 public class DefaultCommandExecutor implements CommandExecutor {
 
-    private static final Logger log = LoggerFactory.getLogger(LoggerName.auto());
+    private static final Logger log = LoggerFactory.getLogger(LoggerName.CONSOLE);
 
     private final String pid;
 

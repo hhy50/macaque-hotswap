@@ -16,7 +16,7 @@ import java.util.Scanner;
 
 class MacaqueConsole implements MacaqueService {
 
-    private static final Logger log = LoggerFactory.getLogger(LoggerName.CONSOLE);
+    private static final Logger console = LoggerFactory.getLogger(LoggerName.CONSOLE);
 
     private ServerConfig serverConfig;
 
@@ -31,7 +31,7 @@ class MacaqueConsole implements MacaqueService {
 
     @Override
     public void start() {
-        log.info("console staring...");
+        console.info("console staring...");
         printBanner();
 
         String pid = waitConsoleNextInput(true);
@@ -40,7 +40,7 @@ class MacaqueConsole implements MacaqueService {
             System.exit(-1);
             return;
         }
-
+        console.info("attach success, pid={}", pid);
         DefaultCommandExecutor defaultCommandExecutor = new DefaultCommandExecutor(pid);
         while (true) {
             String command = waitConsoleNextInput(false);
@@ -52,7 +52,7 @@ class MacaqueConsole implements MacaqueService {
         try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("macaque .txt")) {
             byte[] bytes = FileUtil.is2bytes(is);
             if (bytes != null) {
-                log.info(new String(bytes));
+                console.info(new String(bytes));
             }
         } catch (Exception e) {
 
@@ -67,7 +67,7 @@ class MacaqueConsole implements MacaqueService {
             sb.append(format).append("\n");
         }
         sb.append("========================== JPS ==========================").append("\n");
-        log.info(sb.toString());
+        console.info(sb.toString());
     }
 
     public String waitConsoleNextInput(boolean isPid) {
@@ -86,7 +86,7 @@ class MacaqueConsole implements MacaqueService {
                             break loop;
                         }
                     }
-                    log.info("pid: {}, is invalid process id", input);
+                    console.info("pid: {}, is invalid process id", input);
                 } else {
                     return input;
                 }

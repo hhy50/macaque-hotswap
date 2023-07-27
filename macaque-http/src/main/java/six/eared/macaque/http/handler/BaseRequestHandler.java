@@ -8,6 +8,7 @@ import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 import six.eared.macaque.http.codec.combiner.DecoderCombiner;
 import six.eared.macaque.http.codec.decoder.Decoder;
+import six.eared.macaque.http.codec.decoder.FormDecoder;
 import six.eared.macaque.http.codec.decoder.JsonDecoder;
 import six.eared.macaque.http.codec.decoder.UrlVariableDecoder;
 import six.eared.macaque.http.codec.encoder.DefaultEncoder;
@@ -61,7 +62,7 @@ public abstract class BaseRequestHandler<Req> implements RequestHandler {
         return DecoderCombiner.<Req>builder()
                 .next(new JsonDecoder<>())
                 .next(new UrlVariableDecoder<>())
-//                .next(new FormDecoder<>())
+                .next(new FormDecoder<>())
                 .build();
     }
 

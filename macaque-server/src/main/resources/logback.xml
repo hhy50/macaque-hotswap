@@ -33,7 +33,7 @@
         <appender-ref ref="ConsoleAppender"/>
     </logger>
 
-    <logger name="File" additivity="false" level="INFO">
+    <logger name="six.eared.macaque" additivity="false" level="INFO">
         <appender-ref ref="FileAppender"/>
     </logger>
 </configuration>

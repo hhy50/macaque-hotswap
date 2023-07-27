@@ -2,7 +2,7 @@ package six.eared.macaque.server.config;
 
 public class LoggerName {
 
-    public static String FILE = "File";
+    public static String FILE = "six.eared.macaque";
 
     public static String CONSOLE = "Console";
 

@@ -1,9 +1,12 @@
 package six.eared.macaque.server.http.model;
 
+import six.eared.macaque.http.request.MultipartFile;
+
 public class ClassHotSwapDto {
     private Integer pid;
     private String className;
-    private String newClassData; // 16进制
+
+    private MultipartFile newClassData;
 
     public Integer getPid() {
         return pid;
@@ -21,20 +24,11 @@ public class ClassHotSwapDto {
         this.className = className;
     }
 
-    public String getNewClassData() {
+    public MultipartFile getNewClassData() {
         return newClassData;
     }
 
-    public void setNewClassData(String newClassData) {
+    public void setNewClassData(MultipartFile newClassData) {
         this.newClassData = newClassData;
-    }
-
-    @Override
-    public String toString() {
-        return "ClassHotSwapDto{" +
-                "pid=" + pid +
-                ", className='" + className + '\'' +
-                ", newClassData='" + newClassData + '\'' +
-                '}';
     }
 }

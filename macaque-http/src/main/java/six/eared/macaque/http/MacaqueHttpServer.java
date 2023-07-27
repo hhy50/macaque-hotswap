@@ -24,6 +24,7 @@ public class MacaqueHttpServer {
     public void start() {
         RequestHandlerBuilder requestHandlerBuilder = new RequestHandlerBuilder(this.config.getRootPath(), requestHandlers);
         this.server = HttpServer.create()
+                .httpFormDecoder(builder -> builder.maxInMemorySize(0))
                 .port(this.config.getPort())
                 .route(requestHandlerBuilder::buildRouters);
         this.disposableServer = this.server.bindNow();
