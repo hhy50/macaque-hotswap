@@ -1,4 +1,4 @@
-package six.eared.macaque.plugin.ideaplugin.notify;
+package six.eared.macaque.plugin.idea.notify;
 
 public class NotifyGroupName {
     public static final String NONE = "MACAQUE.NONE";

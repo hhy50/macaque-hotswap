@@ -1,4 +1,4 @@
-package six.eared.macaque.plugin.ideaplugin;
+package six.eared.macaque.plugin.idea;
 
 public class PluginInfo {
     public static final String ID = "six.eared.macaque.plugin";

@@ -36,13 +36,14 @@
         <notificationGroup displayType="STICKY_BALLOON" id="MACAQUE.STICKY_BALLOON"/>
         <notificationGroup displayType="TOOL_WINDOW" id="MACAQUE.TOOL_WINDOW"/>
 
-        <applicationConfigurable parentId="tools" instance="six.eared.macaque.plugin.ideaplugin.settings.MacaqueServerSetting"/>
+        <applicationConfigurable parentId="tools" instance="six.eared.macaque.plugin.idea.settings.MacaqueServerSetting" />
     </extensions>
 
     <actions>
-        <group id="ClassHotSwapGroup" class="six.eared.macaque.plugin.ideaplugin.hotswap.ClassHotSwapGroup"
-               description="ClassHotSwap" popup="true" text="HotSwap">
-            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        <group id="Main" description="Macaque" popup="true" text="Macaque">
+            <add-to-group group-id="EditorPopupMenu" anchor="first" />
+            <group id="ClassHotSwapGroup" class="six.eared.macaque.plugin.idea.hotswap.ClassHotSwapGroup"
+                   description="ClassHotSwap" popup="true" text="Hot Swap" />
         </group>
     </actions>
 </idea-plugin>

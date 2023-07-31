@@ -1,4 +1,4 @@
-package six.eared.macaque.plugin.ideaplugin.ui;
+package six.eared.macaque.plugin.idea.ui;
 
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.IdeBorderFactory;

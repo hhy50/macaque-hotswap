@@ -1,9 +1,9 @@
-package six.eared.macaque.plugin.ideaplugin.ui;
+package six.eared.macaque.plugin.idea.ui;
 
 
 import javax.swing.*;
 
-import static six.eared.macaque.plugin.ideaplugin.ui.UiUtil.*;
+import static six.eared.macaque.plugin.idea.ui.UiUtil.*;
 
 
 public class SettingsUI {

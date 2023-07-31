@@ -1,4 +1,4 @@
-package six.eared.macaque.plugin.ideaplugin.settings;
+package six.eared.macaque.plugin.idea.settings;
 
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -6,8 +6,8 @@ import com.intellij.openapi.util.NlsContexts;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import six.eared.macaque.plugin.ideaplugin.PluginInfo;
-import six.eared.macaque.plugin.ideaplugin.ui.SettingsUI;
+import six.eared.macaque.plugin.idea.PluginInfo;
+import six.eared.macaque.plugin.idea.ui.SettingsUI;
 
 import javax.swing.*;
 

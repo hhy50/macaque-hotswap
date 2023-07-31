@@ -1,4 +1,4 @@
-package six.eared.macaque.plugin.ideaplugin.settings;
+package six.eared.macaque.plugin.idea.settings;
 
 import com.intellij.ui.scale.JBUIScale;
 import net.miginfocom.layout.LC;
