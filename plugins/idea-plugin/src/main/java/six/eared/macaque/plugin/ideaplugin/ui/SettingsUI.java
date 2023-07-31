@@ -12,7 +12,7 @@ public class SettingsUI {
 
     public SettingsUI() {
         UiUtil.addGroup(panelContainer, "Main", (inner) -> {
-            addInputBox(inner, "Server Ip", null);
+            addInputBox(inner, "Server Host", null);
             addInputBox(inner, "Server Port", null);
         });
 
