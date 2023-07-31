@@ -10,21 +10,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.ideaplugin.notify.NotifyGroupName;
 
-import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class ClassHotSwapGroup extends ActionGroup {
 
-    private static Map<Integer, String> process = new HashMap <>();
+    private static Map<Integer, String> process = new HashMap<>();
 
     @Override
     public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
-        return new AnAction[]{new ClassHotSwapAction("1234 | Admin"),
-                new ClassHotSwapAction("4321 | Billiards-Center"),
+        return new AnAction[]{
+                new ClassHotSwapAction("1234", "Admin"),
+                new ClassHotSwapAction("4321", "Billiards-Center"),
                 new Separator(),
-                new RefreshJavaProcessAction()};
+                new RefreshJavaProcessAction()}
+                ;
     }
 
 
@@ -34,8 +35,8 @@ public class ClassHotSwapGroup extends ActionGroup {
 
         private final NotificationGroup balloon = manager.getNotificationGroup(NotifyGroupName.BALLOON);
 
-        public ClassHotSwapAction(String text) {
-            super(text);
+        public ClassHotSwapAction(String pid, String processName) {
+            super(String.format("%s | %s", pid, processName));
         }
 
         @Override
@@ -51,11 +52,10 @@ public class ClassHotSwapGroup extends ActionGroup {
         }
     }
 
-    // 进程
     public class RefreshJavaProcessAction extends AnAction {
 
         public RefreshJavaProcessAction() {
-            super("RefreshJavaProcess");
+            super("Refresh");
         }
 
         @Override

@@ -27,6 +27,7 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
 
+
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
@@ -34,6 +35,8 @@
         <notificationGroup displayType="BALLOON" id="MACAQUE.BALLOON"/>
         <notificationGroup displayType="STICKY_BALLOON" id="MACAQUE.STICKY_BALLOON"/>
         <notificationGroup displayType="TOOL_WINDOW" id="MACAQUE.TOOL_WINDOW"/>
+
+        <applicationConfigurable parentId="tools" instance="six.eared.macaque.plugin.ideaplugin.settings.MacaqueServerSetting"/>
     </extensions>
 
     <actions>
