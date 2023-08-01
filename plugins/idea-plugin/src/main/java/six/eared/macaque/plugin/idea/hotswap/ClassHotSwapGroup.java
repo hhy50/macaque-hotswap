@@ -4,7 +4,6 @@ import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,12 +27,11 @@ public class ClassHotSwapGroup extends ActionGroup {
                 ;
     }
 
-
     public class ClassHotSwapAction extends AnAction {
 
-        private final NotificationGroupManager manager = NotificationGroupManager.getInstance();
+//        private final NotificationGroupManager manager = NotificationGroup.findRegisteredGroup().getInstance();
 
-        private final NotificationGroup balloon = manager.getNotificationGroup(NotifyGroupName.BALLOON);
+        private final NotificationGroup balloon = NotificationGroup.findRegisteredGroup(NotifyGroupName.BALLOON);
 
         public ClassHotSwapAction(String pid, String processName) {
             super(String.format("%s | %s", pid, processName));

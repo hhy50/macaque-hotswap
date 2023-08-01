@@ -2,16 +2,14 @@ package six.eared.macaque.server.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.Pair;
 import six.eared.macaque.server.attach.Attach;
 import six.eared.macaque.server.attach.DefaultAttachFactory;
 import six.eared.macaque.server.command.DefaultCommandExecutor;
+import six.eared.macaque.server.common.Banner;
 import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.config.ServerConfig;
 import six.eared.macaque.server.process.JavaProcessHolder;
-
-import java.io.InputStream;
 import java.util.Scanner;
 
 class MacaqueConsole implements MacaqueService {
@@ -32,7 +30,7 @@ class MacaqueConsole implements MacaqueService {
     @Override
     public void start() {
         console.info("console staring...");
-        printBanner();
+        Banner.print();
 
         String pid = waitConsoleNextInput(true);
         this.attach = this.defaultAttachFactory.createRuntimeAttach(pid);
@@ -45,17 +43,6 @@ class MacaqueConsole implements MacaqueService {
         while (true) {
             String command = waitConsoleNextInput(false);
             defaultCommandExecutor.exec(command);
-        }
-    }
-
-    private void printBanner() {
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("macaque .txt")) {
-            byte[] bytes = FileUtil.is2bytes(is);
-            if (bytes != null) {
-                console.info(new String(bytes));
-            }
-        } catch (Exception e) {
-
         }
     }
 

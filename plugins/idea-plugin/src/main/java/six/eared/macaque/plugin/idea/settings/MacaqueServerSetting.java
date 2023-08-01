@@ -2,7 +2,7 @@ package six.eared.macaque.plugin.idea.settings;
 
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
-import com.intellij.openapi.util.NlsContexts;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +21,7 @@ public class MacaqueServerSetting implements SearchableConfigurable {
     }
 
     @Override
-    public @NlsContexts.ConfigurableName String getDisplayName() {
+    public @Nls(capitalization = Nls.Capitalization.Title) String getDisplayName() {
         return PluginInfo.NAME;
     }
 
