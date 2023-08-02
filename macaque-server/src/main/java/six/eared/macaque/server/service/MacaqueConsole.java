@@ -10,6 +10,7 @@ import six.eared.macaque.server.common.Banner;
 import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.config.ServerConfig;
 import six.eared.macaque.server.process.JavaProcessHolder;
+
 import java.util.Scanner;
 
 class MacaqueConsole implements MacaqueService {

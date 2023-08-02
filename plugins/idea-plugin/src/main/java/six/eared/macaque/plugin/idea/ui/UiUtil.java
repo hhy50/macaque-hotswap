@@ -51,10 +51,13 @@ public class UiUtil {
      * @param container
      * @param changeEvent
      */
-    public static void addInputBox(JPanel container, String labelName, Consumer<?> changeEvent) {
+    public static EditorTextField addInputBox(JPanel container, String labelName) {
+        EditorTextField textField = new EditorTextField();
         container.add(new JLabel(labelName));
-        container.add(new EditorTextField(), fillX());
+        container.add(textField, fillX());
         container.add(new JLabel(), new CC().wrap());
+
+        return textField;
     }
 
     public static CC fillX() {
@@ -65,8 +68,11 @@ public class UiUtil {
         return new CC().growY().pushY();
     }
 
-    public static void addSelectBox(JPanel container, String selectName) {
-        container.add(new JBCheckBox(selectName), new CC().wrap());
+    public static JBCheckBox addSelectBox(JPanel container, String selectName) {
+        JBCheckBox checkBox = new JBCheckBox(selectName);
+        container.add(checkBox, new CC().wrap());
+
+        return checkBox;
     }
 
     public static MigLayout createMigLayout() {

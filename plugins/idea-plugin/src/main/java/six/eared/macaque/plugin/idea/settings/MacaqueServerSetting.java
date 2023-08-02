@@ -13,7 +13,7 @@ import javax.swing.*;
 
 public class MacaqueServerSetting implements SearchableConfigurable {
 
-    private SettingsUI ui = new SettingsUI();
+    private SettingsUI settingsUI = new SettingsUI();
 
     @Override
     public @NotNull @NonNls String getId() {
@@ -27,15 +27,17 @@ public class MacaqueServerSetting implements SearchableConfigurable {
 
     @Override
     public @Nullable JComponent createComponent() {
-        return ui.showPanel();
+        return settingsUI.showPanel();
     }
 
     @Override
     public boolean isModified() {
-        return true;
+        return !Settings.getCurrent()
+                .equals(settingsUI.getPanelConfig());
     }
 
     @Override
-    public void apply() throws ConfigurationException {
+    public void apply() {
+        Settings.reset(settingsUI.getPanelConfig());
     }
 }

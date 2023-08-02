@@ -31,12 +31,14 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
+<!--        <projectService serviceImplementation="six.eared.macaque.plugin.idea.settings.Settings" />-->
+        <projectService serviceImplementation="six.eared.macaque.plugin.idea.settings.Settings" />
+        <applicationConfigurable parentId="tools" instance="six.eared.macaque.plugin.idea.settings.MacaqueServerSetting" />
+
         <notificationGroup displayType="NONE" id="MACAQUE.NONE"/>
         <notificationGroup displayType="BALLOON" id="MACAQUE.BALLOON"/>
         <notificationGroup displayType="STICKY_BALLOON" id="MACAQUE.STICKY_BALLOON"/>
         <notificationGroup displayType="TOOL_WINDOW" id="MACAQUE.TOOL_WINDOW"/>
-
-        <applicationConfigurable parentId="tools" instance="six.eared.macaque.plugin.idea.settings.MacaqueServerSetting" />
     </extensions>
 
     <actions>
