@@ -18,7 +18,6 @@ public class PortNumberGeneratorTest {
         for (int i = 0; i < 1000; i++) {
             Integer port = PortNumberGenerator.getPort(pid++);
             Integer ipid = map.get(port);
-            System.out.println(port);
             if (ipid != null) {
                 throw new RuntimeException("port duplicate");
             }

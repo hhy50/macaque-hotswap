@@ -42,7 +42,6 @@ public class ClassHotSwapGroup extends ActionGroup {
             int confirm = Messages.showYesNoCancelDialog(
                     "This operation will replace the class already loaded in the target process",
                     "Warning", null);
-            System.out.println(confirm);
             if (confirm == 0) {
                 Project project = getEventProject(event);
                 // 获取右击的文件

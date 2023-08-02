@@ -32,12 +32,10 @@ public class MacaqueServerSetting implements SearchableConfigurable {
 
     @Override
     public boolean isModified() {
-        System.out.println("isModified");
         return true;
     }
 
     @Override
     public void apply() throws ConfigurationException {
-        System.out.println("apply");
     }
 }

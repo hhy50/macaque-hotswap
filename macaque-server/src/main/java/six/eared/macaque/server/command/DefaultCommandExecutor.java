@@ -38,7 +38,7 @@ public class DefaultCommandExecutor implements CommandExecutor {
 
         JmxClient jmxClient = JmxClientResourceManager.getInstance().getResource(pid);
         if (jmxClient != null) {
-            MBean mBean = jmxClient.getMBean(MBeanObjectName.HOT_SWAP_MBEAN);
+            MBean<ClassHotSwapRmiData> mBean = jmxClient.getMBean(MBeanObjectName.HOT_SWAP_MBEAN);
             RmiResult result = mBean.process(new ClassHotSwapRmiData(command[0],
                     FileUtil.readBytes(command[1])));
             if (result.isSuccess()) {

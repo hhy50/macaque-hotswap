@@ -28,7 +28,6 @@ public class MacaqueHttpServerTest {
         new MacaqueHttpServer(this.config, Arrays.asList(new TestRequestHandler()))
                 .start();
     }
-// 组合器
     @Path(value = "/getUser",method = {RequestMethod.POST, RequestMethod.GET})
     public static class TestRequestHandler extends BaseRequestHandler<User> {
         @Override

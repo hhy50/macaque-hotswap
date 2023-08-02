@@ -38,14 +38,4 @@ public class HexStringUtil {
     public static byte charToByte(char c) {
         return (byte) "0123456789ABCDEF".indexOf(c);
     }
-
-//    public static void main(String[] args) {
-//        String cafe = "CAFEEFAC";
-//        System.out.println(binary2hex(hex2binary(cafe)));
-//    }
-
-    public static void main(String[] args) {
-        byte[] bytes = FileUtil.readBytes("C:\\Users\\haiyang\\Desktop\\DeviceController.class");
-        System.out.println(bytes2hexStr(bytes));
-    }
 }
