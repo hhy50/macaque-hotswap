@@ -1,7 +1,6 @@
 package six.eared.macaque.plugin.idea.ui;
 
 
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBCheckBox;
 import six.eared.macaque.plugin.idea.settings.Settings;
@@ -21,10 +20,7 @@ public class SettingsUI {
 
     private JBCheckBox compatibilityModeCheckBox;
 
-    private Project project;
-
-    public SettingsUI(Project project) {
-        this.project = project;
+    public SettingsUI() {
         UiUtil.addGroup(panelContainer, "Main", (inner) -> {
             serverHostTextField = addInputBox(inner, "Server Host");
             serverPortTextField = addInputBox(inner, "Server Port");
@@ -34,12 +30,9 @@ public class SettingsUI {
             compatibilityModeCheckBox = addSelectBox(inner, "兼容模式");
         });
         UiUtil.fillY(panelContainer);
-
-        initValue();
     }
 
-    private void initValue() {
-        Settings.State state = Settings.getInstance(project).getState();
+    public void initValue(Settings.State state) {
         if (state != null) {
             serverHostTextField.setText(state.macaqueServerHost);
             serverPortTextField.setText(state.macaqueServerPort);

@@ -20,7 +20,8 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
 
     public MacaqueServerSetting(@NotNull Project project) {
         this.project = project;
-        this.settingsUI = new SettingsUI(project);
+        this.settingsUI = new SettingsUI();
+        this.settingsUI.initValue(Settings.getInstance(project).getState());
     }
 
     @Override
