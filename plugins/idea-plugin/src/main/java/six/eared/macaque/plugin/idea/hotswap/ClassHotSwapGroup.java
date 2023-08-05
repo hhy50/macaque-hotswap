@@ -11,6 +11,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.notify.NotifyGroupName;
+import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,6 +52,7 @@ public class ClassHotSwapGroup extends ActionGroup {
                 PsiFile psiFile = event.getDataContext().getData(CommonDataKeys.PSI_FILE);
                 if (psiFile != null) {
                     System.out.println("Right-clicked file: " + psiFile.toString());
+                    System.out.println(Settings.getInstance(project).getState());
                 }
                 Notification notify = balloon.createNotification("success", NotificationType.INFORMATION);
                 Notifications.Bus.notify(notify);

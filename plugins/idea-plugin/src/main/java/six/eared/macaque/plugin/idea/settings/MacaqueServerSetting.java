@@ -1,7 +1,8 @@
 package six.eared.macaque.plugin.idea.settings;
 
-import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -11,9 +12,16 @@ import six.eared.macaque.plugin.idea.ui.SettingsUI;
 
 import javax.swing.*;
 
-public class MacaqueServerSetting implements SearchableConfigurable {
+public class MacaqueServerSetting implements SearchableConfigurable, Configurable.VariableProjectAppLevel {
 
-    private SettingsUI settingsUI = new SettingsUI();
+    private Project project;
+
+    private SettingsUI settingsUI;
+
+    public MacaqueServerSetting(@NotNull Project project) {
+        this.project = project;
+        this.settingsUI = new SettingsUI(project);
+    }
 
     @Override
     public @NotNull @NonNls String getId() {
@@ -32,12 +40,17 @@ public class MacaqueServerSetting implements SearchableConfigurable {
 
     @Override
     public boolean isModified() {
-        return !Settings.getCurrent()
+        return !Settings.getInstance(project).getState()
                 .equals(settingsUI.getPanelConfig());
     }
 
     @Override
     public void apply() {
-        Settings.reset(settingsUI.getPanelConfig());
+        Settings.cover(project, settingsUI.getPanelConfig());
+    }
+
+    @Override
+    public boolean isProjectLevel() {
+        return true;
     }
 }

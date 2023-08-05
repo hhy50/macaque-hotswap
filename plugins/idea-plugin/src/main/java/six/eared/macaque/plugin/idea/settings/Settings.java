@@ -2,91 +2,73 @@ package six.eared.macaque.plugin.idea.settings;
 
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
-import com.intellij.openapi.components.Storage;
-import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
-@State(name = PluginInfo.ID, storages = {@Storage(PluginInfo.CONFIG_STORE)})
-public class Settings implements PersistentStateComponent<Settings> {
+@State(name = PluginInfo.ID)
+public class Settings implements PersistentStateComponent<Settings.State> {
 
-    public String macaqueServerHost;
+    private static final Map<Project, State> PROJECT_STATE = new HashMap<>();
 
-    public String macaqueServerPort;
+    private Project project;
 
-    public boolean compatibilityMode;
-
-    private static final Settings CURRENT = new Settings();
-
-    public static Settings getCurrent() {
-        return CURRENT;
+    public Settings(@NotNull Project project) {
+        this.project = project;
     }
 
-    public synchronized static void reset(Settings settings) {
-        XmlSerializerUtil.copyBean(settings, CURRENT);
-    }
-
-    public String getMacaqueServerHost() {
-        return macaqueServerHost;
-    }
-
-    public void setMacaqueServerHost(String macaqueServerHost) {
-        this.macaqueServerHost = macaqueServerHost;
-    }
-
-    public String getMacaqueServerPort() {
-        return macaqueServerPort;
-    }
-
-    public void setMacaqueServerPort(String macaqueServerPort) {
-        this.macaqueServerPort = macaqueServerPort;
-    }
-
-    public boolean isCompatibilityMode() {
-        return compatibilityMode;
-    }
-
-    public void setCompatibilityMode(boolean compatibilityMode) {
-        this.compatibilityMode = compatibilityMode;
-    }
-
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Settings settings = (Settings) o;
-        return Objects.equals(macaqueServerHost, settings.macaqueServerHost)
-                && Objects.equals(macaqueServerPort, settings.macaqueServerPort)
-                && compatibilityMode == settings.compatibilityMode;
+    public static Settings getInstance(Project project) {
+        return project.getService(Settings.class);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(macaqueServerHost, macaqueServerPort, compatibilityMode);
+    public @Nullable State getState() {
+        return PROJECT_STATE.get(project);
     }
 
     @Override
-    public String toString() {
-        return "Settings{" +
-                "macaqueServerHost='" + macaqueServerHost + '\'' +
-                ", macaqueServerPort='" + macaqueServerPort + '\'' +
-                ", compatibilityMode=" + compatibilityMode +
-                '}';
+    public void loadState(@NotNull State state) {
+        cover(project, state);
     }
 
-    @Override
-    public @Nullable Settings getState() {
-        System.out.println("getState");
-        return getCurrent();
+    public synchronized static void cover(Project project, Settings.State state) {
+        PROJECT_STATE.put(project, state);
     }
 
-    @Override
-    public void loadState(@NotNull Settings state) {
-        System.out.println("loadState");
-        reset(state);
+    public static class State {
+        public String macaqueServerHost;
+
+        public String macaqueServerPort;
+
+        public boolean compatibilityMode;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            State state = (State) o;
+            return Objects.equals(macaqueServerHost, state.macaqueServerHost)
+                    && Objects.equals(macaqueServerPort, state.macaqueServerPort)
+                    && compatibilityMode == state.compatibilityMode;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(macaqueServerHost, macaqueServerPort, compatibilityMode);
+        }
+
+        @Override
+        public String toString() {
+            return "Settings{" +
+                    "macaqueServerHost='" + macaqueServerHost + '\'' +
+                    ", macaqueServerPort='" + macaqueServerPort + '\'' +
+                    ", compatibilityMode=" + compatibilityMode +
+                    '}';
+        }
     }
 }
