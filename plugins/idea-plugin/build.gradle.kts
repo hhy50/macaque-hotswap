@@ -1,6 +1,5 @@
 plugins {
   id("java")
-  id("org.jetbrains.kotlin.jvm") version "1.8.21"
   id("org.jetbrains.intellij") version "1.13.3"
 }
 
@@ -25,9 +24,6 @@ tasks {
   withType<JavaCompile> {
     sourceCompatibility = "11"
     targetCompatibility = "11"
-  }
-  withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "11"
   }
 
   signPlugin {

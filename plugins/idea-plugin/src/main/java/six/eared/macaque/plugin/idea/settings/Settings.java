@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-@State(name = PluginInfo.ID)
+@State(name = PluginInfo.SERVER_CONFIG_ID)
 public class Settings implements PersistentStateComponent<Settings.State> {
 
     private static final Map<Project, State> PROJECT_STATE = new HashMap<>();
@@ -28,7 +28,12 @@ public class Settings implements PersistentStateComponent<Settings.State> {
 
     @Override
     public @Nullable State getState() {
-        return PROJECT_STATE.get(project);
+        Settings.State state = PROJECT_STATE.get(project);
+        if (state == null) {
+            state = new Settings.State();
+            PROJECT_STATE.put(project, state);
+        }
+        return state;
     }
 
     @Override

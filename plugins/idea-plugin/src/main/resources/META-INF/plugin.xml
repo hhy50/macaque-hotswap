@@ -15,7 +15,7 @@
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <extensions defaultExtensionNs="com.intellij">
         <projectService serviceImplementation="six.eared.macaque.plugin.idea.settings.Settings" />
-        <!--        <applicationService serviceImplementation="six.eared.macaque.plugin.idea.settings.Settings" />-->
+        <projectService serviceImplementation="six.eared.macaque.plugin.idea.jps.JpsHolder" />
         <projectConfigurable parentId="tools"
                              nonDefaultProject="true"
                              instance="six.eared.macaque.plugin.idea.settings.MacaqueServerSetting" />
