@@ -13,13 +13,16 @@ import six.eared.macaque.server.process.JavaProcessHolder;
 
 import java.util.Scanner;
 
+/**
+ * Macaque服务-控制台
+ */
 class MacaqueConsole implements MacaqueService {
 
     private static final Logger console = LoggerFactory.getLogger(LoggerName.CONSOLE);
 
     private ServerConfig serverConfig;
 
-    private DefaultAttachFactory defaultAttachFactory;
+    private final DefaultAttachFactory defaultAttachFactory;
 
     private Attach attach = null;
 
@@ -28,11 +31,15 @@ class MacaqueConsole implements MacaqueService {
         this.defaultAttachFactory = new DefaultAttachFactory(serverConfig);
     }
 
+    /**
+     * 启动服务
+     */
     @Override
     public void start() {
         console.info("console staring...");
         Banner.print();
 
+        //获取pid
         String pid = waitConsoleNextInput(true);
         this.attach = this.defaultAttachFactory.createRuntimeAttach(pid);
         if (!this.attach.attach()) {
@@ -42,11 +49,15 @@ class MacaqueConsole implements MacaqueService {
         console.info("attach success, pid={}", pid);
         DefaultCommandExecutor defaultCommandExecutor = new DefaultCommandExecutor(pid);
         while (true) {
+            //获取命令，执行命令
             String command = waitConsoleNextInput(false);
             defaultCommandExecutor.exec(command);
         }
     }
 
+    /**
+     * 打印进程列表
+     */
     private void printProcessList() {
         StringBuilder sb = new StringBuilder();
         sb.append("========================== JPS ==========================").append("\n");
@@ -58,17 +69,25 @@ class MacaqueConsole implements MacaqueService {
         console.info(sb.toString());
     }
 
+    /**
+     * 从控制台输入获取命令
+     *
+     * @param isPid 是否是指定pid的命令
+     * @return 输入内容
+     */
     public String waitConsoleNextInput(boolean isPid) {
         if (isPid) {
+            //打印进程列表
             printProcessList();
         }
-        String input = null;
+        String input;
         loop:
         while (true) {
             try {
                 Scanner scanner = new Scanner(System.in);
                 input = scanner.nextLine();
                 if (isPid) {
+                    //检查输入的pid是否合法
                     for (Pair<String, String> javaProcess : JavaProcessHolder.getJavaProcess()) {
                         if (javaProcess.getFirst().equals(input)) {
                             break loop;
@@ -78,14 +97,16 @@ class MacaqueConsole implements MacaqueService {
                 } else {
                     return input;
                 }
-
             } catch (Exception e) {
-
+                console.error("waitConsoleNextInput error", e);
             }
         }
         return input;
     }
 
+    /**
+     * 停止服务
+     */
     @Override
     public void stop() {
 
