@@ -16,20 +16,37 @@ import java.util.concurrent.TimeUnit;
 
 
 /**
+ * Macaque启动类
  * --serverPort=2023 --agentPort=30312 --agentpath=aaaa --server
  */
 public class MacaqueBootStrap {
 
+    /**
+     * 定时任务线程池
+     */
     public static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
+    /**
+     * 控制台日志
+     */
     private static final Logger consoleLog = LoggerFactory.getLogger(LoggerName.CONSOLE);
 
+    /**
+     * 服务工厂
+     */
     private static final ServiceFactory serviceFactory = new DefaultServiceFactoryImpl();
 
+    /**
+     * 启动
+     *
+     * @param args 启动参数
+     */
     public static void main(String[] args) {
+        // 解析启动参数
         CommandLine commandLine = new CommandLine(args);
         ServerConfig serverConfig = getConfigFromCommandLine(commandLine);
 
+        //设置启动模式，是否是服务端模式
         boolean serverMode = commandLine.hasOption("--server");
         System.setProperty("serverMode", Boolean.toString(serverMode));
         consoleLog.info("start mode: {}, serverConfig: {}", serverMode ? "server" : "client", serverConfig);
@@ -44,11 +61,15 @@ public class MacaqueBootStrap {
         MacaqueService macaqueService = serviceFactory.newService(serverMode, serverConfig);
         macaqueService.start();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            macaqueService.stop();
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(macaqueService::stop));
     }
 
+    /**
+     * 检查服务端配置
+     *
+     * @param commandLine  启动参数
+     * @param serverConfig 服务端配置
+     */
     private static void checkServerConfig(CommandLine commandLine, ServerConfig serverConfig) {
         if (!commandLine.hasOption("--serverPort")) {
             consoleLog.info("Server Mode, must config serverPort");
@@ -56,6 +77,12 @@ public class MacaqueBootStrap {
         }
     }
 
+    /**
+     * 从启动参数中解析配置
+     *
+     * @param commandLine 启动参数
+     * @return 配置
+     */
     private static ServerConfig getConfigFromCommandLine(CommandLine commandLine) {
         return commandLine.toObject(ServerConfig.class);
     }

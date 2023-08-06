@@ -1,14 +1,17 @@
 package six.eared.macaque.server.service;
 
+/**
+ * 服务根接口
+ */
 public interface MacaqueService {
 
     /**
-     *
+     * 启动服务
      */
-    public void start();
+    void start();
 
     /**
-     *
+     * 停止服务
      */
-    public void stop();
+    void stop();
 }
