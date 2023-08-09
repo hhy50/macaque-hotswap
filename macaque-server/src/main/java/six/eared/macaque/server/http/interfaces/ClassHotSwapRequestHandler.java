@@ -29,17 +29,16 @@ public class ClassHotSwapRequestHandler extends ServerHttpInterface<ClassHotSwap
 
     @Override
     public RmiResult process0(ClassHotSwapDto dto) {
-        String className = dto.getClassName();
         Integer pid = dto.getPid();
-        MultipartFile newClassData = dto.getNewClassData();
+        String fileType = dto.getFileType();
+        MultipartFile fileData = dto.getFileData();
 
-        if (StringUtil.isEmpty(className) || pid == null
-                || newClassData == null || newClassData.getBytes() == null) {
+        if (pid == null
+                || StringUtil.isEmpty(fileType)
+                || fileData == null || fileData.getBytes() == null) {
             log.error("ClassHotSwap error, params not be null");
             return RmiResult.error("error");
         }
-
-        log.info("ClassHotSwap pid:[{}] className:[{}]", pid, className);
         if (attach(pid)) {
             JmxClient jmxClient = JmxClientResourceManager.getInstance()
                     .getResource(String.valueOf(pid));
@@ -47,11 +46,11 @@ public class ClassHotSwapRequestHandler extends ServerHttpInterface<ClassHotSwap
                 MBean<ClassHotSwapRmiData> hotSwapMBean = jmxClient.getMBean(MBeanObjectName.HOT_SWAP_MBEAN);
                 RmiResult result = null;
                 try {
-                    result = hotSwapMBean.process(new ClassHotSwapRmiData(className, newClassData.getBytes()));
+                    result = hotSwapMBean.process(new ClassHotSwapRmiData(fileType, fileData.getBytes()));
                 } catch (Exception e) {
                     log.error("ClassHotSwap error", e);
                 }
-                log.info("ClassHotSwap pid:[{}] className:[{}], result:[{}]", pid, className, result);
+                log.info("ClassHotSwap pid:[{}] result:[{}]", pid, result);
                 return result;
             }
             log.error("attach error, jmxClient is null");

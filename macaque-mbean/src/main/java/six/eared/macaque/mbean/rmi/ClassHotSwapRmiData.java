@@ -1,30 +1,27 @@
 package six.eared.macaque.mbean.rmi;
 
 public class ClassHotSwapRmiData extends RmiData {
+    private String fileType;
+    private byte[] fileData;
 
-    private String className;
-
-    private byte[] newClassByte;
-
-    public ClassHotSwapRmiData(String className, byte[] newClassByte) {
-        this.className = className;
-        this.newClassByte = newClassByte;
+    public ClassHotSwapRmiData(String fileType, byte[] fileData) {
+        this.fileType = fileType;
+        this.fileData = fileData;
     }
 
-
-    public String getClassName() {
-        return className;
+    public String getFileType() {
+        return fileType;
     }
 
-    public void setClassName(String className) {
-        this.className = className;
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
     }
 
-    public byte[] getNewClassByte() {
-        return newClassByte;
+    public byte[] getFileData() {
+        return fileData;
     }
 
-    public void setNewClassByte(byte[] newClassByte) {
-        this.newClassByte = newClassByte;
+    public void setFileData(byte[] fileData) {
+        this.fileData = fileData;
     }
 }

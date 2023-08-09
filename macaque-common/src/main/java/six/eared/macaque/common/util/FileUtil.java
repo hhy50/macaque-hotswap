@@ -1,9 +1,8 @@
 package six.eared.macaque.common.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+
+import static java.io.File.separator;
 
 public class FileUtil {
 
@@ -27,6 +26,15 @@ public class FileUtil {
         return bytes;
     }
 
+    public static void writeBytes(File file, byte[] bytes) {
+        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+            outputStream.write(bytes, 0, bytes.length);
+            outputStream.flush();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static byte[] is2bytes(InputStream is) {
         byte[] bytes = null;
         try {
@@ -37,5 +45,49 @@ public class FileUtil {
             throw new RuntimeException(e);
         }
         return bytes;
+    }
+
+    public static File createTmpFile(byte[] bytes) {
+        String tmpdir = System.getProperty("java.io.tmpdir");
+        if (StringUtil.isEmpty(tmpdir)) {
+            tmpdir = System.getProperty("user.home") + separator + "tmp" + separator;
+        }
+        tmpdir += "macaque" + separator;
+
+        File file = new File(tmpdir, "Main.java");
+
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+
+        try {
+            file.createNewFile();
+            writeBytes(file, bytes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return file;
+    }
+
+    public static File createTmpFile(String fileName, byte[] bytes) {
+        String tmpdir = System.getProperty("java.io.tmpdir");
+        if (StringUtil.isEmpty(tmpdir)) {
+            tmpdir = System.getProperty("user.home") + separator + "tmp" + separator;
+        }
+        tmpdir += "macaque" + separator;
+
+        File file = new File(tmpdir, fileName);
+
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+
+        try {
+            file.createNewFile();
+            writeBytes(file, bytes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return file;
     }
 }

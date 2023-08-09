@@ -2,6 +2,7 @@ package six.eared.macaque.server.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import six.eared.macaque.common.type.FileType;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.mbean.MBean;
 import six.eared.macaque.mbean.MBeanObjectName;
@@ -39,8 +40,10 @@ public class DefaultCommandExecutor implements CommandExecutor {
         JmxClient jmxClient = JmxClientResourceManager.getInstance().getResource(pid);
         if (jmxClient != null) {
             MBean<ClassHotSwapRmiData> mBean = jmxClient.getMBean(MBeanObjectName.HOT_SWAP_MBEAN);
-            RmiResult result = mBean.process(new ClassHotSwapRmiData(command[0],
-                    FileUtil.readBytes(command[1])));
+            RmiResult result = mBean.process(new ClassHotSwapRmiData(
+                    FileType.Class.getType(),
+                    FileUtil.readBytes(command[1]))
+            );
             if (result.isSuccess()) {
                 log.info(result.getMessage());
             } else {

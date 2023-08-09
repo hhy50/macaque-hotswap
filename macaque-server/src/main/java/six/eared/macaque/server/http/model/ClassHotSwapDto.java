@@ -4,9 +4,10 @@ import six.eared.macaque.http.request.MultipartFile;
 
 public class ClassHotSwapDto {
     private Integer pid;
-    private String className;
 
-    private MultipartFile newClassData;
+    private String fileType;
+
+    private MultipartFile fileData;
 
     public Integer getPid() {
         return pid;
@@ -16,19 +17,19 @@ public class ClassHotSwapDto {
         this.pid = pid;
     }
 
-    public String getClassName() {
-        return className;
+    public MultipartFile getFileData() {
+        return fileData;
     }
 
-    public void setClassName(String className) {
-        this.className = className;
+    public void setFileData(MultipartFile fileData) {
+        this.fileData = fileData;
     }
 
-    public MultipartFile getNewClassData() {
-        return newClassData;
+    public String getFileType() {
+        return fileType;
     }
 
-    public void setNewClassData(MultipartFile newClassData) {
-        this.newClassData = newClassData;
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
     }
 }

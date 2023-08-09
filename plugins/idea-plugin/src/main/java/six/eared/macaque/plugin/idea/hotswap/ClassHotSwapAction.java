@@ -11,7 +11,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiFile;
 import six.eared.macaque.plugin.idea.notify.NotifyGroupName;
-import six.eared.macaque.plugin.idea.settings.Settings;
+
+import java.io.IOException;
 
 public class ClassHotSwapAction extends AnAction {
 
@@ -33,8 +34,13 @@ public class ClassHotSwapAction extends AnAction {
             // 获取右击的文件
             PsiFile psiFile = event.getDataContext().getData(CommonDataKeys.PSI_FILE);
             if (psiFile != null) {
-                System.out.println("Right-clicked file: " + psiFile.toString());
-                System.out.println(Settings.getInstance(project).getState());
+                psiFile.getFileElementType();
+                try {
+                    byte[] bytes = psiFile.getVirtualFile().contentsToByteArray();
+                    System.out.println(new String(bytes));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
             Notification notify = balloon.createNotification("success", NotificationType.INFORMATION);
             Notifications.Bus.notify(notify);

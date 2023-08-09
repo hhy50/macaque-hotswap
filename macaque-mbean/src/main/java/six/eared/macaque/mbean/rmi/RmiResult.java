@@ -15,7 +15,6 @@ public class RmiResult implements Serializable {
         this.message = message;
     }
 
-
     public static RmiResult success() {
         return new RmiResult(true, "success");
     }
