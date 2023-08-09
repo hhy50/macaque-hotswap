@@ -5,6 +5,8 @@ import six.eared.macaque.http.request.MultipartFile;
 public class ClassHotSwapDto {
     private Integer pid;
 
+    private String fileName;
+
     private String fileType;
 
     private MultipartFile fileData;
@@ -31,5 +33,13 @@ public class ClassHotSwapDto {
 
     public void setFileType(String fileType) {
         this.fileType = fileType;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 }

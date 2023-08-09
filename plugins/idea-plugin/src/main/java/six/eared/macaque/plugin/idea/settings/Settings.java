@@ -62,6 +62,14 @@ public class Settings implements PersistentStateComponent<Settings.State> {
                     && compatibilityMode == state.compatibilityMode;
         }
 
+        public String getUrl() {
+            String scheme = "";
+            if (!macaqueServerHost.startsWith("http")) {
+                scheme = "http://";
+            }
+            return scheme + macaqueServerHost + ":" + macaqueServerPort;
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(macaqueServerHost, macaqueServerPort, compatibilityMode);

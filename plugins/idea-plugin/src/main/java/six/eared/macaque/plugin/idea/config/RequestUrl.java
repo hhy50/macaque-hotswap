@@ -6,5 +6,5 @@ public class RequestUrl {
 
     public static final String JPS = BASE + "/jps";
 
-    public static final String HOW_SWAP = BASE + "/jps";
+    public static final String HOW_SWAP = BASE + "/hotSwap";
 }

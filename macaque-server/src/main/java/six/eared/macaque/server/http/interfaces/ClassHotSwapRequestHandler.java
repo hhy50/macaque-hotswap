@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import six.eared.macaque.common.util.StringUtil;
 import six.eared.macaque.http.annotitions.Path;
+import six.eared.macaque.http.annotitions.RequestMethod;
 import six.eared.macaque.http.request.MultipartFile;
 import six.eared.macaque.mbean.MBean;
 import six.eared.macaque.mbean.MBeanObjectName;
@@ -17,7 +18,7 @@ import six.eared.macaque.server.jmx.JmxClient;
 import six.eared.macaque.server.jmx.JmxClientResourceManager;
 
 
-@Path("/hotSwap")
+@Path(value = "/hotSwap", method = RequestMethod.POST)
 public class ClassHotSwapRequestHandler extends ServerHttpInterface<ClassHotSwapDto> {
 
     private static final Logger log = LoggerFactory.getLogger(ClassHotSwapRequestHandler.class);
@@ -31,9 +32,11 @@ public class ClassHotSwapRequestHandler extends ServerHttpInterface<ClassHotSwap
     public RmiResult process0(ClassHotSwapDto dto) {
         Integer pid = dto.getPid();
         String fileType = dto.getFileType();
+        String fileName = dto.getFileName();
         MultipartFile fileData = dto.getFileData();
 
         if (pid == null
+                || StringUtil.isEmpty(fileName)
                 || StringUtil.isEmpty(fileType)
                 || fileData == null || fileData.getBytes() == null) {
             log.error("ClassHotSwap error, params not be null");
@@ -46,12 +49,12 @@ public class ClassHotSwapRequestHandler extends ServerHttpInterface<ClassHotSwap
                 MBean<ClassHotSwapRmiData> hotSwapMBean = jmxClient.getMBean(MBeanObjectName.HOT_SWAP_MBEAN);
                 RmiResult result = null;
                 try {
-                    result = hotSwapMBean.process(new ClassHotSwapRmiData(fileType, fileData.getBytes()));
+                    result = hotSwapMBean.process(new ClassHotSwapRmiData(fileName, fileType, fileData.getBytes()));
+                    log.info("ClassHotSwap pid:[{}] result:[{}]", pid, result);
+                    return result;
                 } catch (Exception e) {
                     log.error("ClassHotSwap error", e);
                 }
-                log.info("ClassHotSwap pid:[{}] result:[{}]", pid, result);
-                return result;
             }
             log.error("attach error, jmxClient is null");
         }

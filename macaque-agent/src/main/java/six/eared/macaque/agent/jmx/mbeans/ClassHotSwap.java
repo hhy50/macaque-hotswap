@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.jmx.mbeans;
 
 import org.objectweb.asm.ClassReader;
+import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.type.FileType;
 import six.eared.macaque.mbean.MBeanObjectName;
@@ -12,15 +13,14 @@ import javax.management.ObjectName;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 热加载MBean
  */
 public class ClassHotSwap implements ClassHotSwapMBean {
+
+    private final JavaSourceCompiler compiler = new JavaSourceCompiler();
 
     /**
      * 热加载
@@ -37,17 +37,24 @@ public class ClassHotSwap implements ClassHotSwapMBean {
         byte[] fileData = request.getFileData();
         try {
 
-            byte[] classData = fileData;
+            List<byte[]> classDataList = null;
             if (FileType.Java.match(fileType)) {
-//                classData = ;
+                String fileName = request.getFileName();
 
+                Map<String, String> sources = new HashMap<>();
+                sources.put(fileName, new String(fileData));
+
+                classDataList = compiler.compile(sources);
+            } else if (FileType.Class.match(fileType)) {
+                classDataList = Arrays.asList(fileData);
             }
 
-            ClassReader classReader = new ClassReader(classData);
-            String className = classReader.getClassName();
-            int redefineCount = redefine(className, classData);
-
-            result.put(className, redefineCount);
+            for (byte[] classData : classDataList) {
+                ClassReader classReader = new ClassReader(classData);
+                String className = classReader.getClassName().replaceAll("/", ".");
+                int redefineCount = redefine(className, classData);
+                result.put(className, redefineCount);
+            }
 
             return RmiResult.success()
                     .data(result);
@@ -56,10 +63,10 @@ public class ClassHotSwap implements ClassHotSwapMBean {
                 System.out.println("ClassHotSwap.process error");
                 e.printStackTrace();
             }
+            errMsg = e.getMessage();
         }
         return RmiResult.error(errMsg);
     }
-
 
     /**
      *

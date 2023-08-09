@@ -26,23 +26,22 @@ public class DefaultCommandExecutor implements CommandExecutor {
     public void exec(String commandString) {
         String[] command = commandString.split("\\s+");
 
-        if (command.length == 1) {
-            if (command[0].equals("quit")) {
-                System.exit(-1);
-            }
-        }
-
-        if (command.length != 2) {
-            log.error("usage: {className} {newClassFilepath}");
+        if (command.length != 1) {
+            log.error("usage: {newClassFilepath}");
             return;
         }
 
+        if (command[0].equals("quit")) {
+            System.exit(-1);
+        }
+
+        String classPath = command[0];
         JmxClient jmxClient = JmxClientResourceManager.getInstance().getResource(pid);
         if (jmxClient != null) {
             MBean<ClassHotSwapRmiData> mBean = jmxClient.getMBean(MBeanObjectName.HOT_SWAP_MBEAN);
             RmiResult result = mBean.process(new ClassHotSwapRmiData(
                     FileType.Class.getType(),
-                    FileUtil.readBytes(command[1]))
+                    FileUtil.readBytes(classPath))
             );
             if (result.isSuccess()) {
                 log.info(result.getMessage());

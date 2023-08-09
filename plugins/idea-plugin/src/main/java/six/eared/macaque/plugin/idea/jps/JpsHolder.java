@@ -53,16 +53,8 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
                 if (settings == null) {
                     return;
                 }
-                String host = settings.getState().macaqueServerHost;
-                String port = settings.getState().macaqueServerPort;
-                if (StringUtils.isBlank(host) || StringUtils.isBlank(port)) {
 
-                }
-
-                if (!host.startsWith("http")) {
-                    host = "http://" + host;
-                }
-                jps = new Jps(host + ":" + port);
+                jps = new Jps(settings.getState().getUrl());
                 JPS_CACHE.put(project, jps);
             }
 
