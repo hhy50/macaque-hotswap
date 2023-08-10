@@ -1,6 +1,7 @@
 package six.eared.macaque.plugin.idea.http.decode;
 
 import com.google.gson.Gson;
+import org.apache.commons.lang.StringUtils;
 
 public class JsonDecoder<T> implements ResponseDecoder<T> {
 
@@ -17,6 +18,6 @@ public class JsonDecoder<T> implements ResponseDecoder<T> {
     @Override
     public T decode(byte[] bytes) {
         String json = DECODER.decode(bytes);
-        return GSON.fromJson(json, clazz);
+        return StringUtils.isBlank(json) ? null : GSON.fromJson(json, clazz);
     }
 }

@@ -1,8 +1,8 @@
-package six.eared.macaque.server.http.model;
+package six.eared.macaque.server.http.body;
 
 import six.eared.macaque.http.request.MultipartFile;
 
-public class ClassHotSwapDto {
+public class ClassHotSwapRequest {
     private Integer pid;
 
     private String fileName;

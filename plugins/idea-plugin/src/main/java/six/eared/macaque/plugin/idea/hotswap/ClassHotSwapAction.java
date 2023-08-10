@@ -1,9 +1,6 @@
 package six.eared.macaque.plugin.idea.hotswap;
 
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
+import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -16,9 +13,7 @@ import six.eared.macaque.plugin.idea.settings.Settings;
 
 public class ClassHotSwapAction extends AnAction {
 
-//        private final NotificationGroupManager manager = NotificationGroup.findRegisteredGroup().getInstance();
-
-    private final NotificationGroup balloon = NotificationGroup.findRegisteredGroup(NotifyGroupName.BALLOON);
+    private static final NotificationGroup NOTIFY_GROUP = NotificationGroupManager.getInstance().getNotificationGroup(NotifyGroupName.BALLOON);
 
     private String pid;
 
@@ -39,25 +34,27 @@ public class ClassHotSwapAction extends AnAction {
             PsiFile psiFile = event.getDataContext().getData(CommonDataKeys.PSI_FILE);
             if (psiFile != null) {
                 Settings settings = Settings.getInstance(project);
+                if (settings != null) {
+                    try {
+                        // TODO IDEA 文件刷新有延迟
+                        byte[] fileBytes = psiFile.getVirtualFile().contentsToByteArray();
 
-                try {
-                    // TODO IDEA 文件刷新有延迟
-                    byte[] fileBytes = psiFile.getVirtualFile().contentsToByteArray();
+                        HotSwap hotSwap = new HotSwap(settings.getState().getUrl());
+                        hotSwap.setPid(pid);
+                        hotSwap.setFileType("java");
+                        hotSwap.setFileName(psiFile.getName());
+                        hotSwap.setFileData(fileBytes);
 
-                    HotSwap hotSwap = new HotSwap(settings.getState().getUrl());
-                    hotSwap.setPid(pid);
-                    hotSwap.setFileType("java");
-                    hotSwap.setFileName(psiFile.getName());
-                    hotSwap.setFileData(fileBytes);
-
-                    hotSwap.execute((response) -> {
-                        if (response.isSuccess()) {
-                            Notification notify = balloon.createNotification("success", NotificationType.INFORMATION);
-                            Notifications.Bus.notify(notify);
-                        }
-                    });
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                        hotSwap.execute((response) -> {
+                            if (response.isSuccess()) {
+                                Notification notify = NOTIFY_GROUP.createNotification("success", NotificationType.INFORMATION);
+                                Notifications.Bus.notify(notify);
+                            }
+                        });
+                    } catch (Exception e) {
+                        Notification notify = NOTIFY_GROUP.createNotification(e.getMessage(), NotificationType.ERROR);
+                        Notifications.Bus.notify(notify);
+                    }
                 }
             }
         }

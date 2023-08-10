@@ -1,11 +1,13 @@
 package six.eared.macaque.plugin.idea.settings;
 
+import com.intellij.notification.*;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
+import six.eared.macaque.plugin.idea.notify.NotifyGroupName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +18,9 @@ public class Settings implements PersistentStateComponent<Settings.State> {
 
     private static final Map<Project, State> PROJECT_STATE = new HashMap<>();
 
+    private static final NotificationGroup NOTIFY_GROUP = NotificationGroupManager.getInstance()
+            .getNotificationGroup(NotifyGroupName.BALLOON);
+
     private Project project;
 
     public Settings(@NotNull Project project) {
@@ -23,7 +28,14 @@ public class Settings implements PersistentStateComponent<Settings.State> {
     }
 
     public static Settings getInstance(Project project) {
-        return project.getService(Settings.class);
+        Settings settings = project.getService(Settings.class);
+        if (settings.getState() == null || !settings.getState().checkRequired()) {
+            Notification notification = NOTIFY_GROUP.createNotification("Not configuration macaque server",
+                    NotificationType.ERROR);
+            Notifications.Bus.notify(notification);
+            return null;
+        }
+        return settings;
     }
 
     @Override
@@ -45,9 +57,12 @@ public class Settings implements PersistentStateComponent<Settings.State> {
         PROJECT_STATE.put(project, state);
     }
 
-    public static class State {
+    public static class State implements StateCheck {
+
+        @Required
         public String macaqueServerHost;
 
+        @Required
         public String macaqueServerPort;
 
         public boolean compatibilityMode;

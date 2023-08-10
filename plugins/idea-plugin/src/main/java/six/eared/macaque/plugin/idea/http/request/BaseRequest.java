@@ -27,7 +27,6 @@ public abstract class BaseRequest<T> extends GenericTyped<T> implements Request<
     }
 
     /**
-     *
      * @param consumer
      */
     public void execute(Consumer<T> consumer) throws Exception {
@@ -49,8 +48,11 @@ public abstract class BaseRequest<T> extends GenericTyped<T> implements Request<
 
             byte[] bytes = StreamUtils.getBytes(is);
 
-            consumer.accept(decoder()
-                    .decode(bytes));
+            T responseEntity = decoder()
+                    .decode(bytes);
+            if (responseEntity != null) {
+                consumer.accept(responseEntity);
+            }
         } catch (Exception e) {
             throw e;
         }

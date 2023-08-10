@@ -13,13 +13,13 @@ import six.eared.macaque.mbean.rmi.RmiResult;
 import six.eared.macaque.server.attach.Attach;
 import six.eared.macaque.server.attach.DefaultAttachFactory;
 import six.eared.macaque.server.http.ServerHttpInterface;
-import six.eared.macaque.server.http.model.ClassHotSwapDto;
+import six.eared.macaque.server.http.body.ClassHotSwapRequest;
 import six.eared.macaque.server.jmx.JmxClient;
 import six.eared.macaque.server.jmx.JmxClientResourceManager;
 
 
 @Path(value = "/hotSwap", method = RequestMethod.POST)
-public class ClassHotSwapRequestHandler extends ServerHttpInterface<ClassHotSwapDto> {
+public class ClassHotSwapRequestHandler extends ServerHttpInterface<ClassHotSwapRequest> {
 
     private static final Logger log = LoggerFactory.getLogger(ClassHotSwapRequestHandler.class);
     private final DefaultAttachFactory defaultAttachFactory;
@@ -29,7 +29,7 @@ public class ClassHotSwapRequestHandler extends ServerHttpInterface<ClassHotSwap
     }
 
     @Override
-    public RmiResult process0(ClassHotSwapDto dto) {
+    public RmiResult process0(ClassHotSwapRequest dto) {
         Integer pid = dto.getPid();
         String fileType = dto.getFileType();
         String fileName = dto.getFileName();
@@ -54,9 +54,9 @@ public class ClassHotSwapRequestHandler extends ServerHttpInterface<ClassHotSwap
                     return result;
                 } catch (Exception e) {
                     log.error("ClassHotSwap error", e);
+                    return RmiResult.error(e.getMessage());
                 }
             }
-            log.error("attach error, jmxClient is null");
         }
         return RmiResult.error("attach error");
     }

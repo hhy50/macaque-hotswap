@@ -28,9 +28,9 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
     private static final Map<Project, Jps> JPS_CACHE =
             new HashMap<>();
 
-    private static final NotificationGroup NOTIFY_GROUP = NotificationGroupManager.getInstance().getNotificationGroup(NotifyGroupName.BALLOON);
-
     private static final int MAX_PROCESS_NAME_LENGTH = 60;
+
+    private static final NotificationGroup NOTIFY_GROUP = NotificationGroupManager.getInstance().getNotificationGroup(NotifyGroupName.BALLOON);
 
     private Project project;
 

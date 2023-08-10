@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
+import six.eared.macaque.plugin.idea.thread.Executors;
 import six.eared.macaque.plugin.idea.ui.SettingsUI;
 
 import javax.swing.*;
@@ -22,7 +23,11 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
     public MacaqueServerSetting(@NotNull Project project) {
         this.project = project;
         this.settingsUI = new SettingsUI();
-        this.settingsUI.initValue(Settings.getInstance(project).getState());
+
+        Settings settings = Settings.getInstance(project);
+        if (settings != null) {
+            this.settingsUI.initValue(settings.getState());
+        }
     }
 
     @Override
@@ -42,14 +47,25 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
 
     @Override
     public boolean isModified() {
-        return !Settings.getInstance(project).getState()
-                .equals(settingsUI.getPanelConfig());
+        Settings.State panelConfig = settingsUI.getPanelConfig();
+        Settings settings = Settings.getInstance(project);
+        if (settings != null) {
+            return !settings.getState().equals(panelConfig);
+        }
+
+        return panelConfig != null;
     }
 
     @Override
     public void apply() {
         Settings.cover(project, settingsUI.getPanelConfig());
-        JpsHolder.refresh(project);
+        Executors.submit(() -> JpsHolder.refresh(project));
+    }
+
+    @Override
+    public void reset() {
+        Settings settings = Settings.getInstance(project);
+        this.settingsUI.initValue(settings.getState());
     }
 
     @Override

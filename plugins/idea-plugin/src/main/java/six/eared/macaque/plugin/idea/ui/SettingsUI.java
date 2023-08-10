@@ -3,6 +3,7 @@ package six.eared.macaque.plugin.idea.ui;
 
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBCheckBox;
+import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
 import javax.swing.*;
@@ -29,6 +30,7 @@ public class SettingsUI {
         UiUtil.addGroup(panelContainer, "Beta", (inner) -> {
             compatibilityModeCheckBox = addSelectBox(inner, "兼容模式");
         });
+        // TODO 添加检查配置的按钮
         UiUtil.fillY(panelContainer);
     }
 
@@ -45,10 +47,19 @@ public class SettingsUI {
     }
 
     public Settings.State getPanelConfig() {
-        Settings.State settings = new Settings.State();
-        settings.macaqueServerHost = serverHostTextField.getText();
-        settings.macaqueServerPort = serverPortTextField.getText();
-        settings.compatibilityMode = compatibilityModeCheckBox.isSelected();
-        return settings;
+        String hostText = serverHostTextField.getText();
+        String portText = serverPortTextField.getText();
+        boolean selected = compatibilityModeCheckBox.isSelected();
+
+        if (StringUtils.isNotBlank(hostText)
+                || StringUtils.isNotBlank(portText)
+                || selected) {
+            Settings.State settings = new Settings.State();
+            settings.macaqueServerHost = hostText;
+            settings.macaqueServerPort = portText;
+            settings.compatibilityMode = selected;
+            return settings;
+        }
+        return null;
     }
 }
