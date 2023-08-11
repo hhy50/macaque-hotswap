@@ -76,7 +76,7 @@ public class AgentBootstrap {
             LocateRegistry.createRegistry(port);
             //JMX API连接器服务地址，端口号可任意指定，但需与上面创建的Registry端口一致
             //该地址是SLP（服务定位协议）的抽象地址
-            JMXServiceURL url = new JMXServiceURL(String.format("service:jmx:rmi:///jndi/rmi://0.0.0.0:%d/macaque", port));
+            JMXServiceURL url = new JMXServiceURL(String.format("service:jmx:rmi:///jndi/rmi://127.0.0.1:%d/macaque", port));
             JMXConnectorServer jcs = JMXConnectorServerFactory.newJMXConnectorServer(url,
                     null, jmxMBeanManager.getMBeanServer());
             jcs.start();
