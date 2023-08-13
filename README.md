@@ -19,7 +19,7 @@ Macaque-hot-swap，一个开源的热部署框架。
 #### 1. 源码编译
 
 ```shell
-git clone https://github.com/haiyanghan/macaque-hot-swap
+git clone https://github.com/haiyanghan/macaque-hot-swap.git
 cd macaque-hot-swap
 ./gradlew macaque-server:release
 ```
