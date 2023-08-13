@@ -12,7 +12,11 @@ Macaque-hot-swap，一个开源的热部署框架。
 4. idea插件里面设置服务端地址和端口
 5. 右击Java文件选择服务端进程
 
-### 1. 源码编译
+---
+
+## 快速开始
+
+#### 1. 源码编译
 
 ```shell
 git clone https://github.com/haiyanghan/macaque-hot-swap
@@ -23,7 +27,7 @@ cd macaque-hot-swap
 编译后的路径位于 `macaque-server/build/distributions/macaque-server-${version}.tar.gz`
 > 需要jdk1.8的环境
 
-### 2. 启动服务端
+#### 2. 启动服务端
 
 将打包后的压缩包上传到运行`jvm`的服务器, 解压缩
 
@@ -37,13 +41,13 @@ sh runServer.sh
 
 > 最好使用`root`用户启动，如果使用其他用户，可能会出现找不到jvm进程的问题
 
-### 3. 安装idea插件
+#### 3. 安装idea插件
 
 插件项目地址： [macaque-plugin](https://github.com/haiyanghan/macaque-plugin)
 
 目前还没有上idea的插件市场，可以从`release`里面下载最新的到本地，从本地安装
 
-### 4. 设置服务端地址和端口
+#### 4. 设置服务端地址和端口
 
 Idea -> File -> Settings -> Tools -> Macaque
 
@@ -51,7 +55,7 @@ Idea -> File -> Settings -> Tools -> Macaque
 
 > 端口是在 runServer脚本里面通过 `--serverPort=2023` 设置的
 
-### 5. 使用
+#### 5. 使用
 
 右击Java文件 -> 选择进程
 
