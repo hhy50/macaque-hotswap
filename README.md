@@ -12,6 +12,18 @@ Macaque-hot-swap，一个开源的热部署框架。
 4. idea插件里面设置服务端地址和端口
 5. 右击Java文件选择服务端进程
 
+## 使用限制
+
+目前已知
+
+- 无法新增方法，新增字段（通过[兼容模式](#兼容模式)解决）
+- 无法修改已有方法的签名（通过[兼容模式](#兼容模式)解决）
+- 内部类无法替换
+- 无法新增类
+- 栈顶的方法（即正在运行的方法）无法替换
+
+> 后续会挨个优化，解决
+
 ---
 
 ## 快速开始
@@ -51,7 +63,7 @@ sh runServer.sh
 
 Idea -> File -> Settings -> Tools -> Macaque
 
-<image src="doc/images/settings.png" style="width: 500px;height: 330px"></image>
+<image src="https://github.com/haiyanghan/macaque-hot-swap/blob/master/doc/images/settings.png" style="width: 500px;height: 330px"></image>
 
 > 端口是在 runServer脚本里面通过 `--serverPort=2023` 设置的
 
@@ -61,7 +73,7 @@ Idea -> File -> Settings -> Tools -> Macaque
 
 > 选择进程后会触发一次idea的增量编译 (`recompile`)，如果增量编译失败，会确定是否尽量全量编译（`build project`）。编译成功之后会进行热替换
 
-<image src="doc/images/useage.png" style="width: 500px;height: 330px"></image>
+<image src="https://github.com/haiyanghan/macaque-hot-swap/blob/master/doc/images/useage.png" style="width: 500px;height: 330px"></image>
 
 ---
 
