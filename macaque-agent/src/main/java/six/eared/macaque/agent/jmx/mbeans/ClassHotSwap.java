@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.jmx.mbeans;
 
-import org.objectweb.asm.ClassReader;
+import six.eared.macaque.agent.asm.classes.ClazzDefinition;
+import six.eared.macaque.agent.asm.classes.MultiClassReader;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.type.FileType;
@@ -31,13 +32,12 @@ public class ClassHotSwap implements ClassHotSwapMBean {
     @Override
     public RmiResult process(ClassHotSwapRmiData request) {
         String errMsg = null;
-        Map<String, Object> result = new HashMap<>();
 
         String fileType = request.getFileType();
         byte[] fileData = request.getFileData();
         try {
 
-            List<byte[]> classDataList = null;
+            List<byte[]> classDataList = Arrays.asList(fileData);
             if (FileType.Java.match(fileType)) {
                 String fileName = request.getFileName();
 
@@ -45,15 +45,18 @@ public class ClassHotSwap implements ClassHotSwapMBean {
                 sources.put(fileName, new String(fileData));
 
                 classDataList = compiler.compile(sources);
-            } else if (FileType.Class.match(fileType)) {
-                classDataList = Arrays.asList(fileData);
             }
 
+            Map<String, Object> result = new HashMap<>();
             for (byte[] classData : classDataList) {
-                ClassReader classReader = new ClassReader(classData);
-                String className = classReader.getClassName().replaceAll("/", ".");
-                int redefineCount = redefine(className, classData);
-                result.put(className, redefineCount);
+                MultiClassReader classReader = new MultiClassReader(classData);
+                Iterator<ClazzDefinition> iterator = classReader.iterator();
+                while (iterator.hasNext()) {
+                    ClazzDefinition clazzDefinition = iterator.next();
+//                    String className = classReader.getClassName().replaceAll("/", ".");
+                    int redefineCount = redefine(clazzDefinition.getClassName(), classData);
+                    result.put(clazzDefinition.getClassName(), redefineCount);
+                }
             }
 
             return RmiResult.success()

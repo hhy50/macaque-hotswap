@@ -1,6 +1,6 @@
 package six.eared.macaque.agent.asm.classes;
 
-public class ClassDefinition {
+public class ClazzDefinition {
 
     private String className;
 
