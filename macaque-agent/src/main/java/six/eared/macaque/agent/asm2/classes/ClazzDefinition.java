@@ -1,4 +1,4 @@
-package six.eared.macaque.agent.asm.classes;
+package six.eared.macaque.agent.asm2.classes;
 
 public class ClazzDefinition {
 

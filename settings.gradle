@@ -4,4 +4,5 @@ include 'macaque-server'
 include 'macaque-common'
 include 'macaque-http'
 include 'macaque-mbean'
+include 'macaque-asm'
 

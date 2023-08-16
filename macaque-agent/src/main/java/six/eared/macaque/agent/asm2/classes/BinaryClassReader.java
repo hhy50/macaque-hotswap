@@ -1,8 +1,9 @@
-package six.eared.macaque.agent.asm.classes;
+package six.eared.macaque.agent.asm2.classes;
 
-import org.objectweb.asm.*;
 
-import static org.objectweb.asm.Opcodes.ASM4;
+import six.eared.macaque.asm.*;
+
+import static six.eared.macaque.asm.Opcodes.ASM4;
 
 /**
  * 反编译

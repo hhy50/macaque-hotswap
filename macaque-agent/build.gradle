@@ -15,7 +15,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 dependencies {
     implementation project(':macaque-mbean')
     implementation project(':macaque-common')
-    implementation "org.ow2.asm:asm:${asm_version}"
+    implementation project(':macaque-asm')
     testImplementation 'junit:junit:4.13.1'
 }
 

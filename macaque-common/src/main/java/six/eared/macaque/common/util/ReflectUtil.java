@@ -87,8 +87,8 @@ public class ReflectUtil {
                 type.getSuperclass().getDeclaredFields(), Field.class);
     }
 
-    public static <T> T[] merge(T[] arr1, T[] arr2, Class<Field> fieldClass) {
-        T[] result = (T[]) Array.newInstance(fieldClass, arr1.length + arr2.length);
+    public static <T> T[] merge(T[] arr1, T[] arr2, Class<Field> typed) {
+        T[] result = (T[]) Array.newInstance(typed, arr1.length + arr2.length);
         int t = 0;
         for (int i = 0; i < arr1.length; i++) {
             result[t++] = arr1[i];

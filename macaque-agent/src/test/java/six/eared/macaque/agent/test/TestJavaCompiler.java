@@ -2,10 +2,12 @@ package six.eared.macaque.agent.test;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.objectweb.asm.ClassReader;
-import six.eared.macaque.agent.asm.classes.BinaryClassReader;
+import six.eared.macaque.agent.asm2.classes.BinaryClassReader;
+import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
+import six.eared.macaque.agent.asm2.classes.MultiClassReader;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.env.Environment;
+import six.eared.macaque.asm.ClassReader;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,48 +17,48 @@ public class TestJavaCompiler {
 
     static String clazz1 =
             "public class Main {\n" +
-            "    public static void main(String[] args) throws InterruptedException {\n" +
-            "        User user = new User(\"1123\", 111);\n" +
-            "        System.out.println(user);\n" +
-            "\n" +
-            "        while (true) {\n" +
-            "            try {\n" +
-            "                test();\n" +
-            "                Thread.sleep(1000);\n" +
-            "            } catch (InterruptedException e) {\n" +
-            "                throw new RuntimeException(e);\n" +
-            "            }\n" +
-            "        }\n" +
-            "    }\n" +
-            "    public static void test() {\n" +
-            "        System.out.println(111111);\n" +
-            "    }\n" +
-            "    static class User {\n" +
-            "        private String name;\n" +
-            "\n" +
-            "        private Integer age;\n" +
-            "\n" +
-            "        User(String name, Integer age) {\n" +
-            "            this.name = name;\n" +
-            "            this.age = age;\n" +
-            "        }\n" +
-            "\n" +
-            "\n" +
-            "        @Override\n" +
-            "        public String toString() {\n" +
-            "            return \"User{\" +\n" +
-            "                    \"name='\" + name + '\\'' +\n" +
-            "                    \", age=\" + age +\n" +
-            "                    '}';\n" +
-            "        }\n" +
-            "    }\n" +
-            "}\n";
+                    "    public static void main(String[] args) throws InterruptedException {\n" +
+                    "        User user = new User(\"1123\", 111);\n" +
+                    "        System.out.println(user);\n" +
+                    "\n" +
+                    "        while (true) {\n" +
+                    "            try {\n" +
+                    "                test();\n" +
+                    "                Thread.sleep(1000);\n" +
+                    "            } catch (InterruptedException e) {\n" +
+                    "                throw new RuntimeException(e);\n" +
+                    "            }\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "    public static void test() {\n" +
+                    "        System.out.println(111111);\n" +
+                    "    }\n" +
+                    "    static class User {\n" +
+                    "        private String name;\n" +
+                    "\n" +
+                    "        private Integer age;\n" +
+                    "\n" +
+                    "        User(String name, Integer age) {\n" +
+                    "            this.name = name;\n" +
+                    "            this.age = age;\n" +
+                    "        }\n" +
+                    "\n" +
+                    "\n" +
+                    "        @Override\n" +
+                    "        public String toString() {\n" +
+                    "            return \"User{\" +\n" +
+                    "                    \"name='\" + name + '\\'' +\n" +
+                    "                    \", age=\" + age +\n" +
+                    "                    '}';\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "}\n";
 
     static String clazz2 = "package six.eared.macaque.agent.asm.classes;\n" +
             "\n" +
-            "import org.objectweb.asm.*;\n" +
+            "import six.eared.macaque.asm.*;\n" +
             "\n" +
-            "import static org.objectweb.asm.Opcodes.ASM4;\n" +
+            "import static six.eared.macaque.asm.Opcodes.ASM4;\n" +
             "\n" +
             "/**\n" +
             " * 反编译\n" +
@@ -107,7 +109,7 @@ public class TestJavaCompiler {
     }
 
     @Test
-    public void testClassByteAr () {
+    public void testClassByteAr() {
         JavaSourceCompiler javaSourceCompiler = new JavaSourceCompiler();
 
         Map<String, String> javaSource = new HashMap<>();
@@ -122,4 +124,34 @@ public class TestJavaCompiler {
         }
     }
 
+    @Test
+    public void testMultiClassReader() {
+        JavaSourceCompiler javaSourceCompiler = new JavaSourceCompiler();
+
+        Map<String, String> javaSource = new HashMap<>();
+        javaSource.put("Main.java", clazz1);
+        javaSource.put("BinaryClassReader.java", clazz2);
+
+        List<byte[]> compiled = javaSourceCompiler.compile(javaSource);
+
+        byte[] bytes = merge(compiled);
+
+        MultiClassReader binaryClassReader = new MultiClassReader(bytes);
+        for (ClazzDefinition clazzDefinition : binaryClassReader) {
+            System.out.println(clazzDefinition.getClassName());
+            ClassReader classReader = new ClassReader(clazzDefinition.getClassData());
+            classReader.accept(new BinaryClassReader(), 0);
+        }
+    }
+
+    private byte[] merge(List<byte[]> bytelist) {
+        return bytelist.stream().reduce((b1, b2) -> {
+            int len = b1.length + b2.length;
+            byte[] bytes = new byte[len];
+
+            System.arraycopy(b1, 0, bytes, 0, b1.length);
+            System.arraycopy(b2, 0, bytes, b1.length, b2.length);
+            return bytes;
+        }).get();
+    }
 }

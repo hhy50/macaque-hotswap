@@ -1,7 +1,7 @@
 package six.eared.macaque.agent.jmx.mbeans;
 
-import six.eared.macaque.agent.asm.classes.ClazzDefinition;
-import six.eared.macaque.agent.asm.classes.MultiClassReader;
+import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
+import six.eared.macaque.agent.asm2.classes.MultiClassReader;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.type.FileType;
