@@ -9,6 +9,7 @@ import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.asm.ClassReader;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,6 +136,7 @@ public class TestJavaCompiler {
         List<byte[]> compiled = javaSourceCompiler.compile(javaSource);
 
         byte[] bytes = merge(compiled);
+        bytes = merge(Arrays.asList(bytes, bytes, bytes));
 
         MultiClassReader binaryClassReader = new MultiClassReader(bytes);
         for (ClazzDefinition clazzDefinition : binaryClassReader) {
