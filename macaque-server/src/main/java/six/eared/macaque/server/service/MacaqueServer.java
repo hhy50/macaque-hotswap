@@ -2,10 +2,10 @@ package six.eared.macaque.server.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import six.eared.macaque.client.attach.DefaultAttachFactory;
 import six.eared.macaque.http.HttpConfig;
 import six.eared.macaque.http.MacaqueHttpServer;
 import six.eared.macaque.http.handler.RequestHandler;
-import six.eared.macaque.server.attach.DefaultAttachFactory;
 import six.eared.macaque.server.config.ServerConfig;
 import six.eared.macaque.server.http.interfaces.ClassHotSwapRequestHandler;
 import six.eared.macaque.server.http.interfaces.JpsRequestHandler;
@@ -34,7 +34,7 @@ public class MacaqueServer implements MacaqueService {
 
     public MacaqueServer(ServerConfig serverConfig) {
         this.serverConfig = serverConfig;
-        this.defaultAttachFactory = new DefaultAttachFactory(serverConfig);
+        this.defaultAttachFactory = new DefaultAttachFactory();
     }
 
     /**
@@ -69,7 +69,7 @@ public class MacaqueServer implements MacaqueService {
      */
     private List<RequestHandler> buildInterface() {
         return Arrays.asList(
-                new ClassHotSwapRequestHandler(this.defaultAttachFactory),
+                new ClassHotSwapRequestHandler(this.defaultAttachFactory, this.serverConfig),
                 new JpsRequestHandler()
         );
     }

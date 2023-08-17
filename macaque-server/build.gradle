@@ -15,12 +15,10 @@ targetCompatibility = JavaVersion.VERSION_1_8
 sourceCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-    def javaHome = System.getenv 'JAVA_HOME'
-
-    implementation files("${javaHome}/lib/tools.jar")
     implementation project(':macaque-common')
     implementation project(':macaque-mbean')
     implementation project(':macaque-http')
+    implementation project(':macaque-client')
 
     testImplementation 'junit:junit:4.13.1'
 }
@@ -51,6 +49,9 @@ task release(type: Tar, group: build) {
     }
 
     from(project(":macaque-common").jar) {
+        into('libs/')
+    }
+    from(project(":macaque-client").jar) {
         into('libs/')
     }
     from(project(":macaque-mbean").jar) {

@@ -1,8 +1,8 @@
-package six.eared.macaque.server.process;
+package six.eared.macaque.client.process;
 
 import com.sun.tools.attach.VirtualMachine;
+import six.eared.macaque.client.common.PID;
 import six.eared.macaque.common.util.Pair;
-import six.eared.macaque.server.common.PID;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

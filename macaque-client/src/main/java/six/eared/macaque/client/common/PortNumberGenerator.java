@@ -1,4 +1,4 @@
-package six.eared.macaque.server.common;
+package six.eared.macaque.client.common;
 
 
 public class PortNumberGenerator {

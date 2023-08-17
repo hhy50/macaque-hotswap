@@ -1,0 +1,25 @@
+plugins {
+    id 'java'
+    id 'java-library'
+}
+
+group = 'six.eared.macaque'
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    archiveBaseName = 'macaque-client'
+    archiveVersion = "${projectVersion}"
+}
+
+dependencies {
+    def javaHome = System.getenv 'JAVA_HOME'
+
+    implementation files("${javaHome}/lib/tools.jar")
+    implementation project(":macaque-common")
+    implementation project(":macaque-mbean")
+
+    testImplementation 'junit:junit:4.13.1'
+}

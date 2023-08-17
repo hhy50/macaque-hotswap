@@ -1,14 +1,13 @@
-package six.eared.macaque.server.attach;
+package six.eared.macaque.client.attach;
 
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.server.common.PortNumberGenerator;
-import six.eared.macaque.server.config.ServerConfig;
-import six.eared.macaque.server.jmx.JmxClientResourceManager;
+import six.eared.macaque.client.jmx.JmxClientResourceManager;
 
 import java.io.IOException;
+
 
 public class RuntimeAttach implements Attach {
 
@@ -16,19 +15,16 @@ public class RuntimeAttach implements Attach {
 
     private String pid;
 
-    private final ServerConfig config;
-
     private VirtualMachine targetVM;
 
     private volatile boolean attached;
 
-    public RuntimeAttach(String pid, ServerConfig config) {
+    public RuntimeAttach(String pid) {
         this.pid = pid;
-        this.config = config;
     }
 
     @Override
-    public synchronized boolean attach() {
+    public synchronized boolean attach(String agentpath, String property) {
         if (this.attached) {
             return true;
         }
@@ -48,20 +44,17 @@ public class RuntimeAttach implements Attach {
             }
 
             if (this.targetVM != null) {
-                Integer agentPort = PortNumberGenerator.getPort(Integer.parseInt(pid));
-                String property = String.format("port=%s,debug=%s", agentPort, Boolean.toString(this.config.isDebug()));
-                this.targetVM.loadAgent(this.config.getAgentpath(), property);
+                this.targetVM.loadAgent(agentpath, property);
                 this.attached = JmxClientResourceManager.getInstance()
                         .createResource(pid) != null;
             }
         } catch (Exception e) {
-            log.error("attach error", e);
+            log.error("attach '{}' error", pid);
         } finally {
             if (targetVM != null) {
                 try {
                     targetVM.detach();
                 } catch (IOException e) {
-                    log.error("detach error", e);
                 }
             }
         }

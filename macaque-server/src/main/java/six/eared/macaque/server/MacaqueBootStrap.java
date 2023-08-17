@@ -2,10 +2,11 @@ package six.eared.macaque.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import six.eared.macaque.client.process.JavaProcessHolder;
 import six.eared.macaque.server.command.CommandLine;
+import six.eared.macaque.server.common.Banner;
 import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.config.ServerConfig;
-import six.eared.macaque.server.process.JavaProcessHolder;
 import six.eared.macaque.server.service.DefaultServiceFactoryImpl;
 import six.eared.macaque.server.service.MacaqueService;
 import six.eared.macaque.server.service.ServiceFactory;
@@ -42,6 +43,8 @@ public class MacaqueBootStrap {
      * @param args 启动参数
      */
     public static void main(String[] args) {
+        Banner.print();
+
         // 解析启动参数
         CommandLine commandLine = new CommandLine(args);
         ServerConfig serverConfig = getConfigFromCommandLine(commandLine);

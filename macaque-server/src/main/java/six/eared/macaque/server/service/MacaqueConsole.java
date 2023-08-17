@@ -2,14 +2,14 @@ package six.eared.macaque.server.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import six.eared.macaque.client.attach.Attach;
+import six.eared.macaque.client.attach.DefaultAttachFactory;
+import six.eared.macaque.client.common.PortNumberGenerator;
+import six.eared.macaque.client.process.JavaProcessHolder;
 import six.eared.macaque.common.util.Pair;
-import six.eared.macaque.server.attach.Attach;
-import six.eared.macaque.server.attach.DefaultAttachFactory;
 import six.eared.macaque.server.command.DefaultCommandExecutor;
-import six.eared.macaque.server.common.Banner;
 import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.config.ServerConfig;
-import six.eared.macaque.server.process.JavaProcessHolder;
 
 import java.util.Scanner;
 
@@ -28,7 +28,7 @@ class MacaqueConsole implements MacaqueService {
 
     public MacaqueConsole(ServerConfig serverConfig) {
         this.serverConfig = serverConfig;
-        this.defaultAttachFactory = new DefaultAttachFactory(serverConfig);
+        this.defaultAttachFactory = new DefaultAttachFactory();
     }
 
     /**
@@ -37,12 +37,13 @@ class MacaqueConsole implements MacaqueService {
     @Override
     public void start() {
         console.info("console staring...");
-        Banner.print();
-
         //获取pid
         String pid = waitConsoleNextInput(true);
         this.attach = this.defaultAttachFactory.createRuntimeAttach(pid);
-        if (!this.attach.attach()) {
+
+        Integer agentPort = PortNumberGenerator.getPort(Integer.parseInt(pid));
+        String property = String.format("port=%s,debug=%s", agentPort, Boolean.toString(this.serverConfig.isDebug()));
+        if (!this.attach.attach(this.serverConfig.getAgentpath(), property)) {
             System.exit(-1);
             return;
         }

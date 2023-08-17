@@ -2,10 +2,10 @@ package six.eared.macaque.server.http.interfaces;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import six.eared.macaque.client.process.JavaProcessHolder;
 import six.eared.macaque.http.annotitions.Path;
 import six.eared.macaque.mbean.rmi.RmiResult;
 import six.eared.macaque.server.http.ServerHttpInterface;
-import six.eared.macaque.server.process.JavaProcessHolder;
 
 import java.util.HashMap;
 import java.util.List;

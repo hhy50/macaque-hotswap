@@ -1,4 +1,4 @@
-package six.eared.macaque.server.attach;
+package six.eared.macaque.client.attach;
 
 public interface AttachFactory {
 

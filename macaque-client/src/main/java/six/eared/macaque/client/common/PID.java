@@ -1,4 +1,4 @@
-package six.eared.macaque.server.common;
+package six.eared.macaque.client.common;
 
 import java.lang.management.ManagementFactory;
 import java.util.function.Supplier;
