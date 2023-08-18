@@ -17,3 +17,18 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+publishing {
+    publications {
+        asmProject(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version projectVersion
+
+            artifact jar
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}

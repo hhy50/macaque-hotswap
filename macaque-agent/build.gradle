@@ -21,7 +21,7 @@ dependencies {
 
 
 shadowJar {
-    archiveBaseName = 'macaque-agent'
+    archiveBaseName = "$project.name"
     archiveVersion = ""
     archiveClassifier = null
     manifest {
@@ -31,5 +31,21 @@ shadowJar {
                 'Can-Retransform-Classes': 'true',
                 'Manifest-Version': "${projectVersion}"
         )
+    }
+}
+
+publishing {
+    publications {
+        agentProjet(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version projectVersion
+
+            artifact shadowJar
+        }
+    }
+
+    repositories {
+        mavenLocal()
     }
 }

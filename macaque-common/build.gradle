@@ -18,3 +18,18 @@ dependencies {
     api 'ch.qos.logback:logback-classic:1.2.3'
     api 'com.alibaba:fastjson:2.0.6'
 }
+publishing {
+    publications {
+        commonProject(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version projectVersion
+
+            artifact jar
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}

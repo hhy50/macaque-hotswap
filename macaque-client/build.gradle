@@ -23,3 +23,18 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.1'
 }
+publishing {
+    publications {
+        clientProject(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version projectVersion
+
+            artifact jar
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}
