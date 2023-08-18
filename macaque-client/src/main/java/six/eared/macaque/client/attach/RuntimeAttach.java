@@ -49,7 +49,7 @@ public class RuntimeAttach implements Attach {
                         .createResource(pid) != null;
             }
         } catch (Exception e) {
-            log.error("attach '{}' error", pid);
+            log.error("attach error", e);
         } finally {
             if (targetVM != null) {
                 try {
