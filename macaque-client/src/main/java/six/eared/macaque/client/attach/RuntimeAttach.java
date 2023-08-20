@@ -1,5 +1,6 @@
 package six.eared.macaque.client.attach;
 
+import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ public class RuntimeAttach implements Attach {
             }
 
             if (this.targetVM != null) {
-                this.targetVM.loadAgent(agentpath, property);
+                loadAgent(this.targetVM, agentpath, property);
                 this.attached = JmxClientResourceManager.getInstance()
                         .createResource(pid) != null;
             }
@@ -59,5 +60,17 @@ public class RuntimeAttach implements Attach {
             }
         }
         return this.attached;
+    }
+
+    public void loadAgent(VirtualMachine virtualMachine, String agentpath, String property) throws Exception {
+        try {
+            virtualMachine.loadAgent(agentpath, property);
+        } catch (Exception e) {
+            if (e instanceof AgentLoadException) {
+                if (!e.getMessage().equals("0")) {
+                    throw e;
+                }
+            }
+        }
     }
 }
