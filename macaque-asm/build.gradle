@@ -27,8 +27,4 @@ publishing {
             artifact jar
         }
     }
-
-    repositories {
-        mavenLocal()
-    }
 }
