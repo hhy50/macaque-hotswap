@@ -67,8 +67,8 @@ subprojects {
                             if (task != null)
                                 artifact task
                         }
-                        version = projectVersion
-                        artifactId = archivesBaseName
+                        version = projectVersion + '-SNAPSHOT'
+                        artifactId = 'six-eared-' + archivesBaseName
                         pom {
                             name = project.name
                             url = "${projectUrl}"
