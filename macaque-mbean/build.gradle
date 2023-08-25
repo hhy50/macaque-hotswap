@@ -3,7 +3,6 @@ plugins {
 }
 
 group = 'six.eared.macaque'
-version = "$projectVersion"
 
 repositories {
     mavenCentral()
@@ -12,14 +11,23 @@ repositories {
 dependencies {
 
 }
-publishing {
-    publications {
-        mbeanProject(MavenPublication) {
-            groupId project.group
-            artifactId project.name
-            version projectVersion
 
-            artifact jar
+jar {
+    archiveBaseName = "${project.name}"
+    archiveVersion = "${projectVersion}"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java', 'src/main/resources']
         }
     }
+}
+
+task srcJar(type: Jar) {
+    archiveBaseName = project.name
+    archiveVersion = "${projectVersion}"
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
 }

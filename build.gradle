@@ -1,7 +1,6 @@
 plugins {
     id 'java'
     id 'java-library'
-    id 'maven-publish'
 }
 
 group = 'six.eared.macaque'
@@ -12,24 +11,83 @@ repositories {
 }
 
 ext {
-    projectVersion = "${version}"
+    projectVersion = '1.0'
 //    asm_version = '5.0.4'
+    logbackVersion = '1.2.3'
+    fastjsonVersion = '2.0.6'
+    projectUrl = 'https://github.com/haiyanghan/macaque-hotswap'
+    mavenUsername = project.hasProperty('mavenUsername') ? project.mavenUsername : ''
+    mavenPassword = project.hasProperty('mavenPassword') ? project.mavenPassword : ''
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = "utf-8"
-}
-tasks.withType(Javadoc).configureEach {
-    options.encoding = "utf-8"
-}
 
 allprojects {
-    targetCompatibility = JavaVersion.VERSION_1_8
-    sourceCompatibility = JavaVersion.VERSION_1_8
+    compileJava {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+        [compileJava]*.options*.encoding = 'UTF-8'
+    }
+    compileTestJava {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+        [compileTestJava]*.options*.encoding = 'UTF-8'
+    }
 }
 
-publishing {
-    repositories {
-        mavenLocal()
+subprojects {
+    def publish = ['macaque-mbean', 'macaque-common'].contains(project.name)
+    if (publish) {
+        apply plugin: 'maven-publish'
+        apply plugin: 'signing'
+
+        publishing {
+            repositories {
+                maven {
+                    name 'releaseRepository'
+                    url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                    credentials {
+                        username = "${mavenUsername}"
+                        password = "${mavenPassword}"
+                    }
+                }
+                maven {
+                    name = 'snapshotRepository'
+                    url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+                    credentials {
+                        username = "${mavenUsername}"
+                        password = "${mavenPassword}"
+                    }
+                }
+            }
+            publications {
+                mavenJava(MavenPublication) {
+                    afterEvaluate {
+                        ["jar", "srcJar", "javadocJar"].forEach { taskName ->
+                            def task = tasks.findByName(taskName)
+                            if (task != null)
+                                artifact task
+                        }
+                        version = projectVersion
+                        artifactId = archivesBaseName
+                        pom {
+                            name = project.name
+                            url = "${projectUrl}"
+                            licenses {
+                                license {
+                                    name = 'The Apache License, Version 2.0'
+                                    url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                                }
+                            }
+
+                            scm {
+                                connection = "scm:git:${projectUrl}.git"
+                                developerConnection = "scm:git:${projectUrl}.git"
+                                url = "${projectUrl}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -3,7 +3,6 @@ plugins {
 }
 
 group = 'six.eared.macaque'
-version = '1.0'
 
 repositories {
     mavenCentral()
@@ -17,14 +16,4 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-publishing {
-    publications {
-        asmProject(MavenPublication) {
-            groupId project.group
-            artifactId project.name
-            version projectVersion
 
-            artifact jar
-        }
-    }
-}

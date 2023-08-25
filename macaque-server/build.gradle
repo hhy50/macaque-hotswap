@@ -11,9 +11,6 @@ repositories {
     mavenCentral()
 }
 
-targetCompatibility = JavaVersion.VERSION_1_8
-sourceCompatibility = JavaVersion.VERSION_1_8
-
 dependencies {
     implementation project(':macaque-common')
     implementation project(':macaque-mbean')
@@ -63,6 +60,7 @@ task release(type: Tar, group: build) {
 
     from(configurations.runtimeClasspath.files) {
         exclude "macaque-*-${projectVersion}.jar"
+        exclude 'tools.jar'
         into('libs/')
     }
 

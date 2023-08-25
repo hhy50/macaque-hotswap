@@ -4,11 +4,15 @@ plugins {
 }
 
 group = 'six.eared.macaque'
-version = '1.0'
 
 repositories {
     maven { url 'https://repo.spring.io/milestone' }
     mavenCentral()
+}
+
+jar {
+    archiveBaseName = "${project.name}"
+    archiveVersion = "${projectVersion}"
 }
 
 dependencies {

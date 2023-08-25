@@ -9,23 +9,27 @@ repositories {
     mavenCentral()
 }
 
+dependencies {
+    api "ch.qos.logback:logback-classic:${logbackVersion}"
+    api "com.alibaba:fastjson:${fastjsonVersion}"
+}
+
 jar {
-    archiveBaseName = 'macaque-common'
+    archiveBaseName = "${project.name}"
     archiveVersion = "${projectVersion}"
 }
 
-dependencies {
-    api 'ch.qos.logback:logback-classic:1.2.3'
-    api 'com.alibaba:fastjson:2.0.6'
+task srcJar(type: Jar) {
+    archiveBaseName = project.name
+    archiveVersion = "${projectVersion}"
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
 }
-publishing {
-    publications {
-        commonProject(MavenPublication) {
-            groupId project.group
-            artifactId project.name
-            version projectVersion
 
-            artifact jar
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java', 'src/main/resources']
         }
     }
 }

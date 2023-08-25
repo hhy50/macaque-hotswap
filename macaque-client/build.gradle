@@ -23,25 +23,3 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.1'
 }
-
-shadowJar {
-    archiveBaseName = "$project.name"
-    archiveVersion = "${projectVersion}"
-    archiveClassifier = null
-
-    dependencies {
-        exclude("tools.jar")
-    }
-}
-
-publishing {
-    publications {
-        agentProjet(MavenPublication) {
-            groupId project.group
-            artifactId project.name
-            version projectVersion
-
-            artifact shadowJar
-        }
-    }
-}
