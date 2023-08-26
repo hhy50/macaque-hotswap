@@ -4,6 +4,7 @@ plugins {
 }
 
 group = 'six.eared.macaque'
+version = projectVersion
 
 repositories {
     mavenCentral()
@@ -12,11 +13,6 @@ repositories {
 dependencies {
     api "ch.qos.logback:logback-classic:${logbackVersion}"
     api "com.alibaba:fastjson:${fastjsonVersion}"
-}
-
-jar {
-    archiveBaseName = "${project.name}"
-    archiveVersion = "${projectVersion}"
 }
 
 task srcJar(type: Jar) {

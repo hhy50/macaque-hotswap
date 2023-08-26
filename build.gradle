@@ -4,20 +4,18 @@ plugins {
 }
 
 group = 'six.eared.macaque'
-version = '1.0'
 
 repositories {
     mavenCentral()
 }
 
 ext {
-    projectVersion = '1.0'
-//    asm_version = '5.0.4'
+    projectVersion = '1.0.0-SNAPSHOT'
     logbackVersion = '1.2.3'
     fastjsonVersion = '2.0.6'
     projectUrl = 'https://github.com/haiyanghan/macaque-hotswap'
-    mavenUsername = project.hasProperty('mavenUsername') ? project.mavenUsername : ''
-    mavenPassword = project.hasProperty('mavenPassword') ? project.mavenPassword : ''
+    mavenUsername = System.getenv('MVN_USER_NAME') != null ? System.getenv('MVN_USER_NAME') : ''
+    mavenPassword = System.getenv('MVN_PASSWORD') != null ? System.getenv('MVN_PASSWORD') : ''
 }
 
 
@@ -44,7 +42,7 @@ subprojects {
             repositories {
                 maven {
                     name 'releaseRepository'
-                    url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                    url 'https://s01.oss.sonatype.org/content/repositories/releases/'
                     credentials {
                         username = "${mavenUsername}"
                         password = "${mavenPassword}"
@@ -52,7 +50,7 @@ subprojects {
                 }
                 maven {
                     name = 'snapshotRepository'
-                    url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+                    url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
                     credentials {
                         username = "${mavenUsername}"
                         password = "${mavenPassword}"
@@ -62,12 +60,14 @@ subprojects {
             publications {
                 mavenJava(MavenPublication) {
                     afterEvaluate {
-                        ["jar", "srcJar", "javadocJar"].forEach { taskName ->
+                        ["srcJar", "javadocJar"].forEach { taskName ->
                             def task = tasks.findByName(taskName)
                             if (task != null)
                                 artifact task
                         }
-                        version = projectVersion + '-SNAPSHOT'
+                        from components.java
+                        groupId = 'io.github.haiyanghan'
+                        version = projectVersion
                         artifactId = 'six-eared-' + archivesBaseName
                         pom {
                             name = project.name

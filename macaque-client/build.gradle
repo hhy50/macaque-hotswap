@@ -4,14 +4,10 @@ plugins {
 }
 
 group = 'six.eared.macaque'
+version = projectVersion
 
 repositories {
     mavenCentral()
-}
-
-jar {
-    archiveBaseName = 'macaque-client'
-    archiveVersion = "${projectVersion}"
 }
 
 dependencies {

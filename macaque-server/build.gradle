@@ -4,6 +4,7 @@ plugins {
 }
 
 group = 'six.eared.macaque'
+version = projectVersion
 
 def projectName = 'macaque-server'
 
@@ -22,7 +23,7 @@ dependencies {
 
 jar {
     archiveBaseName = "${projectName}"
-    archiveVersion = "${projectVersion}"
+    archiveVersion = ''
     manifest {
         attributes(
                 'Main-Class': 'six.eared.macaque.server.MacaqueBootStrap',

@@ -3,6 +3,7 @@ plugins {
 }
 
 group = 'six.eared.macaque'
+version = projectVersion
 
 repositories {
     mavenCentral()
@@ -10,11 +11,6 @@ repositories {
 
 dependencies {
 
-}
-
-jar {
-    archiveBaseName = "${project.name}"
-    archiveVersion = "${projectVersion}"
 }
 
 sourceSets {
