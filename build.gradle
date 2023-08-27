@@ -5,17 +5,11 @@ plugins {
 
 group = 'six.eared.macaque'
 
-repositories {
-    mavenCentral()
-}
-
 ext {
-    projectVersion = '1.0.0-SNAPSHOT'
+    projectVersion = '1.0.0'
     logbackVersion = '1.2.3'
     fastjsonVersion = '2.0.6'
     projectUrl = 'https://github.com/haiyanghan/macaque-hotswap'
-    mavenUsername = System.getenv('MVN_USER_NAME') != null ? System.getenv('MVN_USER_NAME') : ''
-    mavenPassword = System.getenv('MVN_PASSWORD') != null ? System.getenv('MVN_PASSWORD') : ''
 }
 
 
@@ -33,6 +27,14 @@ allprojects {
 }
 
 subprojects {
+    repositories {
+        mavenCentral()
+        // snapshot
+        maven {
+            url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+        }
+    }
+
     def publish = ['macaque-mbean', 'macaque-common'].contains(project.name)
     if (publish) {
         apply plugin: 'maven-publish'
@@ -42,25 +44,25 @@ subprojects {
             repositories {
                 maven {
                     name 'releaseRepository'
-                    url 'https://s01.oss.sonatype.org/content/repositories/releases/'
+                    url 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
                     credentials {
-                        username = "${mavenUsername}"
-                        password = "${mavenPassword}"
+                        username = "${MVN_USER_NAME}"
+                        password = "${MVN_PASSWORD}"
                     }
                 }
                 maven {
                     name = 'snapshotRepository'
                     url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
                     credentials {
-                        username = "${mavenUsername}"
-                        password = "${mavenPassword}"
+                        username = "${MVN_USER_NAME}"
+                        password = "${MVN_PASSWORD}"
                     }
                 }
             }
             publications {
                 mavenJava(MavenPublication) {
                     afterEvaluate {
-                        ["srcJar", "javadocJar"].forEach { taskName ->
+                        ["srcJar", "docJar"].forEach { taskName ->
                             def task = tasks.findByName(taskName)
                             if (task != null)
                                 artifact task
@@ -87,6 +89,31 @@ subprojects {
                         }
                     }
                 }
+            }
+
+            task docJar(type: Jar, dependsOn: javadoc) {
+                archiveClassifier = 'javadoc'
+                from javadoc.destinationDir
+            }
+
+            javadoc {
+                options.charSet = 'UTF-8'
+                options.docEncoding = 'UTF-8'
+                options.encoding = 'UTF-8'
+                options.memberLevel = JavadocMemberLevel.PROTECTED
+                options.addStringOption('Xdoclint:none', '-quiet')
+
+                // The URL structure was changed to include the locale after Java 8
+                if (JavaVersion.current().isJava11Compatible())
+                    options.links "https://docs.oracle.com/en/java/javase/${JavaVersion.current().majorVersion}/docs/api/"
+                else
+                    options.links "https://docs.oracle.com/javase/8/docs/api/"
+            }
+        }
+
+        if (!projectVersion.endsWith("SNAPSHOT")) {
+            signing {
+                sign publishing.publications.mavenJava
             }
         }
     }

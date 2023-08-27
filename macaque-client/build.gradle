@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'java-library'
 }
 
 group = 'six.eared.macaque'
@@ -11,11 +11,10 @@ repositories {
 }
 
 dependencies {
-    def javaHome = System.getenv 'JAVA_HOME'
-
-    implementation files("${javaHome}/lib/tools.jar")
-    implementation project(":macaque-common")
-    implementation project(":macaque-mbean")
-
+    api files("${System.getenv('JAVA_HOME')}/lib/tools.jar")
+//    api "io.github.haiyanghan:six-eared-macaque-common:${projectVersion}"
+//    api "io.github.haiyanghan:six-eared-macaque-mbean:${projectVersion}"
+    api project(":macaque-common")
+    api project(":macaque-mbean")
     testImplementation 'junit:junit:4.13.1'
 }

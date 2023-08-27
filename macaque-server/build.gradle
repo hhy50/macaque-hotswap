@@ -13,8 +13,6 @@ repositories {
 }
 
 dependencies {
-    implementation project(':macaque-common')
-    implementation project(':macaque-mbean')
     implementation project(':macaque-http')
     implementation project(':macaque-client')
 
