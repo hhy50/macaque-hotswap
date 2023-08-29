@@ -23,7 +23,8 @@ public class AgentBootstrap {
     public static JmxMBeanManager JMX_MBEAN_MANAGER;
 
     /**
-     * @see six.eared.macaque.agent.AgentMain#loadBootstrap(String, Instrumentation) 反射调用
+     * 反射调用 {@link six.eared.macaque.agent.AgentMain#loadBootstrap}
+     *
      * @param args 启动参数
      * @param inst 插桩对象
      * @return 启动结果

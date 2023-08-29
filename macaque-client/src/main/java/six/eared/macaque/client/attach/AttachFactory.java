@@ -7,5 +7,5 @@ public interface AttachFactory {
      * @param
      * @return
      */
-    public Attach createRuntimeAttach(String pid);
+    public Attach createRuntimeAttach(Integer pid);
 }

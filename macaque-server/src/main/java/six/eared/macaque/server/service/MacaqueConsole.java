@@ -2,10 +2,9 @@ package six.eared.macaque.server.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.client.attach.Attach;
-import six.eared.macaque.client.attach.DefaultAttachFactory;
-import six.eared.macaque.client.common.PortNumberGenerator;
-import six.eared.macaque.client.process.JavaProcessHolder;
+import six.eared.macaque.client.c.MacaqueClient;
+import six.eared.macaque.client.common.AttachResultCode;
+import six.eared.macaque.client.jps.JavaProcessHolder;
 import six.eared.macaque.common.util.Pair;
 import six.eared.macaque.server.command.DefaultCommandExecutor;
 import six.eared.macaque.server.config.LoggerName;
@@ -22,13 +21,8 @@ class MacaqueConsole implements MacaqueService {
 
     private ServerConfig serverConfig;
 
-    private final DefaultAttachFactory defaultAttachFactory;
-
-    private Attach attach = null;
-
     public MacaqueConsole(ServerConfig serverConfig) {
         this.serverConfig = serverConfig;
-        this.defaultAttachFactory = new DefaultAttachFactory();
     }
 
     /**
@@ -37,22 +31,27 @@ class MacaqueConsole implements MacaqueService {
     @Override
     public void start() {
         console.info("console staring...");
-        //获取pid
-        String pid = waitConsoleNextInput(true);
-        this.attach = this.defaultAttachFactory.createRuntimeAttach(pid);
+        Integer pid = Integer.valueOf(waitConsoleNextInput(true));
 
-        Integer agentPort = PortNumberGenerator.getPort(Integer.parseInt(pid));
-        String property = String.format("port=%s,debug=%s", agentPort, Boolean.toString(this.serverConfig.isDebug()));
-        if (!this.attach.attach(this.serverConfig.getAgentpath(), property)) {
+        MacaqueClient client = new MacaqueClient(pid);
+        client.setAgentPath(serverConfig.getAgentpath());
+
+        try {
+            int attach = client.attach();
+            if (attach == AttachResultCode.SUCCESS) {
+                console.info("attach success, pid={}", pid);
+                DefaultCommandExecutor defaultCommandExecutor = new DefaultCommandExecutor(client);
+                while (true) {
+                    //获取命令，执行命令
+                    String command = waitConsoleNextInput(false);
+                    defaultCommandExecutor.exec(command);
+                }
+            } else {
+                throw new RuntimeException(String.format("attach fail, code = %d", attach));
+            }
+        } catch (Exception e) {
+            console.error("attach fail", e);
             System.exit(-1);
-            return;
-        }
-        console.info("attach success, pid={}", pid);
-        DefaultCommandExecutor defaultCommandExecutor = new DefaultCommandExecutor(pid);
-        while (true) {
-            //获取命令，执行命令
-            String command = waitConsoleNextInput(false);
-            defaultCommandExecutor.exec(command);
         }
     }
 

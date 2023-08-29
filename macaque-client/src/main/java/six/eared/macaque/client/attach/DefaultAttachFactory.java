@@ -1,21 +1,17 @@
 package six.eared.macaque.client.attach;
 
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class DefaultAttachFactory implements AttachFactory {
 
-    private static final Map<String, RuntimeAttach> HISTORY = new HashMap<>();
+    private static final DefaultAttachFactory INSTANCE = new DefaultAttachFactory();
 
     @Override
-    public synchronized Attach createRuntimeAttach(String pid) {
-        RuntimeAttach attach = HISTORY.get(pid);
-        if (attach != null) {
-            return attach;
-        }
+    public synchronized Attach createRuntimeAttach(Integer pid) {
         RuntimeAttach runtimeAttach = new RuntimeAttach(pid);
-        HISTORY.put(pid, runtimeAttach);
         return runtimeAttach;
+    }
+
+    public static DefaultAttachFactory getInstance() {
+        return INSTANCE;
     }
 }

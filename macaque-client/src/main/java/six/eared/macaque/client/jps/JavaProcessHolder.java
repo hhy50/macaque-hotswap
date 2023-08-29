@@ -1,4 +1,4 @@
-package six.eared.macaque.client.process;
+package six.eared.macaque.client.jps;
 
 import com.sun.tools.attach.VirtualMachine;
 import six.eared.macaque.client.common.PID;

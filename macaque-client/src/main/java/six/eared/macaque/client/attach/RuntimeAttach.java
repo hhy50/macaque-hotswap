@@ -5,33 +5,30 @@ import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.client.jmx.JmxClientResourceManager;
+import six.eared.macaque.client.common.AttachResultCode;
 
 import java.io.IOException;
 
 
-public class RuntimeAttach implements Attach {
+class RuntimeAttach implements Attach {
 
     private static final Logger log = LoggerFactory.getLogger(RuntimeAttach.class);
 
-    private String pid;
+    private Integer pid;
 
     private VirtualMachine targetVM;
 
-    private volatile boolean attached;
 
-    public RuntimeAttach(String pid) {
+    public RuntimeAttach(Integer pid) {
         this.pid = pid;
     }
 
     @Override
-    public synchronized boolean attach(String agentpath, String property) {
-        if (this.attached) {
-            return true;
-        }
+    public synchronized int attach(String agentpath, String property) {
+        int result = AttachResultCode.ERROR;
         VirtualMachineDescriptor virtualMachineDescriptor = null;
         for (VirtualMachineDescriptor descriptor : VirtualMachine.list()) {
-            if (descriptor.id().equals(pid)) {
+            if (descriptor.id().equals(String.valueOf(pid))) {
                 virtualMachineDescriptor = descriptor;
                 break;
             }
@@ -39,27 +36,29 @@ public class RuntimeAttach implements Attach {
 
         try {
             if (virtualMachineDescriptor == null) {
-                this.targetVM = VirtualMachine.attach(pid);
+                this.targetVM = VirtualMachine.attach(String.valueOf(pid));
             } else {
                 this.targetVM = VirtualMachine.attach(virtualMachineDescriptor);
             }
 
             if (this.targetVM != null) {
                 loadAgent(this.targetVM, agentpath, property);
-                this.attached = JmxClientResourceManager.getInstance()
-                        .createResource(pid) != null;
+                result = AttachResultCode.SUCCESS;
             }
         } catch (Exception e) {
             log.error("attach error", e);
         } finally {
-            if (targetVM != null) {
+            if (targetVM == null) {
+                result = AttachResultCode.PROCESS_NOT_EXIST;
+            }
+            if (this.targetVM != null) {
                 try {
                     targetVM.detach();
                 } catch (IOException e) {
                 }
             }
         }
-        return this.attached;
+        return result;
     }
 
     public void loadAgent(VirtualMachine virtualMachine, String agentpath, String property) throws Exception {

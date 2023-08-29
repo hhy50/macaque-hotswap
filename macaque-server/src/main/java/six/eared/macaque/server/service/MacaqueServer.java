@@ -69,7 +69,7 @@ public class MacaqueServer implements MacaqueService {
      */
     private List<RequestHandler> buildInterface() {
         return Arrays.asList(
-                new ClassHotSwapRequestHandler(this.defaultAttachFactory, this.serverConfig),
+                new ClassHotSwapRequestHandler(this.serverConfig),
                 new JpsRequestHandler()
         );
     }
