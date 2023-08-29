@@ -7,19 +7,14 @@ import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.rmi.registry.LocateRegistry;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * 探针引导类
- */
 public class AgentBootstrap {
 
-    /**
-     * 启动标记
-     */
     private static final AtomicBoolean START_FLAG = new AtomicBoolean(false);
 
     /**
@@ -28,15 +23,13 @@ public class AgentBootstrap {
     public static JmxMBeanManager JMX_MBEAN_MANAGER;
 
     /**
-     * 启动探针
-     * 此方法在{@link six.eared.macaque.agent.AgentMain}类中loadBootstrap(String, Instrumentation)方法通过反射调用
-     *
-     * @param args        参数
-     * @param inst        inst
-     * @return 是否启动成功
+     * @see six.eared.macaque.agent.AgentMain#loadBootstrap(String, Instrumentation) 反射调用
+     * @param args 启动参数
+     * @param inst 插桩对象
+     * @return 启动结果
      */
     public static Boolean start(String args, Instrumentation inst) {
-        if (!START_FLAG.get()) {
+        if (START_FLAG.compareAndSet(false, true)) {
             Properties properties = parseArgs(args);
             try {
                 boolean debug = Boolean.parseBoolean(properties.getProperty("debug", "false"));
@@ -48,10 +41,7 @@ public class AgentBootstrap {
                 // init jmx, mbeans
                 JMX_MBEAN_MANAGER = initJmxService(jmxPort);
 
-                //启动完成
-                START_FLAG.set(true);
-                System.out.printf("attach success, jmx port=%d\n",
-                        jmxPort);
+                System.out.printf("attach success, jmx port=%d\n", jmxPort);
                 return true;
             } catch (Exception e) {
                 if (Environment.isDebug()) {
@@ -63,32 +53,15 @@ public class AgentBootstrap {
         return false;
     }
 
-    /**
-     * 初始化JMX服务
-     *
-     * @param port 端口
-     * @return JMX MBean 管理器
-     */
-    private static JmxMBeanManager initJmxService(int port) {
-        try {
-            JmxMBeanManager jmxMBeanManager = new JmxMBeanManager();
-            //在指定端口创建Registry
-            LocateRegistry.createRegistry(port);
-            //JMX API连接器服务地址，端口号可任意指定，但需与上面创建的Registry端口一致
-            //该地址是SLP（服务定位协议）的抽象地址
-            JMXServiceURL url = new JMXServiceURL(String.format("service:jmx:rmi:///jndi/rmi://127.0.0.1:%d/macaque", port));
-            JMXConnectorServer jcs = JMXConnectorServerFactory.newJMXConnectorServer(url,
-                    null, jmxMBeanManager.getMBeanServer());
-            jcs.start();
+    private static JmxMBeanManager initJmxService(int port) throws IOException {
+        JmxMBeanManager jmxMBeanManager = new JmxMBeanManager();
+        LocateRegistry.createRegistry(port);
+        JMXServiceURL url = new JMXServiceURL(String.format("service:jmx:rmi:///jndi/rmi://0.0.0.0:%d/macaque", port));
+        JMXConnectorServer jcs = JMXConnectorServerFactory.newJMXConnectorServer(url,
+                null, jmxMBeanManager.getMBeanServer());
+        jcs.start();
 
-            return jmxMBeanManager;
-        } catch (Exception e) {
-            if (Environment.isDebug()) {
-                System.out.println("initJmxService error");
-                e.printStackTrace();
-            }
-        }
-        return null;
+        return jmxMBeanManager;
     }
 
     /**
@@ -114,4 +87,5 @@ public class AgentBootstrap {
         }
         return new Properties();
     }
+
 }
