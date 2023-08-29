@@ -11,7 +11,7 @@ public class JavaSourceCompiler implements Compiler {
 
     private final JavaCompiler compiler;
 
-    private StandardJavaFileManager baseFileManager;
+    private final StandardJavaFileManager baseFileManager;
 
     public JavaSourceCompiler() {
         this.compiler = ToolProvider.getSystemJavaCompiler();
