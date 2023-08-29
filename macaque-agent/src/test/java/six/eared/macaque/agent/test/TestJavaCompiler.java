@@ -113,9 +113,9 @@ public class TestJavaCompiler {
     public void testClassByteAr() {
         JavaSourceCompiler javaSourceCompiler = new JavaSourceCompiler();
 
-        Map<String, String> javaSource = new HashMap<>();
-        javaSource.put("Main.java", clazz1);
-        javaSource.put("BinaryClassReader.java", clazz2);
+        Map<String, byte[]> javaSource = new HashMap<>();
+        javaSource.put("Main.java", clazz1.getBytes());
+        javaSource.put("BinaryClassReader.java", clazz2.getBytes());
 
         List<byte[]> compiled = javaSourceCompiler.compile(javaSource);
         BinaryClassReader binaryClassReader = new BinaryClassReader();
@@ -129,9 +129,9 @@ public class TestJavaCompiler {
     public void testMultiClassReader() {
         JavaSourceCompiler javaSourceCompiler = new JavaSourceCompiler();
 
-        Map<String, String> javaSource = new HashMap<>();
-        javaSource.put("Main.java", clazz1);
-        javaSource.put("BinaryClassReader.java", clazz2);
+        Map<String, byte[]> javaSource = new HashMap<>();
+        javaSource.put("Main.java", clazz1.getBytes());
+        javaSource.put("BinaryClassReader.java", clazz2.getBytes());
 
         List<byte[]> compiled = javaSourceCompiler.compile(javaSource);
 

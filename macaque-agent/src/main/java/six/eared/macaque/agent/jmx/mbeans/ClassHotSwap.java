@@ -37,12 +37,12 @@ public class ClassHotSwap implements ClassHotSwapMBean {
         byte[] fileData = request.getFileData();
         try {
 
-            List<byte[]> classDataList = Arrays.asList(fileData);
+            List<byte[]> classDataList = Collections.singletonList(fileData);
             if (FileType.Java.match(fileType)) {
                 String fileName = request.getFileName();
 
-                Map<String, String> sources = new HashMap<>();
-                sources.put(fileName, new String(fileData));
+                Map<String, byte[]> sources = new HashMap<>();
+                sources.put(fileName, fileData);
 
                 classDataList = compiler.compile(sources);
             }

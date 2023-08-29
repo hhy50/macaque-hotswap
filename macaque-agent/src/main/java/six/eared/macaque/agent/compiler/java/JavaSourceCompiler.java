@@ -28,19 +28,22 @@ public class JavaSourceCompiler implements Compiler {
      * @return
      */
     @Override
-    public List<byte[]> compile(Map<String, String> sourceCodes) {
+    public List<byte[]> compile(Map<String, byte[]> sourceCodes) {
         List<JavaFileObject> javaFileObjects = new ArrayList<>();
 
-        for (String fileName : sourceCodes.keySet()) {
-            javaFileObjects.add(new JavaSourceFileObject(
-                    FileUtil.createTmpFile(fileName, sourceCodes.get(fileName).getBytes())));
+        Set<Map.Entry<String, byte[]>> entries = sourceCodes.entrySet();
+        for (Map.Entry<String, byte[]> entry : entries) {
+            String fileName = entry.getKey();
+            byte[] bytes = entry.getValue();
+            JavaSourceFileObject sourceFile = new JavaSourceFileObject(FileUtil.createTmpFile(fileName, bytes));
+            javaFileObjects.add(sourceFile);
         }
 
         DynamicJavaFileManager fileManager = new DynamicJavaFileManager(baseFileManager);
         DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
 
         JavaCompiler.CompilationTask task = this.compiler.getTask(null, fileManager, collector,
-                Arrays.asList("-Xlint:unchecked"), null, javaFileObjects);
+                Collections.singleton("-Xlint:unchecked"), null, javaFileObjects);
 
         boolean result = task.call();
         if (!result || collector.getDiagnostics().size() > 0) {

@@ -5,10 +5,9 @@ import java.util.Map;
 
 public interface Compiler {
 
-
     /**
-     *
      * @return class bytecode
      */
-    public List<byte[]> compile(Map<String, String> sourceCodes);
+    List<byte[]> compile(Map<String, byte[]> sourceCodes);
+
 }
