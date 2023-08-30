@@ -5,7 +5,9 @@ import six.eared.macaque.core.attach.DefaultAttachFactory;
 import six.eared.macaque.core.common.AttachResultCode;
 import six.eared.macaque.core.common.PortNumberGenerator;
 import six.eared.macaque.core.common.PropertyName;
-import six.eared.macaque.common.util.StringUtil;
+import six.eared.macaque.core.exception.JmxConnectException;
+import six.eared.macaque.core.jmx.JmxClient;
+import six.eared.macaque.core.jmx.JmxResourceManager;
 import six.eared.macaque.mbean.MBean;
 import six.eared.macaque.mbean.MBeanObjectName;
 import six.eared.macaque.mbean.rmi.ClassHotSwapRmiData;
@@ -14,37 +16,27 @@ import six.eared.macaque.mbean.rmi.RmiResult;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class MacaqueClient {
 
-    private Integer pid;
-
-    private Integer defaultPort;
-
     private String agentPath;
 
-    private final Map<String, String> properties = new ConcurrentHashMap<>();
+    private JmxResourceManager jmxResourceManager = new JmxResourceManager();
 
-    private JmxClient jmxClient;
+    public MacaqueClient() {
 
-    private volatile boolean attached;
-
-    public MacaqueClient(Integer pid) {
-        this.pid = pid;
-        this.defaultPort = PortNumberGenerator.getPort(pid);
     }
 
-    public int attach() {
-        if (!this.attached) {
+    public int attach(Integer pid) {
+        if (!this.isAttached(pid)) {
             Attach runtimeAttach = DefaultAttachFactory.getInstance().createRuntimeAttach(pid);
-            int attachCode = runtimeAttach.attach(this.agentPath, toPropertyString());
+            Integer jmxPort = PortNumberGenerator.getPort(pid);
+            int attachCode = runtimeAttach.attach(this.agentPath, toPropertyString(jmxPort, true));
             switch (attachCode) {
                 case AttachResultCode.SUCCESS:
-                    this.jmxClient = new JmxClient("127.0.0.1", this.getJmxPort());
-                    this.jmxClient.connect();
-                    this.attached = true;
+                    JmxClient jmxClient = new JmxClient("127.0.0.1", jmxPort);
+                    jmxResourceManager.addResource(pid, jmxClient);
                     break;
             }
             return attachCode;
@@ -52,48 +44,48 @@ public class MacaqueClient {
         return AttachResultCode.SUCCESS;
     }
 
-    public RmiResult hotswap(ClassHotSwapRmiData data) throws Exception {
-        RmiResult rmiResult = preHandler();
+    private boolean isAttached(Integer pid) {
+
+        return false;
+    }
+
+    public RmiResult hotswap(Integer pid, ClassHotSwapRmiData data) throws Exception {
+        RmiResult rmiResult = preHandler(pid);
         if (rmiResult != null) {
             return rmiResult;
         }
-        MBean<RmiData> processor = this.jmxClient.getMBean(MBeanObjectName.HOT_SWAP_MBEAN);
+
+        JmxClient jmxClient = jmxResourceManager.getResource(pid);
+        MBean<RmiData> processor = jmxClient.getMBean(MBeanObjectName.HOT_SWAP_MBEAN);
         return processor.process(data);
     }
 
-    private RmiResult preHandler() {
-        switch (attach()) {
+    private RmiResult preHandler(Integer pid) {
+        switch (attach(pid)) {
             case AttachResultCode.ERROR:
-                return RmiResult.error(String.format("attach '%s' fail", this.getJmxPort()));
+                return RmiResult.error(String.format("attach process '%s' fail", pid));
             case AttachResultCode.PROCESS_NOT_EXIST:
-                return RmiResult.error(String.format("process pid='%d' not exist", this.pid));
+                return RmiResult.error(String.format("process pid='%d' not exist", pid));
         }
 
-        if (!this.jmxClient.isConnect()) {
-            this.jmxClient.disconnect();
-            this.jmxClient.connect();
+        RmiResult result = null;
+        try {
+            JmxClient jmxClient = jmxResourceManager.getResource(pid);
+            if (!jmxClient.isConnect()) {
+                jmxClient.disconnect();
+                jmxClient.connect();
+            }
+        } catch (JmxConnectException e) {
+            result = RmiResult.error(String.format("jmx connect error, pid='%d', msg=%s", pid, e.getMessage()));
         }
-
-        return null;
+        return result;
     }
 
-    public void addProperty(String name, String value) {
-        if (!attached) {
-            properties.put(name, value);
-            return;
-        }
-        throw new RuntimeException("attached, not support addProperty");
-    }
 
-    protected String toPropertyString() {
-        Map<String, String> tmp = new HashMap<>(properties);
-
-        if (!tmp.containsKey(PropertyName.PORT)) {
-            tmp.put(PropertyName.PORT, String.valueOf(this.defaultPort));
-        }
-        if (!tmp.containsKey(PropertyName.DEBUG)) {
-            tmp.put(PropertyName.DEBUG, Boolean.TRUE.toString());
-        }
+    protected String toPropertyString(int port, boolean debug) {
+        Map<String, String> tmp = new HashMap<>();
+        tmp.put(PropertyName.PORT, String.valueOf(port));
+        tmp.put(PropertyName.DEBUG, Boolean.toString(debug));
         return tmp.entrySet().stream()
                 .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
                 .collect(Collectors.joining(","));
@@ -101,13 +93,5 @@ public class MacaqueClient {
 
     public void setAgentPath(String agentPath) {
         this.agentPath = agentPath;
-    }
-
-    public Integer getJmxPort() {
-        String port = this.properties.get(PropertyName.PORT);
-        if (StringUtil.isEmpty(port)) {
-            return this.defaultPort;
-        }
-        return Integer.parseInt(port);
     }
 }

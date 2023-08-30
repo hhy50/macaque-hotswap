@@ -2,10 +2,10 @@ package six.eared.macaque.server.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import six.eared.macaque.common.util.Pair;
 import six.eared.macaque.core.client.MacaqueClient;
 import six.eared.macaque.core.common.AttachResultCode;
 import six.eared.macaque.core.jps.JavaProcessHolder;
-import six.eared.macaque.common.util.Pair;
 import six.eared.macaque.server.command.DefaultCommandExecutor;
 import six.eared.macaque.server.config.LoggerName;
 import six.eared.macaque.server.config.ServerConfig;
@@ -33,14 +33,14 @@ class MacaqueConsole implements MacaqueService {
         console.info("console staring...");
         Integer pid = Integer.valueOf(waitConsoleNextInput(true));
 
-        MacaqueClient client = new MacaqueClient(pid);
+        MacaqueClient client = new MacaqueClient();
         client.setAgentPath(serverConfig.getAgentpath());
 
         try {
-            int attach = client.attach();
+            int attach = client.attach(pid);
             if (attach == AttachResultCode.SUCCESS) {
                 console.info("attach success, pid={}", pid);
-                DefaultCommandExecutor defaultCommandExecutor = new DefaultCommandExecutor(client);
+                DefaultCommandExecutor defaultCommandExecutor = new DefaultCommandExecutor(pid, client);
                 while (true) {
                     //获取命令，执行命令
                     String command = waitConsoleNextInput(false);

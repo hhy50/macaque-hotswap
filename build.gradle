@@ -6,7 +6,7 @@ plugins {
 group = 'six.eared.macaque'
 
 ext {
-    projectVersion = '1.0.0'
+    projectVersion = '1.0.0-SNAPSHOT'
     logbackVersion = '1.2.3'
     fastjsonVersion = '2.0.6'
     projectUrl = 'https://github.com/haiyanghan/macaque-hotswap'
@@ -35,7 +35,7 @@ subprojects {
         }
     }
 
-    def publish = ['macaque-mbean', 'macaque-common'].contains(project.name)
+    def publish = ['macaque-mbean', 'macaque-common', 'macaque-core'].contains(project.name)
     if (publish) {
         apply plugin: 'maven-publish'
         apply plugin: 'signing'

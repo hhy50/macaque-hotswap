@@ -1,4 +1,4 @@
-package six.eared.macaque.core.client;
+package six.eared.macaque.core.jmx;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +44,13 @@ public class JmxClient {
 
     public void disconnect() {
         try {
-            this.connector.close();
-            this.connector = null;
-            this.hearbeatMBean = null;
+            if (this.connector != null) {
+                this.connector.close();
+                this.connector = null;
+            }
+            if (this.hearbeatMBean != null) {
+                this.hearbeatMBean = null;
+            }
         } catch (Exception e) {
             log.warn("jmx disconnect error, {}", e.getMessage());
         }
