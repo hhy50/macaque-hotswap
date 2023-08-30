@@ -2,7 +2,7 @@ package six.eared.macaque.server.http.interfaces;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.client.c.MacaqueClient;
+import six.eared.macaque.core.client.MacaqueClient;
 import six.eared.macaque.common.util.StringUtil;
 import six.eared.macaque.http.annotitions.Path;
 import six.eared.macaque.http.annotitions.RequestMethod;

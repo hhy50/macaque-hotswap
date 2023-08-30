@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+    id 'java-library'
+}
+
+group = 'six.eared.macaque'
+version = projectVersion
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api files("${System.getenv('JAVA_HOME')}/lib/tools.jar")
+    api "io.github.haiyanghan:six-eared-macaque-common:${projectVersion}"
+    api "io.github.haiyanghan:six-eared-macaque-mbean:${projectVersion}"
+//    api project(":macaque-common")
+//    api project(":macaque-mbean")
+    testImplementation 'junit:junit:4.13.1'
+}

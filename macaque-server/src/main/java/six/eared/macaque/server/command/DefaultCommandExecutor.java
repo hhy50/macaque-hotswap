@@ -1,9 +1,8 @@
 package six.eared.macaque.server.command;
 
-import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.client.c.MacaqueClient;
+import six.eared.macaque.core.client.MacaqueClient;
 import six.eared.macaque.common.type.FileType;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.mbean.rmi.ClassHotSwapRmiData;

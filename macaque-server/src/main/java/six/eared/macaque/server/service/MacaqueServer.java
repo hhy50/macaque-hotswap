@@ -2,7 +2,7 @@ package six.eared.macaque.server.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.client.attach.DefaultAttachFactory;
+import six.eared.macaque.core.attach.DefaultAttachFactory;
 import six.eared.macaque.http.HttpConfig;
 import six.eared.macaque.http.MacaqueHttpServer;
 import six.eared.macaque.http.handler.RequestHandler;

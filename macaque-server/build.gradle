@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
     implementation project(':macaque-http')
-    implementation project(':macaque-client')
+    implementation project(':macaque-core')
 
     testImplementation 'junit:junit:4.13.1'
 }
@@ -47,7 +47,7 @@ task release(type: Tar, group: build) {
     from(project(":macaque-common").jar) {
         into('libs/')
     }
-    from(project(":macaque-client").jar) {
+    from(project(":macaque-core").jar) {
         into('libs/')
     }
     from(project(":macaque-mbean").jar) {

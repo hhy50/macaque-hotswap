@@ -2,7 +2,7 @@ package six.eared.macaque.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.client.jps.JavaProcessHolder;
+import six.eared.macaque.core.jps.JavaProcessHolder;
 import six.eared.macaque.server.command.CommandLine;
 import six.eared.macaque.server.common.Banner;
 import six.eared.macaque.server.config.LoggerName;

@@ -2,9 +2,9 @@ package six.eared.macaque.server.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import six.eared.macaque.client.c.MacaqueClient;
-import six.eared.macaque.client.common.AttachResultCode;
-import six.eared.macaque.client.jps.JavaProcessHolder;
+import six.eared.macaque.core.client.MacaqueClient;
+import six.eared.macaque.core.common.AttachResultCode;
+import six.eared.macaque.core.jps.JavaProcessHolder;
 import six.eared.macaque.common.util.Pair;
 import six.eared.macaque.server.command.DefaultCommandExecutor;
 import six.eared.macaque.server.config.LoggerName;
