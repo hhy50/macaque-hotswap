@@ -8,8 +8,8 @@ import static six.eared.macaque.asm.Opcodes.ASM4;
 /**
  * 反编译
  */
-public class BinaryClassReader extends ClassVisitor {
-    public BinaryClassReader() {
+public class BinaryClassPrint extends ClassVisitor {
+    public BinaryClassPrint() {
         super(ASM4);
     }
 

@@ -2,13 +2,14 @@ package six.eared.macaque.agent.test;
 
 import org.junit.Before;
 import org.junit.Test;
-import six.eared.macaque.agent.asm2.classes.BinaryClassReader;
+import six.eared.macaque.agent.asm2.classes.BinaryClassPrint;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.MultiClassReader;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.asm.ClassReader;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -109,6 +110,14 @@ public class TestJavaCompiler {
         Environment.initEnv(true, null);
     }
 
+
+    @Test
+    public void testClassReader() throws IOException {
+        BinaryClassPrint cp = new BinaryClassPrint();
+        ClassReader cr = new ClassReader("six.eared.macaque.mbean.rmi.RmiData");
+        cr.accept(cp, 0);
+    }
+
     @Test
     public void testClassByteAr() {
         JavaSourceCompiler javaSourceCompiler = new JavaSourceCompiler();
@@ -118,10 +127,10 @@ public class TestJavaCompiler {
         javaSource.put("BinaryClassReader.java", clazz2.getBytes());
 
         List<byte[]> compiled = javaSourceCompiler.compile(javaSource);
-        BinaryClassReader binaryClassReader = new BinaryClassReader();
+        BinaryClassPrint binaryClassPrint = new BinaryClassPrint();
         for (byte[] bytes : compiled) {
             ClassReader classReader = new ClassReader(bytes);
-            classReader.accept(binaryClassReader, 0);
+            classReader.accept(binaryClassPrint, 0);
         }
     }
 
@@ -142,7 +151,7 @@ public class TestJavaCompiler {
         for (ClazzDefinition clazzDefinition : binaryClassReader) {
             System.out.println(clazzDefinition.getClassName());
             ClassReader classReader = new ClassReader(clazzDefinition.getClassData());
-            classReader.accept(new BinaryClassReader(), 0);
+            classReader.accept(new BinaryClassPrint(), 0);
         }
     }
 
