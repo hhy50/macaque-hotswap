@@ -6,6 +6,15 @@ public class ClazzDefinition {
 
     private byte[] classData;
 
+    public ClazzDefinition() {
+
+    }
+
+    public ClazzDefinition(String className, byte[] classData) {
+        this.className = className;
+        this.classData = classData;
+    }
+
     public String getClassName() {
         return className;
     }

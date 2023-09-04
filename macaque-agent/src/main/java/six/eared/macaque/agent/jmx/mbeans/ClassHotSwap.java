@@ -1,5 +1,7 @@
 package six.eared.macaque.agent.jmx.mbeans;
 
+import six.eared.macaque.agent.asm2.Enhancer;
+import six.eared.macaque.agent.asm2.EnhancerSpiLoader;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.MultiClassReader;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
@@ -54,7 +56,7 @@ public class ClassHotSwap implements ClassHotSwapMBean {
                 while (iterator.hasNext()) {
                     ClazzDefinition clazzDefinition = iterator.next();
 //                    String className = classReader.getClassName().replaceAll("/", ".");
-                    int redefineCount = redefine(clazzDefinition.getClassName(), classData);
+                    int redefineCount = redefine(clazzDefinition);
                     result.put(clazzDefinition.getClassName(), redefineCount);
                 }
             }
@@ -72,14 +74,31 @@ public class ClassHotSwap implements ClassHotSwapMBean {
     }
 
     /**
-     *
-     * @param className
-     * @param newClassData
      * @return
      * @throws UnmodifiableClassException
      * @throws ClassNotFoundException
      */
-    private int redefine(String className, byte[] newClassData) throws UnmodifiableClassException, ClassNotFoundException {
+    private int redefine(ClazzDefinition clazzDefinition) throws UnmodifiableClassException, ClassNotFoundException {
+        ClazzDefinition origin = new ClazzDefinition(clazzDefinition.getClassName(), clazzDefinition.getClassData());
+        ClazzDefinition enhanced = clazzDefinition;
+        Iterator<Enhancer> enhancerIterator = EnhancerSpiLoader.load();
+        while (enhancerIterator.hasNext()) {
+            Enhancer enhancer = enhancerIterator.next();
+            try {
+                enhanced = enhancer.enhance(enhanced);
+            } catch (Exception e) {
+                if (Environment.isDebug()) {
+                    e.printStackTrace();
+                }
+            }
+            if (enhanced == null) {
+                enhanced = origin;
+            }
+        }
+
+        String className = enhanced.getClassName();
+        byte[] newClassData = enhanced.getClassData();
+
         Instrumentation inst = Environment.getInst();
         List<ClassDefinition> needRedefineClass = new ArrayList<>();
         // 遍历所有已加载的类
