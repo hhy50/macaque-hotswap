@@ -45,8 +45,8 @@ public class MacaqueClient {
     }
 
     private boolean isAttached(Integer pid) {
-
-        return false;
+        JmxClient resource = jmxResourceManager.getResource(pid);
+        return resource.isConnect();
     }
 
     public RmiResult hotswap(Integer pid, ClassHotSwapRmiData data) throws Exception {
