@@ -11,6 +11,8 @@ public class AsmMethod {
     private String methodSign;
 
     private List<String> byteCode;
+    
+    private List<String> parameters;
 
     private boolean newMethod;
 
@@ -23,15 +25,16 @@ public class AsmMethod {
     public boolean isDeleted() {
         return false;
     }
+    
+    public void addParameter(String name, int access) {
+    	this.parameters.add(name);
+    }
 
 
     public static final class AsmMethodBuilder {
         private int modifier;
         private String methodName;
         private String methodSign;
-        private List<String> byteCode;
-        private boolean newMethod;
-        private boolean deleted;
 
         private AsmMethodBuilder() {
         }
@@ -55,28 +58,10 @@ public class AsmMethod {
             return this;
         }
 
-        public AsmMethodBuilder byteCode(List<String> byteCode) {
-            this.byteCode = byteCode;
-            return this;
-        }
-
-        public AsmMethodBuilder newMethod(boolean newMethod) {
-            this.newMethod = newMethod;
-            return this;
-        }
-
-        public AsmMethodBuilder deleted(boolean deleted) {
-            this.deleted = deleted;
-            return this;
-        }
-
         public AsmMethod build() {
             AsmMethod asmMethod = new AsmMethod();
-            asmMethod.byteCode = this.byteCode;
-            asmMethod.methodName = this.methodName;
-            asmMethod.deleted = this.deleted;
-            asmMethod.newMethod = this.newMethod;
             asmMethod.modifier = this.modifier;
+            asmMethod.methodName = this.methodName;
             asmMethod.methodSign = this.methodSign;
             return asmMethod;
         }
