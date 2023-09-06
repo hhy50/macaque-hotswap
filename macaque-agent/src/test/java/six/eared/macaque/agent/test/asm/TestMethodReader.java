@@ -17,7 +17,7 @@ public class TestMethodReader {
 
     @Test
     public void test() {
-        String classPath = "C:\\Users\\haiyang\\Desktop\\PiDeviceTestController.class";
+        String classPath = "";
         ClassReader classReader = new ClassReader(FileUtil.readBytes(classPath));
 
         List<AsmMethod> methods = new ArrayList<>();
