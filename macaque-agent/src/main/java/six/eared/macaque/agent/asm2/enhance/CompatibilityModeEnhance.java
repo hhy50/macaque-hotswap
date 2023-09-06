@@ -56,14 +56,7 @@ public class CompatibilityModeEnhance implements Enhancer {
             List<AsmMethod> methodDiffSet = compareMethod(newClassDefinition, oldClazzDefinition);
             if (methodDiffSet != null) {
                 for (AsmMethod asmMethod : methodDiffSet) {
-                    // 新增方法
-                    if (asmMethod.isNewMethod()) {
 
-                    }
-                    // 删除方法
-                    if (asmMethod.isDeleted()) {
-
-                    }
                 }
             }
 

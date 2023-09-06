@@ -55,7 +55,6 @@ public class ClassHotSwap implements ClassHotSwapMBean {
                 Iterator<ClazzDefinition> iterator = classReader.iterator();
                 while (iterator.hasNext()) {
                     ClazzDefinition clazzDefinition = iterator.next();
-//                    String className = classReader.getClassName().replaceAll("/", ".");
                     int redefineCount = redefine(clazzDefinition);
                     result.put(clazzDefinition.getClassName(), redefineCount);
                 }
