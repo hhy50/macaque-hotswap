@@ -23,6 +23,7 @@ out/
 .sts4-cache
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+bin/
 
 ### NetBeans ###
 /nbproject/private/

@@ -16,6 +16,14 @@ public class AsmMethod {
 
     private boolean deleted;
 
+    public boolean isNewMethod() {
+        return false;
+    }
+
+    public boolean isDeleted() {
+        return false;
+    }
+
 
     public static final class AsmMethodBuilder {
         private int modifier;
