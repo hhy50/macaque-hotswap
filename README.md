@@ -77,7 +77,7 @@ Idea -> File -> Settings -> Tools -> Macaque
     - `Use Compiled` 使用编译好的
 2. 编译完成后，会弹出二次确认框, 最后进行确认
 
-<image src="https://github.com/haiyanghan/macaque-hotswap/blob/master/doc/images/useage.gif" style="width: 700px;height: 500px"></image>
+<image src="https://github.com/haiyanghan/macaque-hotswap/blob/master/doc/images/useage.gif"></image>
 
 ---
 
