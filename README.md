@@ -63,7 +63,7 @@ sh runServer.sh
 
 Idea -> File -> Settings -> Tools -> Macaque
 
-<image src="https://github.com/haiyanghan/macaque-hotswap/doc/images/macaque-settings.png" style="width: 500px;height: 330px"></image>
+<image src="https://github.com/haiyanghan/macaque-hotswap/blob/master/doc/images/macaque-settings.png" style="width: 500px;height: 330px"></image>
 
 > 端口是在 runServer脚本里面通过 `--serverPort=2023` 设置的
 
@@ -71,9 +71,13 @@ Idea -> File -> Settings -> Tools -> Macaque
 
 右击Java文件 -> 选择进程
 
-> 选择进程后会触发一次idea的增量编译 (`recompile`)，如果增量编译失败，会确定是否尽量全量编译（`build project`）。编译成功之后会进行热替换
+1. 选择进程后会弹出选择框，选择编译选项
+    - `Rebuild project` 重新编译整个项目
+    - `recompile` 增量编译所属模块
+    - `Use Compiled` 使用编译好的
+2. 编译完成后，会弹出二次确认框, 最后进行确认
 
-<image src="https://github.com/haiyanghan/macaque-hotswap/doc/images/usage.gif" style="width: 700px;height: 500px"></image>
+<image src="https://github.com/haiyanghan/macaque-hotswap/blob/master/doc/images/useage.gif" style="width: 700px;height: 500px"></image>
 
 ---
 
