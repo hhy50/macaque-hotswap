@@ -12,9 +12,9 @@ repositories {
 
 dependencies {
     api files("${System.getenv('JAVA_HOME')}/lib/tools.jar")
-    api "io.github.haiyanghan:six-eared-macaque-common:${projectVersion}"
-    api "io.github.haiyanghan:six-eared-macaque-mbean:${projectVersion}"
-//    api project(":macaque-common")
-//    api project(":macaque-mbean")
+//    api "io.github.haiyanghan:six-eared-macaque-common:${projectVersion}"
+//    api "io.github.haiyanghan:six-eared-macaque-mbean:${projectVersion}"
+    api project(":macaque-common")
+    api project(":macaque-mbean")
     testImplementation 'junit:junit:4.13.1'
 }

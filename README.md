@@ -1,8 +1,8 @@
-# Macaque-hot-swap
+# Macaque-hotswap
 
 --- 
 
-Macaque-hot-swap，一个开源的热部署框架。
+Macaque-hotswap，一个开源的热部署框架。
 
 ## 用法:
 
@@ -31,8 +31,8 @@ Macaque-hot-swap，一个开源的热部署框架。
 #### 1. 源码编译
 
 ```shell
-git clone https://github.com/haiyanghan/macaque-hot-swap.git
-cd macaque-hot-swap
+git clone https://github.com/haiyanghan/macaque-hotswap.git
+cd macaque-hotswap
 ./gradlew macaque-server:release
 ```
 
@@ -51,7 +51,7 @@ chmod +x runServer.sh
 sh runServer.sh
 ```
 
-> 最好使用`root`用户启动，如果使用其他用户，可能会出现找不到jvm进程的问题
+> 最好使用`root`用户启动，如果使用其他用户，可能会出现找不到相应的jvm进程
 
 #### 3. 安装idea插件
 
@@ -63,7 +63,7 @@ sh runServer.sh
 
 Idea -> File -> Settings -> Tools -> Macaque
 
-<image src="https://github.com/haiyanghan/macaque-hot-swap/blob/master/doc/images/settings.png" style="width: 500px;height: 330px"></image>
+<image src="https://github.com/haiyanghan/macaque-hotswap/blob/master/doc/images/macaque-settings.png" style="width: 500px;height: 330px"></image>
 
 > 端口是在 runServer脚本里面通过 `--serverPort=2023` 设置的
 
@@ -71,9 +71,13 @@ Idea -> File -> Settings -> Tools -> Macaque
 
 右击Java文件 -> 选择进程
 
-> 选择进程后会触发一次idea的增量编译 (`recompile`)，如果增量编译失败，会确定是否尽量全量编译（`build project`）。编译成功之后会进行热替换
+1. 选择进程后会弹出选择框，选择编译选项
+    - `Rebuild project` 重新编译整个项目
+    - `recompile` 增量编译所属模块
+    - `Use Compiled` 使用编译好的
+2. 编译完成后，会弹出二次确认框, 最后进行确认
 
-<image src="https://github.com/haiyanghan/macaque-hot-swap/blob/master/doc/images/useage.png" style="width: 500px;height: 330px"></image>
+<image src="https://github.com/haiyanghan/macaque-hotswap/blob/master/doc/images/useage.gif"></image>
 
 ---
 
@@ -95,12 +99,20 @@ Idea -> File -> Settings -> Tools -> Macaque
 
 #### 插件端
 
-| 功能说明   | 描述                           | 是否完成 |
-|--------|------------------------------|------|
-| 多文件选择  | 一次替换多个文件                     | ×    |
-| 多服务端设置 | 配置多个服务端地址(集群)                | ×    |
-| 无服务端模式 | 服务端地址为本地的话, 不需要运行服务端就可以进行热替换 | ×    |
-| 进程过滤   | 指定表达式过滤服务端的进程                | ×    |
+| 功能说明      | 描述                           | 是否完成 |
+|-----------|------------------------------|------|
+| 多文件选择     | 一次替换多个文件                     | ×    |
+| 多服务端设置    | 配置多个服务端地址(集群)                | √    |
+| 无服务端模式    | 服务端地址为本地的话, 不需要运行服务端就可以进行热替换 | √    |
+| 进程过滤      | 指定表达式过滤服务端的进程                | √    |
+| 增强Local模式 | 本地模式下修改Java文件自动热部署           | ×    |
+
+
+#### 其他idea
+
+| 功能说明               | 描述                                 | 是否完成 |
+|--------------------|------------------------------------|------|
+| springboot-starter | 通过引入依赖, 使用springweb的方式来代替server端进程 | ×    |
 
 ## 功能描述
 
@@ -117,7 +129,7 @@ Idea -> File -> Settings -> Tools -> Macaque
 
 #### class文件对比
 
-本地可以选择和服务端的某个进程中正在运行的class（可以基于版本链）进行对比, 对比的力度可以是字节码或者是反编译后的Java文件
+本地可以选择和服务端的某个进程中正在运行的class（可以基于版本链）进行对比, 对比的粒度可以是字节码或者是反编译后的Java文件
 
 ## 联系方式
 
@@ -134,5 +146,5 @@ QQ群: `904726708 `
 5. 补充文档
 
 两种贡献方法：
-1. 提交`pull request`的方式
+1. 提交`pull request`
 2. 成为仓库成员

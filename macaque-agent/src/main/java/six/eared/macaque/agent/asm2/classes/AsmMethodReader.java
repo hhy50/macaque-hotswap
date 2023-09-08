@@ -4,14 +4,14 @@ import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
 
-import static six.eared.macaque.asm.Opcodes.ASM4;
+import static six.eared.macaque.asm.Opcodes.ASM5;
 
 public class AsmMethodReader extends MethodVisitor {
 
     private final AsmMethod asmMethod;
 
     public AsmMethodReader(AsmMethod asmMethod) {
-        super(ASM4);
+        super(ASM5);
         this.asmMethod = asmMethod;
     }
     

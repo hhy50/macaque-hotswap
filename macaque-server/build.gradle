@@ -9,6 +9,7 @@ version = projectVersion
 def projectName = 'macaque-server'
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
