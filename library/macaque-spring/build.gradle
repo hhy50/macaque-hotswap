@@ -1,0 +1,15 @@
+plugins {
+    id 'java'
+}
+
+group = 'six.eared.macaque'
+version = projectVersion
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly project(":library:macaque-library")
+}
+
