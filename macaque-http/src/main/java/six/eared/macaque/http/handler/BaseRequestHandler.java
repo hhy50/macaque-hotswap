@@ -2,8 +2,6 @@ package six.eared.macaque.http.handler;
 
 
 import org.reactivestreams.Publisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 import six.eared.macaque.http.codec.combiner.DecoderCombiner;
@@ -24,8 +22,6 @@ public abstract class BaseRequestHandler<Req> implements RequestHandler {
 
     protected static final ErrorResponse ERROR = new ErrorResponse("error");
 
-    private static final Logger log = LoggerFactory.getLogger(BaseRequestHandler.class);
-
     @SuppressWarnings("unchecked")
     @Override
     public final Publisher<Void> process(HttpServerRequest request, HttpServerResponse response) {
@@ -40,9 +36,8 @@ public abstract class BaseRequestHandler<Req> implements RequestHandler {
                                 Object res = this.process0(req);
                                 return res == null ? ERROR : res;
                             } catch (Exception e) {
-                                log.error("http process error", e);
+                                return ERROR;
                             }
-                            return ERROR;
                         })
                         .transform(res -> {
                             return encoder.encode(res);

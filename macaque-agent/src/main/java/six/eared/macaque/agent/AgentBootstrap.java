@@ -2,6 +2,7 @@ package six.eared.macaque.agent;
 
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.jmx.JmxMBeanManager;
+import six.eared.macaque.agent.spi.LibrarySpiLoader;
 
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
@@ -42,6 +43,8 @@ public class AgentBootstrap {
                 // init jmx, mbeans
                 JMX_MBEAN_MANAGER = initJmxService(jmxPort);
 
+                loadLibrary();
+
                 System.out.printf("attach success, jmx port=%d\n", jmxPort);
                 return true;
             } catch (Exception e) {
@@ -52,6 +55,10 @@ public class AgentBootstrap {
             }
         }
         return false;
+    }
+
+    private static void loadLibrary() {
+        LibrarySpiLoader.initLibrary();
     }
 
     private static JmxMBeanManager initJmxService(int port) throws IOException {

@@ -11,11 +11,11 @@ repositories {
 
 dependencies {
     implementation project(':macaque-mbean')
-    implementation (project(':macaque-common')) {
-        exclude group: 'ch.qos.logback', module: 'logback-classic'
-        exclude group: 'com.alibaba', module: 'fastjson'
-    }
+    implementation project(':macaque-common')
     implementation project(':macaque-asm')
+    implementation project(':library:macaque-library')
+    implementation project(':library:macaque-mybatis')
+    implementation project(':library:macaque-spring')
     testImplementation 'junit:junit:4.13.1'
 }
 

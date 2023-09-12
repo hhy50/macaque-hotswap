@@ -2,26 +2,26 @@ package six.eared.macaque.mbean.rmi;
 
 import java.util.Map;
 
-public class ClassHotSwapRmiData extends RmiData {
+public class HotSwapRmiData extends RmiData {
     private String fileName;
     private String fileType;
     private byte[] fileData;
     private Map<String, String> extProperties;
 
-    public ClassHotSwapRmiData(String fileName, String fileType, byte[] fileData, Map<String, String> extProperties) {
+    public HotSwapRmiData(String fileName, String fileType, byte[] fileData, Map<String, String> extProperties) {
         this.fileName = fileName;
         this.fileType = fileType;
         this.fileData = fileData;
         this.extProperties = extProperties;
     }
 
-    public ClassHotSwapRmiData(String fileType, byte[] fileData, Map<String, String> extProperties) {
+    public HotSwapRmiData(String fileType, byte[] fileData, Map<String, String> extProperties) {
         this.fileType = fileType;
         this.fileData = fileData;
         this.extProperties = extProperties;
     }
 
-    public ClassHotSwapRmiData(String fileType, byte[] fileData) {
+    public HotSwapRmiData(String fileType, byte[] fileData) {
         this(fileType, fileData, null);
     }
 

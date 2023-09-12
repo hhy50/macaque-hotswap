@@ -16,6 +16,7 @@ repositories {
 dependencies {
     implementation project(':macaque-http')
     implementation project(':macaque-core')
+    implementation "ch.qos.logback:logback-classic:${logbackVersion}"
 
     testImplementation 'junit:junit:4.13.1'
 }

@@ -28,7 +28,29 @@ public enum FileType {
         }
     },
 
+    Xml {
+        @Override
+        public boolean match(String fileType) {
+            return StringUtil.isNotEmpty(fileType) && fileType.endsWith("xml");
+        }
+
+        @Override
+        public String getType() {
+            return "xml";
+        }
+    },
+
     ;
+
+
+    public static FileType ofType(String fileType) {
+        for (FileType value : values()) {
+            if (value.match(fileType)) {
+                return value;
+            }
+        }
+        return null;
+    }
 
     public abstract boolean match(String fileType);
     public abstract String getType();

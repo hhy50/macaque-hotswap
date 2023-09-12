@@ -6,7 +6,7 @@ import six.eared.macaque.agent.asm2.AsmMethod;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClazzDefinition {
+public class ClazzDefinition implements Cloneable {
 
     private String className;
 
@@ -55,5 +55,15 @@ public class ClazzDefinition {
 
     public List<AsmField> getAsmFields() {
         return asmFields;
+    }
+
+
+    @Override
+    public ClazzDefinition clone() {
+        try {
+            return (ClazzDefinition) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

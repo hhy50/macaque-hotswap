@@ -10,7 +10,7 @@ import six.eared.macaque.core.jmx.JmxClient;
 import six.eared.macaque.core.jmx.JmxResourceManager;
 import six.eared.macaque.mbean.MBean;
 import six.eared.macaque.mbean.MBeanObjectName;
-import six.eared.macaque.mbean.rmi.ClassHotSwapRmiData;
+import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 import six.eared.macaque.mbean.rmi.RmiData;
 import six.eared.macaque.mbean.rmi.RmiResult;
 
@@ -28,16 +28,14 @@ public class MacaqueClient {
 
     }
 
-    public int attach(Integer pid) {
+    public int attach(Integer pid) throws Exception {
         if (!this.isAttached(pid)) {
             Attach runtimeAttach = DefaultAttachFactory.getInstance().createRuntimeAttach(pid);
             Integer jmxPort = PortNumberGenerator.getPort(pid);
             int attachCode = runtimeAttach.attach(this.agentPath, toPropertyString(jmxPort, true));
-            switch (attachCode) {
-                case AttachResultCode.SUCCESS:
-                    JmxClient jmxClient = new JmxClient("127.0.0.1", jmxPort);
-                    jmxResourceManager.addResource(pid, jmxClient);
-                    break;
+            if (attachCode == AttachResultCode.SUCCESS) {
+                JmxClient jmxClient = new JmxClient("127.0.0.1", jmxPort);
+                jmxResourceManager.addResource(pid, jmxClient);
             }
             return attachCode;
         }
@@ -49,7 +47,7 @@ public class MacaqueClient {
         return resource != null && resource.isConnect();
     }
 
-    public RmiResult hotswap(Integer pid, ClassHotSwapRmiData data) throws Exception {
+    public RmiResult hotswap(Integer pid, HotSwapRmiData data) throws Exception {
         RmiResult rmiResult = preHandler(pid);
         if (rmiResult != null) {
             return rmiResult;
@@ -60,7 +58,7 @@ public class MacaqueClient {
         return processor.process(data);
     }
 
-    private RmiResult preHandler(Integer pid) {
+    private RmiResult preHandler(Integer pid) throws Exception {
         switch (attach(pid)) {
             case AttachResultCode.ERROR:
                 return RmiResult.error(String.format("attach process '%s' fail", pid));

@@ -1,7 +1,5 @@
 package six.eared.macaque.core.jmx;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import six.eared.macaque.core.exception.JmxConnectException;
 import six.eared.macaque.mbean.MBean;
 import six.eared.macaque.mbean.MBeanObjectName;
@@ -13,10 +11,9 @@ import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import java.io.IOException;
 
 public class JmxClient {
-
-    private static final Logger log = LoggerFactory.getLogger(JmxClient.class);
 
     private String host;
 
@@ -42,7 +39,7 @@ public class JmxClient {
         }
     }
 
-    public void disconnect() {
+    public void disconnect() throws IOException {
         try {
             if (this.connector != null) {
                 this.connector.close();
@@ -51,8 +48,8 @@ public class JmxClient {
             if (this.hearbeatMBean != null) {
                 this.hearbeatMBean = null;
             }
-        } catch (Exception e) {
-            log.warn("jmx disconnect error, {}", e.getMessage());
+        } catch (IOException e) {
+            throw e;
         }
     }
 
