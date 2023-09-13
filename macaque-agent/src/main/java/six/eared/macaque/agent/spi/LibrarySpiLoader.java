@@ -43,19 +43,21 @@ public class LibrarySpiLoader {
             while (libraryUrls.hasMoreElements()) {
                 URL url = libraryUrls.nextElement();
                 if (inJar(url)) {
-                    JarURLConnection connection = (JarURLConnection) url.openConnection();
-                    JarFile jarFile = connection.getJarFile();
-                    Enumeration<JarEntry> entries = jarFile.entries();
+                    if (url.openConnection() instanceof JarURLConnection) {
+                        JarURLConnection connection = (JarURLConnection) url.openConnection();
+                        JarFile jarFile = connection.getJarFile();
+                        Enumeration<JarEntry> entries = jarFile.entries();
 
-                    while (entries.hasMoreElements()) {
-                        JarEntry entry = entries.nextElement();
-                        String relativePath = entry.getName();
-                        if (relativePath.startsWith(PATH) && !entry.isDirectory()) {
-                            try (InputStream is = jarFile.getInputStream(entry)) {
-                                String[] split = relativePath.split("/");
-                                LibraryDefinition definition = createDefinition(split[split.length - 1], is);
-                                if (definition != null) {
-                                    libraries.add(definition);
+                        while (entries.hasMoreElements()) {
+                            JarEntry entry = entries.nextElement();
+                            String relativePath = entry.getName();
+                            if (relativePath.startsWith(PATH) && !entry.isDirectory()) {
+                                try (InputStream is = jarFile.getInputStream(entry)) {
+                                    String[] split = relativePath.split("/");
+                                    LibraryDefinition definition = createDefinition(split[split.length - 1], is);
+                                    if (definition != null) {
+                                        libraries.add(definition);
+                                    }
                                 }
                             }
                         }

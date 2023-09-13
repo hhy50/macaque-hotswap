@@ -30,8 +30,6 @@ public class JmxMBeanManager {
     public JmxMBeanManager() {
         // 获取MBeanServer，如果不存在则创建，一般情况下，JVM中只有一个MBeanServer，所以这里直接获取。
         this.mBeanServer = ManagementFactory.getPlatformMBeanServer();
-
-        registerAllMBean();
     }
 
     public MBeanServer getMBeanServer() {

@@ -34,6 +34,9 @@ public class HotSwap implements HotSwapMBean {
         String fileName = request.getFileName();
 
         if (FileType.Java.match(fileType)) {
+            if (!compiler.isPrepare()) {
+                return RmiResult.error("JDK env not support memory compiler");
+            }
             if (StringUtil.isEmpty(fileType)) {
                 return RmiResult.error("file type is java, file must not be null");
             }

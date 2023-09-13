@@ -40,7 +40,7 @@ public class ClassHotSwapHandler extends FileHookHandler {
             return RmiResult.success().data(result);
         } catch (Exception e) {
             if (Environment.isDebug()) {
-                System.out.println("ClassHotSwap error");
+                System.out.println("classHotSwap error");
                 e.printStackTrace();
             }
             errMsg = e.getMessage();

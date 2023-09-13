@@ -16,13 +16,14 @@ public class JavaSourceCompiler implements Compiler {
     public JavaSourceCompiler() {
         this.compiler = ToolProvider.getSystemJavaCompiler();
         if (this.compiler == null) {
-            throw new RuntimeException("ToolProvider.getSystemJavaCompiler() is null, jdk environment exception");
+            if (Environment.isDebug()) {
+                System.out.println("[JavaSourceCompiler] ToolProvider.getSystemJavaCompiler() is null, Jdk environment exception");
+            }
         }
-        this.baseFileManager = this.compiler.getStandardFileManager(null, null, null);
+        this.baseFileManager = this.compiler == null ? null : this.compiler.getStandardFileManager(null, null, null);
     }
 
     /**
-     *
      * @param sourceCodes key: JavaFileName,
      *                    value: javaCode
      * @return
@@ -55,5 +56,10 @@ public class JavaSourceCompiler implements Compiler {
             return null;
         }
         return fileManager.getByteCodes();
+    }
+
+    public boolean isPrepare() {
+        return this.compiler != null
+                && this.baseFileManager != null;
     }
 }

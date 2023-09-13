@@ -1,8 +1,8 @@
 package six.eared.macaque.core.jps;
 
 import com.sun.tools.attach.VirtualMachine;
+import six.eared.macaque.common.jps.PID;
 import six.eared.macaque.common.util.Pair;
-import six.eared.macaque.core.common.PID;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

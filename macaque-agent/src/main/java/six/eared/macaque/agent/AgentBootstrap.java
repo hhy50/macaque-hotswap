@@ -45,6 +45,8 @@ public class AgentBootstrap {
 
                 loadLibrary();
 
+                JMX_MBEAN_MANAGER.registerAllMBean();
+
                 System.out.printf("attach success, jmx port=%d\n", jmxPort);
                 return true;
             } catch (Exception e) {
@@ -64,7 +66,7 @@ public class AgentBootstrap {
     private static JmxMBeanManager initJmxService(int port) throws IOException {
         JmxMBeanManager jmxMBeanManager = new JmxMBeanManager();
         LocateRegistry.createRegistry(port);
-        JMXServiceURL url = new JMXServiceURL(String.format("service:jmx:rmi:///jndi/rmi://0.0.0.0:%d/macaque", port));
+        JMXServiceURL url = new JMXServiceURL(String.format("service:jmx:rmi:///jndi/rmi://127.0.0.1:%d/macaque", port));
         JMXConnectorServer jcs = JMXConnectorServerFactory.newJMXConnectorServer(url,
                 null, jmxMBeanManager.getMBeanServer());
         jcs.start();
