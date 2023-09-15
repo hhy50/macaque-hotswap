@@ -2,7 +2,7 @@ package six.eared.macaque.client.test;
 
 import org.junit.Assert;
 import org.junit.Test;
-import six.eared.macaque.core.common.PID;
+import six.eared.macaque.common.jps.PID;
 import six.eared.macaque.core.common.PortNumberGenerator;
 
 import java.util.HashMap;

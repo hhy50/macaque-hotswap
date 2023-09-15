@@ -1,10 +1,6 @@
 package six.eared.macaque.core.attach;
 
-import com.sun.tools.attach.AgentLoadException;
-import com.sun.tools.attach.VirtualMachine;
-import com.sun.tools.attach.VirtualMachineDescriptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.sun.tools.attach.*;
 import six.eared.macaque.core.common.AttachResultCode;
 
 import java.io.IOException;
@@ -12,7 +8,6 @@ import java.io.IOException;
 
 class RuntimeAttach implements Attach {
 
-    private static final Logger log = LoggerFactory.getLogger(RuntimeAttach.class);
 
     private Integer pid;
 
@@ -24,7 +19,8 @@ class RuntimeAttach implements Attach {
     }
 
     @Override
-    public synchronized int attach(String agentpath, String property) {
+    public synchronized int attach(String agentpath, String property)
+            throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
         int result = AttachResultCode.ERROR;
         VirtualMachineDescriptor virtualMachineDescriptor = null;
         for (VirtualMachineDescriptor descriptor : VirtualMachine.list()) {
@@ -45,23 +41,19 @@ class RuntimeAttach implements Attach {
                 loadAgent(this.targetVM, agentpath, property);
                 result = AttachResultCode.SUCCESS;
             }
-        } catch (Exception e) {
-            log.error("attach error", e);
         } finally {
-            if (targetVM == null) {
+            if (this.targetVM == null) {
                 result = AttachResultCode.PROCESS_NOT_EXIST;
             }
             if (this.targetVM != null) {
-                try {
-                    targetVM.detach();
-                } catch (IOException e) {
-                }
+                this.targetVM.detach();
             }
         }
         return result;
     }
 
-    public void loadAgent(VirtualMachine virtualMachine, String agentpath, String property) throws Exception {
+    public void loadAgent(VirtualMachine virtualMachine, String agentpath, String property)
+            throws AgentLoadException, AgentInitializationException, IOException {
         try {
             virtualMachine.loadAgent(agentpath, property);
         } catch (Exception e) {

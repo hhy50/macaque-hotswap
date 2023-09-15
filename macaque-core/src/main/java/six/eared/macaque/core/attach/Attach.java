@@ -5,5 +5,5 @@ public interface Attach {
     /**
      * attach process
      */
-    public int attach(String agentpath, String property);
+    public int attach(String agentpath, String property) throws Exception;
 }

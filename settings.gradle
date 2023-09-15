@@ -7,3 +7,9 @@ include 'macaque-mbean'
 include 'macaque-asm'
 include 'macaque-core'
 
+// library
+include 'library:macaque-library'
+include 'library:macaque-mybatis'
+include 'library:macaque-spring'
+findProject(':library:macaque-library')?.name = 'macaque-library'
+

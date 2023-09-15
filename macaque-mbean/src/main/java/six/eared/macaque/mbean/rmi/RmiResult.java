@@ -2,7 +2,7 @@ package six.eared.macaque.mbean.rmi;
 
 import java.io.Serializable;
 
-public class RmiResult implements Serializable {
+public class RmiResult implements Serializable, Cloneable {
 
     private boolean success;
 

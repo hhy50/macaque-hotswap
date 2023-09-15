@@ -1,4 +1,4 @@
-package six.eared.macaque.core.common;
+package six.eared.macaque.common.jps;
 
 import java.lang.management.ManagementFactory;
 import java.util.function.Supplier;

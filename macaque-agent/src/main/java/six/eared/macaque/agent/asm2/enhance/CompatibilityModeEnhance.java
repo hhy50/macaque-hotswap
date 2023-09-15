@@ -1,10 +1,10 @@
 package six.eared.macaque.agent.asm2.enhance;
 
+import six.eared.macaque.agent.asm2.AsmField;
+import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.Enhancer;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitor;
-import six.eared.macaque.agent.asm2.AsmField;
-import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.vcs.VersionChainAccessor;
 import six.eared.macaque.agent.vcs.VersionDescriptor;
 import six.eared.macaque.agent.vcs.VersionView;

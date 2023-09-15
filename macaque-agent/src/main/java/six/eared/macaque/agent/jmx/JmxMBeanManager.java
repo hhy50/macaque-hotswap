@@ -2,7 +2,7 @@ package six.eared.macaque.agent.jmx;
 
 
 import six.eared.macaque.agent.env.Environment;
-import six.eared.macaque.agent.jmx.mbeans.ClassHotSwap;
+import six.eared.macaque.agent.jmx.mbeans.HotSwap;
 import six.eared.macaque.agent.jmx.mbeans.JmxHeartbeat;
 import six.eared.macaque.mbean.MBean;
 import six.eared.macaque.mbean.rmi.RmiData;
@@ -30,8 +30,6 @@ public class JmxMBeanManager {
     public JmxMBeanManager() {
         // 获取MBeanServer，如果不存在则创建，一般情况下，JVM中只有一个MBeanServer，所以这里直接获取。
         this.mBeanServer = ManagementFactory.getPlatformMBeanServer();
-
-        registerAllMBean();
     }
 
     public MBeanServer getMBeanServer() {
@@ -71,7 +69,7 @@ public class JmxMBeanManager {
     private List<Class<? extends MBean<? extends RmiData>>> loadMBeanClass() {
         return Arrays.asList(
                 JmxHeartbeat.class,
-                ClassHotSwap.class);
+                HotSwap.class);
     }
 
 

@@ -7,7 +7,7 @@ import six.eared.macaque.core.client.MacaqueClient;
 import six.eared.macaque.http.annotitions.Path;
 import six.eared.macaque.http.annotitions.RequestMethod;
 import six.eared.macaque.http.request.MultipartFile;
-import six.eared.macaque.mbean.rmi.ClassHotSwapRmiData;
+import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 import six.eared.macaque.mbean.rmi.RmiResult;
 import six.eared.macaque.server.http.ServerHttpInterface;
 import six.eared.macaque.server.http.body.ClassHotSwapRequest;
@@ -40,7 +40,7 @@ public class ClassHotSwapRequestHandler extends ServerHttpInterface<ClassHotSwap
             return RmiResult.error("error");
         }
         try {
-            RmiResult result = macaqueClient.hotswap(pid, new ClassHotSwapRmiData(fileName, fileType, fileData.getBytes(), new HashMap<>()));
+            RmiResult result = macaqueClient.hotswap(pid, new HotSwapRmiData(fileName, fileType, fileData.getBytes(), new HashMap<>()));
             log.info("ClassHotSwap pid:[{}] result:[{}]", pid, result);
             return result;
         } catch (Exception e) {

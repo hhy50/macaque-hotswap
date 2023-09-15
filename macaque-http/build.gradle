@@ -14,6 +14,7 @@ repositories {
 dependencies {
     api 'io.projectreactor.netty:reactor-netty-core:1.1.9'
     api 'io.projectreactor.netty:reactor-netty-http:1.1.9'
+    api "com.alibaba:fastjson:${fastjsonVersion}"
 
     implementation project(":macaque-common")
     testImplementation 'junit:junit:4.13.1'

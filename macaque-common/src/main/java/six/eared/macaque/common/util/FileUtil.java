@@ -1,5 +1,7 @@
 package six.eared.macaque.common.util;
 
+import six.eared.macaque.common.exceptions.FileIOException;
+
 import java.io.*;
 
 import static java.io.File.separator;
@@ -21,9 +23,8 @@ public class FileUtil {
             fis.read(bytes, 0, len);
             return bytes;
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new FileIOException(e);
         }
-        return bytes;
     }
 
     public static void writeBytes(File file, byte[] bytes) {
@@ -31,7 +32,7 @@ public class FileUtil {
             outputStream.write(bytes, 0, bytes.length);
             outputStream.flush();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new FileIOException(e);
         }
     }
 
@@ -64,7 +65,7 @@ public class FileUtil {
             file.createNewFile();
             writeBytes(file, bytes);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new FileIOException(e);
         }
         return file;
     }
@@ -86,7 +87,7 @@ public class FileUtil {
             file.createNewFile();
             writeBytes(file, bytes);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new FileIOException(e);
         }
         return file;
     }

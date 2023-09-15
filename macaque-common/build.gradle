@@ -11,8 +11,7 @@ repositories {
 }
 
 dependencies {
-    api "ch.qos.logback:logback-classic:${logbackVersion}"
-    api "com.alibaba:fastjson:${fastjsonVersion}"
+
 }
 
 task srcJar(type: Jar) {

@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import six.eared.macaque.common.type.FileType;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.core.client.MacaqueClient;
-import six.eared.macaque.mbean.rmi.ClassHotSwapRmiData;
+import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 import six.eared.macaque.mbean.rmi.RmiResult;
 import six.eared.macaque.server.config.LoggerName;
 
@@ -37,7 +37,7 @@ public class DefaultCommandExecutor implements CommandExecutor {
 
         String classPath = command[0];
         try {
-            RmiResult result = client.hotswap(this.pid, new ClassHotSwapRmiData(FileType.Class.getType(), FileUtil.readBytes(classPath)));
+            RmiResult result = client.hotswap(this.pid, new HotSwapRmiData(FileType.Class.getType(), FileUtil.readBytes(classPath)));
             log.info("exec result: [{}]", result.getData());
         } catch (Exception e) {
             log.error("hotswap error", e);
