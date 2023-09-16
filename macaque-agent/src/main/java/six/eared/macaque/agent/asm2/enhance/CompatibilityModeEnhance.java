@@ -19,10 +19,16 @@ import java.util.Optional;
 
 public class CompatibilityModeEnhance implements Enhancer {
 
-    private ClazzDefinitionVisitor visitor = new ClazzDefinitionVisitor();
+    private ThreadLocal<ClazzDefinitionVisitor> VISITOR = new ThreadLocal<ClazzDefinitionVisitor>() {
+        @Override
+        protected ClazzDefinitionVisitor initialValue() {
+            return new ClazzDefinitionVisitor(new CompatibilityModeMethodVisitor(), new CompatibilityModeFieldVisitor());
+        }
+    };
 
     @Override
     public ClazzDefinition enhance(ClazzDefinition newClassDefinition) {
+
         String className = newClassDefinition.getClassName();
 
         byte[] memoryClassData = null;
@@ -32,7 +38,7 @@ public class CompatibilityModeEnhance implements Enhancer {
             Optional<ClazzDefinition> any = versionView.getDefinitions().stream()
                     .filter(item -> item.getClassName().equals(className)).findAny();
             if (any.isPresent()) {
-                memoryClassData = any.get().getClassData();
+                memoryClassData = any.get().getByteCode();
             }
         } else {
             InputStream is = ClassLoader.getSystemResourceAsStream(ClassUtil.className2path(className));
@@ -74,7 +80,6 @@ public class CompatibilityModeEnhance implements Enhancer {
                 }
             }
         }
-
         return null;
     }
 
@@ -87,8 +92,13 @@ public class CompatibilityModeEnhance implements Enhancer {
     }
 
     private ClazzDefinition readClass(byte[] bytes) {
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(visitor, 0);
-        return visitor.getDefinition();
+        try {
+            ClazzDefinitionVisitor clazzDefinitionVisitor = new ClazzDefinitionVisitor();
+            ClassReader classReader = new ClassReader(bytes);
+            classReader.accept(clazzDefinitionVisitor, 0);
+            return clazzDefinitionVisitor.getDefinition();
+        } finally {
+            VISITOR.remove();
+        }
     }
 }

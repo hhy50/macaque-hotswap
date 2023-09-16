@@ -1,13 +1,18 @@
 package six.eared.macaque.agent.test;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import six.eared.macaque.agent.asm2.classes.BinaryClassPrint;
-import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
-import six.eared.macaque.agent.asm2.classes.MultiClassReader;
+import six.eared.macaque.agent.asm2.AsmField;
+import six.eared.macaque.agent.asm2.AsmMethod;
+import six.eared.macaque.agent.asm2.classes.*;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.env.Environment;
+import six.eared.macaque.agent.test.asm.BinaryClassPrint;
 import six.eared.macaque.asm.ClassReader;
+import six.eared.macaque.asm.ClassWriter;
+import six.eared.macaque.asm.FieldVisitor;
+import six.eared.macaque.asm.MethodVisitor;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -66,6 +71,8 @@ public class TestJavaCompiler {
             " * 反编译\n" +
             " */\n" +
             "public class BinaryClassReader extends ClassVisitor {\n" +
+            "private String test1;\n" +
+            "private String test2;\n" +
             "    public BinaryClassReader() {\n" +
             "        super(ASM4);\n" +
             "    }\n" +
@@ -127,10 +134,15 @@ public class TestJavaCompiler {
         javaSource.put("BinaryClassReader.java", clazz2.getBytes());
 
         List<byte[]> compiled = javaSourceCompiler.compile(javaSource);
-        BinaryClassPrint binaryClassPrint = new BinaryClassPrint();
-        for (byte[] bytes : compiled) {
-            ClassReader classReader = new ClassReader(bytes);
-            classReader.accept(binaryClassPrint, 0);
+
+        MultiClassReader clazzDefinitions = new MultiClassReader(merge(compiled), mockNoMethodClassVisit());
+        for (ClazzDefinition clazzDefinition : clazzDefinitions) {
+            Assert.assertEquals(clazzDefinition.getAsmMethods().size(), 0);
+        }
+
+        clazzDefinitions = new MultiClassReader(merge(compiled), mockNoFieldClassVisit());
+        for (ClazzDefinition clazzDefinition : clazzDefinitions) {
+            Assert.assertEquals(clazzDefinition.getAsmFields().size(), 0);
         }
     }
 
@@ -150,7 +162,7 @@ public class TestJavaCompiler {
         MultiClassReader binaryClassReader = new MultiClassReader(bytes);
         for (ClazzDefinition clazzDefinition : binaryClassReader) {
             System.out.println(clazzDefinition.getClassName());
-            ClassReader classReader = new ClassReader(clazzDefinition.getClassData());
+            ClassReader classReader = new ClassReader(clazzDefinition.getByteCode());
             classReader.accept(new BinaryClassPrint(), 0);
         }
     }
@@ -164,5 +176,27 @@ public class TestJavaCompiler {
             System.arraycopy(b2, 0, bytes, b1.length, b2.length);
             return bytes;
         }).get();
+    }
+
+    public ClazzDefinitionVisitorFactory mockNoMethodClassVisit() {
+        return () -> {
+            return new ClazzDefinitionVisitor(new AsmMethodVisitor() {
+                @Override
+                public MethodVisitor visitMethod(AsmMethod method, ClazzDefinition definition, ClassWriter writer) {
+                    return null;
+                }
+            }, null);
+        };
+    }
+
+    public ClazzDefinitionVisitorFactory mockNoFieldClassVisit() {
+        return () -> {
+            return new ClazzDefinitionVisitor(null, new AsmFieldVisitor() {
+                @Override
+                public FieldVisitor visitField(AsmField field, ClassWriter writer) {
+                    return null;
+                }
+            });
+        };
     }
 }

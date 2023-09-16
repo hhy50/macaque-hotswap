@@ -13,7 +13,7 @@ public class ClassHotSwapper {
 
     public static int redefine(ClazzDefinition clazzDefinition) throws UnmodifiableClassException, ClassNotFoundException {
         String className = clazzDefinition.getClassName();
-        byte[] newClassData = clazzDefinition.getClassData();
+        byte[] newClassData = clazzDefinition.getByteCode();
 
         Instrumentation inst = Environment.getInst();
         List<ClassDefinition> needRedefineClass = new ArrayList<>();

@@ -36,7 +36,7 @@ package six.eared.macaque.asm;
  * 
  * @author Eric Bruneton
  */
-public abstract class FieldVisitor {
+public abstract class  FieldVisitor {
 
     /**
      * The ASM API version implemented by this visitor. The value of this field

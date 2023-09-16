@@ -10,19 +10,15 @@ import java.util.Arrays;
 
 import static six.eared.macaque.asm.Opcodes.ASM5;
 
-public class AsmMethodReader extends MethodVisitor {
+public class AsmMethodPrinter extends MethodVisitor {
 
     private int index = 0;
 
     private final AsmMethod asmMethod;
 
-    public AsmMethodReader(AsmMethod asmMethod) {
+    public AsmMethodPrinter(AsmMethod asmMethod) {
         super(ASM5);
         this.asmMethod = asmMethod;
-    }
-
-    public void visitParameter(String name, int access) {
-        this.asmMethod.addParameter(name, access);
     }
 
     @Override
@@ -97,7 +93,7 @@ public class AsmMethodReader extends MethodVisitor {
     @Override
     public void visitLabel(Label label) {
         System.out.println(String.format("index=%d, visitLabel(), label='%s'",
-                index++, label.toString()));
+                index++, label));
         super.visitLabel(label);
     }
 

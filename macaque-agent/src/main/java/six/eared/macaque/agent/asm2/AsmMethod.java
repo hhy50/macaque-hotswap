@@ -1,7 +1,8 @@
 package six.eared.macaque.agent.asm2;
 
-import java.util.List;
-
+/**
+ *
+ */
 public class AsmMethod {
 
     private int modifier;
@@ -10,31 +11,36 @@ public class AsmMethod {
 
     private String methodSign;
 
-    private List<String> byteCode;
-    
-    private List<String> parameters;
+    private String desc;
 
-    private boolean newMethod;
+    private String[] exceptions;
 
-    private boolean deleted;
-
-    public boolean isNewMethod() {
-        return false;
+    public int getModifier() {
+        return modifier;
     }
 
-    public boolean isDeleted() {
-        return false;
-    }
-    
-    public void addParameter(String name, int access) {
-    	this.parameters.add(name);
+    public String getMethodName() {
+        return methodName;
     }
 
+    public String getMethodSign() {
+        return methodSign;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public String[] getExceptions() {
+        return exceptions;
+    }
 
     public static final class AsmMethodBuilder {
         private int modifier;
         private String methodName;
         private String methodSign;
+        private String desc;
+        private String[] exceptions;
 
         private AsmMethodBuilder() {
         }
@@ -58,11 +64,23 @@ public class AsmMethod {
             return this;
         }
 
+        public AsmMethodBuilder desc(String desc) {
+            this.desc = desc;
+            return this;
+        }
+
+        public AsmMethodBuilder exceptions(String[] exceptions) {
+            this.exceptions = exceptions;
+            return this;
+        }
+
         public AsmMethod build() {
             AsmMethod asmMethod = new AsmMethod();
             asmMethod.modifier = this.modifier;
             asmMethod.methodName = this.methodName;
             asmMethod.methodSign = this.methodSign;
+            asmMethod.desc = this.desc;
+            asmMethod.exceptions = this.exceptions;
             return asmMethod;
         }
     }

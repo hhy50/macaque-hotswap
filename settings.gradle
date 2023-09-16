@@ -11,5 +11,4 @@ include 'macaque-core'
 include 'library:macaque-library'
 include 'library:macaque-mybatis'
 include 'library:macaque-spring'
-findProject(':library:macaque-library')?.name = 'macaque-library'
 

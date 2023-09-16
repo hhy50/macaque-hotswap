@@ -1,11 +1,9 @@
-package six.eared.macaque.agent.asm2.classes;
+package six.eared.macaque.agent.test.asm;
 
 
 import six.eared.macaque.asm.*;
 
 import static six.eared.macaque.asm.Opcodes.ASM4;
-
-import six.eared.macaque.agent.asm2.AsmMethod;
 
 /**
  * 反编译
@@ -42,8 +40,7 @@ public class BinaryClassPrint extends ClassVisitor {
 
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         System.out.println("    " + name + desc);
-        AsmMethod asmMethod = new AsmMethod();
-        return new AsmMethodReader(asmMethod);
+        return null;
     }
 
     public void visitEnd() {

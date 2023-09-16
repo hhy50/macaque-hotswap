@@ -10,7 +10,9 @@ public class ClazzDefinition implements Cloneable {
 
     private String className;
 
-    private byte[] classData;
+    private byte[] originData;
+
+    private byte[] byteCode;
 
     private List<AsmMethod> asmMethods = new ArrayList<>();
 
@@ -20,25 +22,12 @@ public class ClazzDefinition implements Cloneable {
 
     }
 
-    public ClazzDefinition(String className, byte[] classData) {
-        this.className = className;
-        this.classData = classData;
-    }
-
     public String getClassName() {
         return className;
     }
 
     public void setClassName(String className) {
         this.className = className;
-    }
-
-    public byte[] getClassData() {
-        return classData;
-    }
-
-    public void setClassData(byte[] classData) {
-        this.classData = classData;
     }
 
     public void addAsmMethod(AsmMethod method) {
@@ -57,6 +46,13 @@ public class ClazzDefinition implements Cloneable {
         return asmFields;
     }
 
+    public byte[] getByteCode() {
+        return byteCode;
+    }
+
+    public void setByteCode(byte[] byteCode) {
+        this.byteCode = byteCode;
+    }
 
     @Override
     public ClazzDefinition clone() {
@@ -65,5 +61,13 @@ public class ClazzDefinition implements Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public byte[] getOriginData() {
+        return originData;
+    }
+
+    public void setOriginData(byte[] originData) {
+        this.originData = originData;
     }
 }
