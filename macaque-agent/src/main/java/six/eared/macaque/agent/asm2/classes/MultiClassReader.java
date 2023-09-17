@@ -17,7 +17,7 @@ public class MultiClassReader implements Iterable<ClazzDefinition> {
     }
 
     public MultiClassReader(byte[] multiClassData) {
-        this(multiClassData, new ClazzDefinitionVisitorFactory.Default());
+        this(multiClassData, ClazzDefinitionVisitorFactory.DEFAULT);
     }
 
     @Override
@@ -27,6 +27,8 @@ public class MultiClassReader implements Iterable<ClazzDefinition> {
 
     class MultiClassReaderItr implements Iterator<ClazzDefinition> {
 
+        private ClazzDefinitionVisitor reuseVisit;
+
         @Override
         public boolean hasNext() {
             return pos < multiClassData.length;
@@ -34,10 +36,16 @@ public class MultiClassReader implements Iterable<ClazzDefinition> {
 
         @Override
         public ClazzDefinition next() {
-            ClazzDefinitionVisitor visitor = visitorFactory.creatClazzVisitor();
+            ClazzDefinitionVisitor visitor = null;
+            if (this.reuseVisit == null) {
+                if ((visitor = visitorFactory.creatClazzVisitor()).isReuse()) {
+                    this.reuseVisit = visitor;
+                }
+            } else {
+                visitor = this.reuseVisit;
+            }
             ClassReader classReader = new ClassReader(multiClassData, pos);
             pos = classReader.accept(visitor, 0);
-
             return visitor.getDefinition();
         }
     }

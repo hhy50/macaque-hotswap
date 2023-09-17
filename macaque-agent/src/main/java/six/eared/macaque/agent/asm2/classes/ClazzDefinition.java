@@ -70,4 +70,9 @@ public class ClazzDefinition implements Cloneable {
     public void setOriginData(byte[] originData) {
         this.originData = originData;
     }
+
+    public boolean hasMethod(String methodName) {
+        return asmMethods.stream()
+                .anyMatch(item -> item.getMethodName().equals(methodName));
+    }
 }

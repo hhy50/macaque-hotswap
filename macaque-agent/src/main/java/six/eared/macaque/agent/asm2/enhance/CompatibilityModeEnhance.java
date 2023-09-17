@@ -2,13 +2,13 @@ package six.eared.macaque.agent.asm2.enhance;
 
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
+import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.Enhancer;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitor;
 import six.eared.macaque.agent.vcs.VersionChainAccessor;
 import six.eared.macaque.agent.vcs.VersionDescriptor;
 import six.eared.macaque.agent.vcs.VersionView;
-import six.eared.macaque.asm.ClassReader;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.FileUtil;
 
@@ -28,7 +28,6 @@ public class CompatibilityModeEnhance implements Enhancer {
 
     @Override
     public ClazzDefinition enhance(ClazzDefinition newClassDefinition) {
-
         String className = newClassDefinition.getClassName();
 
         byte[] memoryClassData = null;
@@ -92,13 +91,6 @@ public class CompatibilityModeEnhance implements Enhancer {
     }
 
     private ClazzDefinition readClass(byte[] bytes) {
-        try {
-            ClazzDefinitionVisitor clazzDefinitionVisitor = new ClazzDefinitionVisitor();
-            ClassReader classReader = new ClassReader(bytes);
-            classReader.accept(clazzDefinitionVisitor, 0);
-            return clazzDefinitionVisitor.getDefinition();
-        } finally {
-            VISITOR.remove();
-        }
+        return AsmUtil.readClass(bytes);
     }
 }

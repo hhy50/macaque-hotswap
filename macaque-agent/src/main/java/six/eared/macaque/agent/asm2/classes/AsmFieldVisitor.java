@@ -10,5 +10,5 @@ public interface AsmFieldVisitor {
      *
      * @return
      */
-    public FieldVisitor visitField(AsmField field, ClassWriter writer);
+    public FieldVisitor visitField(AsmField field, ClazzDefinition clazzDefinition, ClassWriter writer);
 }

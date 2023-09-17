@@ -11,5 +11,5 @@ public interface AsmMethodVisitor {
      *
      * @return
      */
-    public MethodVisitor visitMethod(AsmMethod method, ClazzDefinition definition, ClassWriter writer);
+    public MethodVisitor visitMethod(AsmMethod method, ClazzDefinition clazzDefinition, ClassWriter writer);
 }

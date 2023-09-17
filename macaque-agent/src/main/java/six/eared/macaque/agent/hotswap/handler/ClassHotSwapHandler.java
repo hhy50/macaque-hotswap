@@ -3,7 +3,6 @@ package six.eared.macaque.agent.hotswap.handler;
 import six.eared.macaque.agent.annotation.HotSwapFileType;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
-import six.eared.macaque.agent.asm2.classes.CompatibilityModeClassDefinitionVisitor;
 import six.eared.macaque.agent.asm2.classes.MultiClassReader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.ExtPropertyName;
@@ -32,8 +31,8 @@ public class ClassHotSwapHandler extends FileHookHandler {
             Map<String, Object> result = new HashMap<>();
 
             ClazzDefinitionVisitorFactory factory = Boolean.TRUE.toString().equalsIgnoreCase(extProperties.get(ExtPropertyName.COMPATIBILITY_MODE))
-                    ? new CompatibilityModeClassDefinitionVisitor()
-                    : new ClazzDefinitionVisitorFactory.Default();
+                    ? ClazzDefinitionVisitorFactory.COMPATIBILITY_MODE
+                    : ClazzDefinitionVisitorFactory.DEFAULT;
             MultiClassReader classReader = new MultiClassReader(bytes, factory);
             for (ClazzDefinition enhanced : classReader) {
                 int redefineCount = redefine(enhanced);

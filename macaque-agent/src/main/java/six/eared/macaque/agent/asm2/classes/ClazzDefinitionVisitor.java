@@ -13,10 +13,21 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
 
     private ClazzDefinition definition = null;
 
+    private boolean reuse = false;
+
+    /**
+     * reuse
+     */
     public ClazzDefinitionVisitor() {
-        super(Opcodes.ASM4, new ClassWriter(0));
+        super(Opcodes.ASM4);
+        this.reuse = true;
     }
 
+    /**
+     * not reuse
+     * @param methodVisitor
+     * @param fieldVisitor
+     */
     public ClazzDefinitionVisitor(AsmMethodVisitor methodVisitor, AsmFieldVisitor fieldVisitor) {
         super(Opcodes.ASM4, new ClassWriter(0));
         this.methodVisitor = methodVisitor;
@@ -28,6 +39,12 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
     }
 
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        if (this.reuse && this.cv == null) {
+            this.cv = new ClassWriter(0);
+        }
+        if (this.cv == null) {
+            throw new RuntimeException("the ClazzDefinitionVisitor not support reuse");
+        }
         this.cv.visit(version, access, name, signature, superName, interfaces);
 
         definition = new ClazzDefinition();
@@ -48,11 +65,7 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
             return this.cv.visitField(access, name, desc, signature, value);
         }
 
-        FieldVisitor visitor = this.fieldVisitor.visitField(asmField, (ClassWriter) this.cv);
-        if (visitor != null) {
-            this.definition.addAsmField(asmField);
-        }
-        return visitor;
+        return this.fieldVisitor.visitField(asmField, this.definition, (ClassWriter) this.cv);
     }
 
     @Override
@@ -71,20 +84,23 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
             return this.cv.visitMethod(access, name, desc, signature, exceptions);
         }
 
-        MethodVisitor visitor = this.methodVisitor.visitMethod(asmMethod, this.definition, (ClassWriter) this.cv);
-        if (visitor != null) {
-            this.definition.addAsmMethod(asmMethod);
-        }
-        return visitor;
+        return this.methodVisitor.visitMethod(asmMethod, this.definition, (ClassWriter) this.cv);
     }
 
     @Override
     public void visitBytes(byte[] bytes) {
-        definition.setOriginData(bytes);
+        this.definition.setOriginData(bytes);
     }
 
     public void visitEnd() {
         ClassWriter writer = ClassWriter.class.cast(this.cv);
-        definition.setByteCode(writer.toByteArray());
+        this.definition.setByteCode(writer.toByteArray());
+        if (!this.reuse) {
+            this.cv = null;
+        }
+    }
+
+    public boolean isReuse() {
+        return reuse;
     }
 }

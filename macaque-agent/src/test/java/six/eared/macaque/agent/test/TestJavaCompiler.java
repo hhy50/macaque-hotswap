@@ -134,15 +134,27 @@ public class TestJavaCompiler {
         javaSource.put("BinaryClassReader.java", clazz2.getBytes());
 
         List<byte[]> compiled = javaSourceCompiler.compile(javaSource);
-
-        MultiClassReader clazzDefinitions = new MultiClassReader(merge(compiled), mockNoMethodClassVisit());
-        for (ClazzDefinition clazzDefinition : clazzDefinitions) {
-            Assert.assertEquals(clazzDefinition.getAsmMethods().size(), 0);
+        MultiClassReader clazzDefinitions = null;
+        try {
+            System.out.println("-----start test noMethodClass-----");
+            clazzDefinitions = new MultiClassReader(merge(compiled), mockNoMethodClassVisit());
+            for (ClazzDefinition clazzDefinition : clazzDefinitions) {
+                printClass(clazzDefinition.getByteCode());
+                Assert.assertEquals(clazzDefinition.getAsmMethods().size(), 0);
+            }
+        } finally {
+            System.out.println("-----end test noMethodClass-----");
         }
-
-        clazzDefinitions = new MultiClassReader(merge(compiled), mockNoFieldClassVisit());
-        for (ClazzDefinition clazzDefinition : clazzDefinitions) {
-            Assert.assertEquals(clazzDefinition.getAsmFields().size(), 0);
+        System.out.print("\n");
+        try {
+            System.out.println("-----start test noField-----");
+            clazzDefinitions = new MultiClassReader(merge(compiled), mockNoFieldClassVisit());
+            for (ClazzDefinition clazzDefinition : clazzDefinitions) {
+                printClass(clazzDefinition.getByteCode());
+                Assert.assertEquals(clazzDefinition.getAsmFields().size(), 0);
+            }
+        } finally {
+            System.out.println("-----end test noField-----");
         }
     }
 
@@ -193,10 +205,15 @@ public class TestJavaCompiler {
         return () -> {
             return new ClazzDefinitionVisitor(null, new AsmFieldVisitor() {
                 @Override
-                public FieldVisitor visitField(AsmField field, ClassWriter writer) {
+                public FieldVisitor visitField(AsmField field, ClazzDefinition clazzDefinition, ClassWriter writer) {
                     return null;
                 }
             });
         };
+    }
+
+    public static void printClass(byte[] byteCode) {
+        ClassReader classReader = new ClassReader(byteCode);
+        classReader.accept(new BinaryClassPrint(), 0);
     }
 }
