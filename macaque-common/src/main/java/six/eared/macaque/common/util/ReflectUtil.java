@@ -1,8 +1,10 @@
 package six.eared.macaque.common.util;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 public class ReflectUtil {
 
@@ -107,5 +109,15 @@ public class ReflectUtil {
             }
         }
         return false;
+    }
+
+    public static <T extends Annotation> Method findMethodWithAnnotation(Class<?> clazz , Class<T> annotationClass) {
+        for (Method declaredMethod : clazz.getDeclaredMethods()) {
+            T declaredAnnotation = declaredMethod.getDeclaredAnnotation(annotationClass);
+            if (declaredAnnotation != null) {
+                return declaredMethod;
+            }
+        }
+        return null;
     }
 }

@@ -12,10 +12,4 @@ public interface AsmMethodVisitor {
      * @return
      */
     public MethodVisitor visitMethod(AsmMethod method, ClazzDefinition clazzDefinition, ClassWriter writer);
-
-    /**
-     *
-     * @return
-     */
-    public void visitEnd();
 }

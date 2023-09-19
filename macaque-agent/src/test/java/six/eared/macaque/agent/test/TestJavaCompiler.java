@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import six.eared.macaque.agent.asm2.AsmField;
+import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.classes.*;
 import six.eared.macaque.agent.asm2.enhance.CompatibilityModeMethodVisitor;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
@@ -12,6 +13,7 @@ import six.eared.macaque.agent.test.asm.BinaryClassPrint;
 import six.eared.macaque.asm.ClassReader;
 import six.eared.macaque.asm.ClassWriter;
 import six.eared.macaque.asm.FieldVisitor;
+import six.eared.macaque.asm.MethodVisitor;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -191,10 +193,14 @@ public class TestJavaCompiler {
 
     public ClazzDefinitionVisitorFactory mockNoMethodClassVisit() {
         return () -> {
-            return new ClazzDefinitionVisitor(new CompatibilityModeMethodVisitor(), null);
+            return new ClazzDefinitionVisitor(new AsmMethodVisitor() {
+                @Override
+                public MethodVisitor visitMethod(AsmMethod method, ClazzDefinition definition, ClassWriter writer) {
+                    return null;
+                }
+            }, null);
         };
     }
-
     public ClazzDefinitionVisitorFactory mockNoFieldClassVisit() {
         return () -> {
             return new ClazzDefinitionVisitor(null, new AsmFieldVisitor() {

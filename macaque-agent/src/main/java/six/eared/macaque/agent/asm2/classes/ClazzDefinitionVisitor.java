@@ -1,9 +1,11 @@
 package six.eared.macaque.agent.asm2.classes;
 
 
+import six.eared.macaque.agent.annotation.VisitEnd;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.asm.*;
+
 
 public class ClazzDefinitionVisitor extends ClassVisitor {
 
@@ -93,8 +95,8 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
     }
 
     public void visitEnd() {
-        if (this.methodVisitor != null) {
-            this.methodVisitor.visitEnd();
+        if (this.methodVisitor != null || this.fieldVisitor != null) {
+            invokeAllVisitEnd();
         }
 
         ClassWriter writer = ClassWriter.class.cast(this.cv);
@@ -102,6 +104,11 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
         if (!this.reuse) {
             this.cv = null;
         }
+    }
+
+    private void invokeAllVisitEnd() {
+        Class<VisitEnd> visitEndClass = VisitEnd.class;
+        //
     }
 
     public boolean isReuse() {
