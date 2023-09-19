@@ -1,6 +1,5 @@
 package six.eared.macaque.agent.asm2.classes;
 
-import six.eared.macaque.agent.asm2.enhance.CompatibilityModeFieldVisitor;
 import six.eared.macaque.agent.asm2.enhance.CompatibilityModeMethodVisitor;
 
 public interface ClazzDefinitionVisitorFactory {

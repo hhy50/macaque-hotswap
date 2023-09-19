@@ -71,8 +71,8 @@ public class ClazzDefinition implements Cloneable {
         this.originData = originData;
     }
 
-    public boolean hasMethod(String methodName) {
+    public boolean hasMethod(AsmMethod method) {
         return asmMethods.stream()
-                .anyMatch(item -> item.getMethodName().equals(methodName));
+                .anyMatch(item -> item.equals(method));
     }
 }

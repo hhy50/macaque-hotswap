@@ -39,11 +39,11 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
     }
 
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        if (this.reuse && this.cv == null) {
+        if (this.reuse) {
             this.cv = new ClassWriter(0);
         }
         if (this.cv == null) {
-            throw new RuntimeException("the ClazzDefinitionVisitor not support reuse");
+            throw new RuntimeException("cw is null");
         }
         this.cv.visit(version, access, name, signature, superName, interfaces);
 
@@ -93,6 +93,10 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
     }
 
     public void visitEnd() {
+        if (this.methodVisitor != null) {
+            this.methodVisitor.visitEnd();
+        }
+
         ClassWriter writer = ClassWriter.class.cast(this.cv);
         this.definition.setByteCode(writer.toByteArray());
         if (!this.reuse) {
