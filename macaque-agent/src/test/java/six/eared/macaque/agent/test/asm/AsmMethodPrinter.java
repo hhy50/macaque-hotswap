@@ -1,6 +1,5 @@
 package six.eared.macaque.agent.test.asm;
 
-import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.asm.Attribute;
 import six.eared.macaque.asm.Handle;
 import six.eared.macaque.asm.Label;
@@ -14,11 +13,8 @@ public class AsmMethodPrinter extends MethodVisitor {
 
     private int index = 0;
 
-    private final AsmMethod asmMethod;
-
-    public AsmMethodPrinter(AsmMethod asmMethod) {
+    public AsmMethodPrinter() {
         super(ASM5);
-        this.asmMethod = asmMethod;
     }
 
     @Override

@@ -106,4 +106,12 @@ public class AsmMethod {
         result = 31 * result + Arrays.hashCode(exceptions);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "AsmMethod{" +
+                "methodName='" + methodName + '\'' +
+                ", methodSign='" + methodSign + '\'' +
+                '}';
+    }
 }

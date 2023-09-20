@@ -5,6 +5,10 @@ public class ClassUtil {
         return clazz.replace('.', '/') + ".class";
     }
 
+    public static String simpleClassName2path(String clazz) {
+        return clazz.replace('.', '/');
+    }
+
     public static String classpath2name(String clazz) {
         return clazz.replace('/', '.');
     }

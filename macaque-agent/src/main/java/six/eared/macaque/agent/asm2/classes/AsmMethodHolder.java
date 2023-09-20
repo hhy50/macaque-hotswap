@@ -12,4 +12,12 @@ public class AsmMethodHolder {
         this.asmMethod = asmMethod;
         this.visitor = visitor;
     }
+
+    public AsmMethod getAsmMethod() {
+        return asmMethod;
+    }
+
+    public MethodVisitorProxy getVisitor() {
+        return visitor;
+    }
 }

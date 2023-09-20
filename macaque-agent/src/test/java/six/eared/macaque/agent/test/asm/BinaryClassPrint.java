@@ -9,8 +9,16 @@ import static six.eared.macaque.asm.Opcodes.ASM4;
  * 反编译
  */
 public class BinaryClassPrint extends ClassVisitor {
+
+    private MethodVisitor methodVisitor;
+
     public BinaryClassPrint() {
         super(ASM4);
+    }
+
+    public BinaryClassPrint(MethodVisitor methodVisitor) {
+        this();
+        this.methodVisitor = methodVisitor;
     }
 
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -40,7 +48,7 @@ public class BinaryClassPrint extends ClassVisitor {
 
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         System.out.println("    " + name + desc);
-        return null;
+        return methodVisitor;
     }
 
     public void visitEnd() {

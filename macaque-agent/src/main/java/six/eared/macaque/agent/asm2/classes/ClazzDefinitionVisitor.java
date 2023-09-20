@@ -17,9 +17,6 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
 
     private boolean reuse = false;
 
-    /**
-     * reuse
-     */
     public ClazzDefinitionVisitor() {
         super(Opcodes.ASM4);
         this.reuse = true;
@@ -97,6 +94,10 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
     public void visitEnd() {
         if (this.methodVisitor != null || this.fieldVisitor != null) {
             invokeAllVisitEnd();
+        }
+
+        if (this.methodVisitor != null) {
+            this.methodVisitor.visitEnd();
         }
 
         ClassWriter writer = ClassWriter.class.cast(this.cv);
