@@ -24,7 +24,7 @@ public class LibrarySpiLoader {
         return loader.iterator();
     }
 
-    public static void initLibrary() {
+    public static void initLibrary() throws Exception {
         for (LibraryDefinition library : findLibrary()) {
             Library libraryAnnotation = library.getClazz().getAnnotation(Library.class);
             if (libraryAnnotation != null) {

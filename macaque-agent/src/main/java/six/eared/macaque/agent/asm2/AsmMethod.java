@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.asm2;
 
+
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -17,6 +18,8 @@ public class AsmMethod {
     private String desc;
 
     private String[] exceptions;
+
+    private String bindClass;
 
     public int getModifier() {
         return modifier;
@@ -36,6 +39,14 @@ public class AsmMethod {
 
     public String[] getExceptions() {
         return exceptions;
+    }
+
+    public String getBindClass() {
+        return bindClass;
+    }
+
+    public void setBindClass(String bindClass) {
+        this.bindClass = bindClass;
     }
 
     public static final class AsmMethodBuilder {

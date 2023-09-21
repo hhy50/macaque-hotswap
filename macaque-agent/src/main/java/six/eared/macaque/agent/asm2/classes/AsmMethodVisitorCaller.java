@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.asm2.classes;
 
 import six.eared.macaque.asm.MethodVisitor;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

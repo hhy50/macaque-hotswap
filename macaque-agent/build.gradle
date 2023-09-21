@@ -17,6 +17,7 @@ dependencies {
     implementation project(':library:macaque-mybatis')
     implementation project(':library:macaque-spring')
     testImplementation 'junit:junit:4.13.1'
+    testImplementation files("${System.getenv('JAVA_HOME')}/lib/tools.jar")
 }
 
 
@@ -27,6 +28,24 @@ shadowJar {
     manifest {
         attributes(
                 'Agent-Class': 'six.eared.macaque.agent.AgentMain',
+                'Can-Redefine-Classes': 'true',
+                'Can-Retransform-Classes': 'true',
+                'Manifest-Version': "${projectVersion}"
+        )
+    }
+}
+
+task lightwidhtJar(type: Jar, dependsOn: compileJava) {
+    from('build/classes/java/main/six/eared/macaque/agent/LightweightAgent.class') {
+        into('six/eared/macaque/agent/')
+    }
+
+    archiveBaseName = "$project.name"
+    archiveVersion = "lightweight"
+    archiveClassifier = null
+    manifest {
+        attributes(
+                'Agent-Class': 'six.eared.macaque.agent.LightweightAgent',
                 'Can-Redefine-Classes': 'true',
                 'Can-Retransform-Classes': 'true',
                 'Manifest-Version': "${projectVersion}"

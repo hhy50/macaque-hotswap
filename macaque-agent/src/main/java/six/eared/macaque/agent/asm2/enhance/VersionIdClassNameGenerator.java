@@ -2,7 +2,7 @@ package six.eared.macaque.agent.asm2.enhance;
 
 
 /**
- * 基于版本号的className生成器
+ * 鍩轰簬鐗堟湰鍙风殑瀹炵幇
  */
 public class VersionIdClassNameGenerator implements ClassNameGenerator {
 

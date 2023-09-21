@@ -8,7 +8,9 @@ import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.MethodVisitorProxy;
 import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.agent.vcs.VersionChainAccessor;
-import six.eared.macaque.asm.*;
+import six.eared.macaque.asm.ClassWriter;
+import six.eared.macaque.asm.MethodVisitor;
+import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.CollectionUtil;
 
@@ -60,12 +62,18 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
                 AsmMethod asmMethod = newMethod.getAsmMethod();
                 MethodVisitorProxy methodVisitor = newMethod.getVisitor();
                 String bindClassName = this.classNameGenerator.generate(clazzDefinition.getClassName(), asmMethod.getMethodName());
+
+                // load the bind class
                 ClassWriter cw = new ClassWriter(0);
-                cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, bindClassName, null, "java/lang/Object", null);
-                methodVisitor.revisit(cw.visitMethod(asmMethod.getModifier(), asmMethod.getMethodName(), asmMethod.getDesc(),
+                cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, ClassUtil.simpleClassName2path(bindClassName), null, "java/lang/Object", null);
+                methodVisitor.revisit(cw.visitMethod(asmMethod.getModifier() | Opcodes.ACC_STATIC, asmMethod.getMethodName(), asmMethod.getDesc(),
                         asmMethod.getMethodSign(), asmMethod.getExceptions()));
                 cw.visitEnd();
                 CompatibilityModeClassLoader.loadClass(bindClassName, cw.toByteArray());
+
+                //
+                asmMethod.setBindClass(bindClassName);
+                this.clazzDefinition.addAsmMethod(asmMethod);
             }
         }
     }

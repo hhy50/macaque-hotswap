@@ -6,7 +6,6 @@ import org.junit.Test;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.classes.*;
-import six.eared.macaque.agent.asm2.enhance.CompatibilityModeMethodVisitor;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.test.asm.BinaryClassPrint;
