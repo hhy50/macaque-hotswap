@@ -12,20 +12,12 @@ public class AsmMethodVisitCall {
 
     private Object[] args;
 
-    public AsmMethodVisitCall index(int index) {
+    public AsmMethodVisitCall(int index, Method callMethod, Object[] args) {
         this.index = index;
-        return this;
-    }
-
-    public AsmMethodVisitCall callMethod(Method callMethod) {
         this.callMethod = callMethod;
-        return this;
+        this.args = args;
     }
 
-    public AsmMethodVisitCall args(Object... args) {
-        this.args = args;
-        return this;
-    }
 
     public Object recall(MethodVisitor mv) {
         try {

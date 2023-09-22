@@ -1,7 +1,6 @@
 package six.eared.macaque.agent.test.compatibility;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitor;

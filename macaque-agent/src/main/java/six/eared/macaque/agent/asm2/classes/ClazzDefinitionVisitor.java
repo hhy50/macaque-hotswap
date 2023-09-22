@@ -56,7 +56,9 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
                 .builder()
                 .modifier(access)
                 .fieldName(name)
+                .fieldDesc(desc)
                 .fieldSign(signature)
+                .value(value)
                 .build();
 
         if (this.fieldVisitor == null) {

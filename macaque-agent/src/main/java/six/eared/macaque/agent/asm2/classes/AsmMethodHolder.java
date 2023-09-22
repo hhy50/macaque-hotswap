@@ -6,18 +6,22 @@ public class AsmMethodHolder {
 
     private AsmMethod asmMethod;
 
-    private MethodVisitorProxy visitor;
+    private AsmMethodVisitorCaller caller;
 
-    public AsmMethodHolder(AsmMethod asmMethod, MethodVisitorProxy visitor) {
-        this.asmMethod = asmMethod;
-        this.visitor = visitor;
-    }
 
     public AsmMethod getAsmMethod() {
         return asmMethod;
     }
 
-    public MethodVisitorProxy getVisitor() {
-        return visitor;
+    public AsmMethodVisitorCaller getCaller() {
+        return caller;
+    }
+
+    public void setAsmMethod(AsmMethod asmMethod) {
+        this.asmMethod = asmMethod;
+    }
+
+    public void setCaller(AsmMethodVisitorCaller caller) {
+        this.caller = caller;
     }
 }

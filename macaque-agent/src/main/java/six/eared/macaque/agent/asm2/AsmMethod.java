@@ -1,6 +1,8 @@
 package six.eared.macaque.agent.asm2;
 
 
+import six.eared.macaque.agent.asm2.enhance.MethodBindInfo;
+
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -19,7 +21,7 @@ public class AsmMethod {
 
     private String[] exceptions;
 
-    private String bindClass;
+    private MethodBindInfo methodBindInfo;
 
     public int getModifier() {
         return modifier;
@@ -41,12 +43,14 @@ public class AsmMethod {
         return exceptions;
     }
 
-    public String getBindClass() {
-        return bindClass;
+    public MethodBindInfo getMethodBindInfo() {
+        return methodBindInfo;
     }
 
-    public void setBindClass(String bindClass) {
-        this.bindClass = bindClass;
+    public void setMethodBindInfo(String bindClassName, String bindMethodName) {
+        this.methodBindInfo = new MethodBindInfo();
+        this.methodBindInfo.setBindClass(bindClassName);
+        this.methodBindInfo.setBindMethod(bindMethodName);
     }
 
     public static final class AsmMethodBuilder {
@@ -108,6 +112,7 @@ public class AsmMethod {
                 && Objects.equals(methodName, asmMethod.methodName)
                 && Objects.equals(methodSign, asmMethod.methodSign)
                 && Objects.equals(desc, asmMethod.desc)
+                && Objects.equals(methodBindInfo, asmMethod.methodBindInfo)
                 && Arrays.equals(exceptions, asmMethod.exceptions);
     }
 

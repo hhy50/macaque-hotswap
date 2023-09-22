@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.asm2.classes;
 
+import six.eared.macaque.agent.asm2.enhance.CompatibilityModeFieldVisitor;
 import six.eared.macaque.agent.asm2.enhance.CompatibilityModeMethodVisitor;
 
 public interface ClazzDefinitionVisitorFactory {
@@ -9,7 +10,6 @@ public interface ClazzDefinitionVisitorFactory {
     ClazzDefinitionVisitorFactory COMPATIBILITY_MODE = new CompatibilityMode();
 
     /**
-     *
      * @return
      */
     public ClazzDefinitionVisitor creatClazzVisitor();
@@ -34,7 +34,10 @@ public interface ClazzDefinitionVisitorFactory {
 
         @Override
         public ClazzDefinitionVisitor creatClazzVisitor() {
-            return new ClazzDefinitionVisitor(new CompatibilityModeMethodVisitor(), null);
+            return new ClazzDefinitionVisitor(
+                    new CompatibilityModeMethodVisitor(),
+                    new CompatibilityModeFieldVisitor()
+            );
         }
     }
 }

@@ -2,6 +2,7 @@ package six.eared.macaque.agent.test.asm;
 
 import org.junit.Test;
 import six.eared.macaque.agent.asm2.AsmMethod;
+import six.eared.macaque.agent.asm2.classes.MethodVisitorProxy;
 import six.eared.macaque.asm.ClassReader;
 import six.eared.macaque.asm.ClassVisitor;
 import six.eared.macaque.asm.ClassWriter;
@@ -34,9 +35,7 @@ public class TestMethodReader {
                         .methodSign(signature)
                         .build();
                 methods.add(asmMethod);
-                return new MethodVisitor(ASM5, methodWriter) {
-
-                };
+                return new MethodVisitorProxy(methodWriter);
             }
         }, 0);
         byte[] byteArray = classWriter.toByteArray();

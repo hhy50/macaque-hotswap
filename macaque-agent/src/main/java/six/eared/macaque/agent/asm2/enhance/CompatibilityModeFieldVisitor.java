@@ -11,6 +11,6 @@ public class CompatibilityModeFieldVisitor implements AsmFieldVisitor {
 
     @Override
     public FieldVisitor visitField(AsmField field, ClazzDefinition clazzDefinition, ClassWriter writer) {
-        return null;
+        return writer.visitField(field.getModifier(), field.getFieldName(), field.getFieldDesc(), field.getFieldSign(), field.getValue());
     }
 }
