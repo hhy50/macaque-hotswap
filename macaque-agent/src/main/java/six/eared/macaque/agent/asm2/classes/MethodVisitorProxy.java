@@ -16,6 +16,10 @@ public class MethodVisitorProxy extends MethodVisitor {
         this.mv = createProxyObj();
     }
 
+    public MethodVisitorProxy(MethodVisitor mv) {
+        super(Opcodes.ASM5, mv);
+    }
+
     public void revisit(MethodVisitor mv) {
         caller.accept(mv);
     }

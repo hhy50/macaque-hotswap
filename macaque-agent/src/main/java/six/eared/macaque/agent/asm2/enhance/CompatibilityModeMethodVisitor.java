@@ -38,7 +38,9 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
             if (lastVersion != null) {
                 if (lastVersion.hasMethod(method)) {
                     clazzDefinition.addAsmMethod(method);
-                    return writer.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(), method.getMethodSign(), method.getExceptions());
+                    MethodVisitor methodWriter = writer.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(),
+                            method.getMethodSign(), method.getExceptions());
+                    return new MethodVisitorProxy(methodWriter);
                 } else {
                     if (this.newMethods == null) {
                         this.newMethods = new ArrayList<>();
@@ -88,5 +90,9 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
 
     public void setClassNameGenerator(ClassNameGenerator classNameGenerator) {
         this.classNameGenerator = classNameGenerator;
+    }
+
+    public static class AA {
+
     }
 }
