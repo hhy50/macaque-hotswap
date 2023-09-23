@@ -34,7 +34,7 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
     }
 
     public ClazzDefinition getDefinition() {
-        return definition;
+        return this.definition;
     }
 
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -46,8 +46,8 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
         }
         this.cv.visit(version, access, name, signature, superName, interfaces);
 
-        definition = new ClazzDefinition();
-        definition.setClassName(name.replaceAll("/", "."));
+        this.definition = new ClazzDefinition();
+        this.definition.setClassName(name.replaceAll("/", "."));
     }
 
     @Override

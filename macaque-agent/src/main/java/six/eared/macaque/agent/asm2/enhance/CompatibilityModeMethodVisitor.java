@@ -75,15 +75,19 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
 
         String bindMethodName = asmMethod.getMethodName();
         String bindClassName = this.classNameGenerator.generate(this.clazzDefinition.getClassName(), bindMethodName);
-        asmMethod.setMethodBindInfo(bindMethodName, bindClassName);
+        MethodBindInfo methodBindInfo = new MethodBindInfo();
+        methodBindInfo.setBindClass(bindClassName);
+        methodBindInfo.setBindMethod(bindMethodName);
 
         // load the bind class
         ClassWriter cw = new ClassWriter(0);
-        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, ClassUtil.simpleClassName2path(bindClassName), null, "java/lang/Object", null);
-        caller.accept(cw.visitMethod(asmMethod.getModifier() | Opcodes.ACC_STATIC, bindMethodName, asmMethod.getDesc(),
+        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, ClassUtil.simpleClassName2path(methodBindInfo.getBindClass()), null, "java/lang/Object", null);
+        caller.accept(cw.visitMethod(asmMethod.getModifier() | Opcodes.ACC_STATIC, methodBindInfo.getBindMethod(), asmMethod.getDesc(),
                 asmMethod.getMethodSign(), asmMethod.getExceptions()));
         cw.visitEnd();
         CompatibilityModeClassLoader.loadClass(bindClassName, cw.toByteArray());
+
+        asmMethod.setMethodBindInfo(methodBindInfo);
     }
 
     public ClassNameGenerator getClassNameGenerator() {

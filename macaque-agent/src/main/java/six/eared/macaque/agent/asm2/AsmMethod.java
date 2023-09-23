@@ -47,10 +47,8 @@ public class AsmMethod {
         return methodBindInfo;
     }
 
-    public void setMethodBindInfo(String bindClassName, String bindMethodName) {
-        this.methodBindInfo = new MethodBindInfo();
-        this.methodBindInfo.setBindClass(bindClassName);
-        this.methodBindInfo.setBindMethod(bindMethodName);
+    public void setMethodBindInfo(MethodBindInfo methodBindInfo) {
+        this.methodBindInfo = methodBindInfo;
     }
 
     public static final class AsmMethodBuilder {

@@ -54,7 +54,6 @@ public class TestCompatibilityMode extends TestEnv {
                 "        System.out.println(\"test4\");\n" +
                 "        return \"test4\";\n" +
                 "    }\n" +
-
                 "}";
         byte[] bytes = compileToClass(clazz);
         ClassReader classReader = new ClassReader(bytes);
