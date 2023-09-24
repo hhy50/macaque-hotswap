@@ -18,6 +18,11 @@ public class Environment {
     private static volatile boolean DEBUG = false;
 
     /**
+     * 开启版本控制
+     */
+    private static volatile boolean VERSION_CHAIN = true;
+
+    /**
      * Instrumentation实例
      * 用于重新对类进行加载
      */
@@ -48,4 +53,11 @@ public class Environment {
         return INST;
     }
 
+    public static void openVersionControl() {
+        VERSION_CHAIN = true;
+    }
+
+    public static boolean isOpenVersionControl() {
+        return VERSION_CHAIN;
+    }
 }

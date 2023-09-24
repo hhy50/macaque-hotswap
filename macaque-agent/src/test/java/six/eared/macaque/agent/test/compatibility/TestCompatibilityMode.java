@@ -1,17 +1,14 @@
 package six.eared.macaque.agent.test.compatibility;
 
-import org.junit.Before;
 import org.junit.Test;
-import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
-import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitor;
-import six.eared.macaque.agent.asm2.enhance.CompatibilityModeMethodVisitor;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
-import six.eared.macaque.agent.hotswap.ClassHotSwapper;
+import six.eared.macaque.agent.hotswap.handler.ClassHotSwapHandler;
 import six.eared.macaque.agent.test.TestEnv;
 import six.eared.macaque.agent.test.asm.AsmMethodPrinter;
 import six.eared.macaque.agent.test.asm.BinaryClassPrint;
-import six.eared.macaque.asm.ClassReader;
 import six.eared.macaque.asm.ClassVisitor;
+import six.eared.macaque.common.ExtPropertyName;
+import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.HashMap;
@@ -29,7 +26,6 @@ public class TestCompatibilityMode extends TestEnv {
     }
 
     @Test
-    @Before
     public void testNewMethod() throws UnmodifiableClassException, ClassNotFoundException {
         String clazz = "package six.eared.macaque.agent.test.compatibility;\n" +
                 "public class EarlyClass {\n" +
@@ -56,12 +52,11 @@ public class TestCompatibilityMode extends TestEnv {
                 "    }\n" +
                 "}";
         byte[] bytes = compileToClass(clazz);
-        ClassReader classReader = new ClassReader(bytes);
-        ClazzDefinitionVisitor clazzDefinitionVisitor = new ClazzDefinitionVisitor(
-                new CompatibilityModeMethodVisitor(), null);
-        classReader.accept(clazzDefinitionVisitor, 0);
-        ClazzDefinition definition = clazzDefinitionVisitor.getDefinition();
-        ClassHotSwapper.redefine(definition);
+        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+//        ClazzDefinition definition = AsmUtil.readClass(bytes, ClazzDefinitionVisitorFactory.COMPATIBILITY_MODE);
+//        definition.setByteCode(CompatibilityModeByteCodeEnhancer.enhance(definition.getByteCode()));
+//        ClassHotSwapper.redefine(definition);
         earlyClass.test3();
     }
 
@@ -72,5 +67,11 @@ public class TestCompatibilityMode extends TestEnv {
 
         List<byte[]> compiled = javaSourceCompiler.compile(javaSource);
         return compiled.get(0);
+    }
+
+    public Map<String, String> compatibilityMode() {
+        Map<String, String> extProperties = new HashMap<>();
+        extProperties.put(ExtPropertyName.COMPATIBILITY_MODE, Boolean.TRUE.toString());
+        return extProperties;
     }
 }

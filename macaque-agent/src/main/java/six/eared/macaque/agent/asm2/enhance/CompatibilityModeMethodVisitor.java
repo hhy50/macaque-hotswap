@@ -2,9 +2,9 @@ package six.eared.macaque.agent.asm2.enhance;
 
 import six.eared.macaque.agent.annotation.VisitEnd;
 import six.eared.macaque.agent.asm2.AsmMethod;
+import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.*;
 import six.eared.macaque.agent.exceptions.EnhanceException;
-import six.eared.macaque.agent.vcs.VersionChainAccessor;
 import six.eared.macaque.asm.ClassWriter;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
@@ -31,9 +31,9 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
         this.clazzDefinition = clazzDefinition;
         try {
             String className = clazzDefinition.getClassName();
-            ClazzDefinition lastVersion = VersionChainAccessor.findLastView(className);
-            if (lastVersion != null) {
-                if (lastVersion.hasMethod(method)) {
+            ClazzDefinition originClass = AsmUtil.readOriginClass(className);
+            if (originClass != null) {
+                if (originClass.hasMethod(method)) {
                     clazzDefinition.addAsmMethod(method);
                     return writer.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(),
                             method.getMethodSign(), method.getExceptions());

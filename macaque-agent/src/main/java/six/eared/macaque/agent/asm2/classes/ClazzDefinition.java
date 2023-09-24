@@ -2,11 +2,12 @@ package six.eared.macaque.agent.asm2.classes;
 
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
+import six.eared.macaque.agent.definition.Definition;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClazzDefinition implements Cloneable {
+public class ClazzDefinition implements Cloneable, Definition {
 
     private String className;
 
@@ -74,5 +75,26 @@ public class ClazzDefinition implements Cloneable {
     public boolean hasMethod(AsmMethod method) {
         return asmMethods.stream()
                 .anyMatch(item -> item.equals(method));
+    }
+
+    public AsmMethod getMethod(String name, String desc) {
+        return asmMethods.stream()
+                .filter(item -> item.getMethodName().equals(name) && item.getDesc().equals(desc))
+                .findAny().get();
+    }
+
+    @Override
+    public String getName() {
+        return className;
+    }
+
+    @Override
+    public String getFileType() {
+        return "class";
+    }
+
+    @Override
+    public byte[] getByteArray() {
+        return byteCode;
     }
 }

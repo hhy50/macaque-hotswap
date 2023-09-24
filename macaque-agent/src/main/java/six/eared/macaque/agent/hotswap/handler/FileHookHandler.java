@@ -23,12 +23,13 @@ public abstract class FileHookHandler implements HotSwapHandler {
         Throwable error = null;
         try {
             result = doHandler(rmiData);
-        } catch (Exception e) {
+            return result;
+        } catch (Throwable e) {
             error = e;
+            throw e;
         } finally {
-
+            executeAfterHook(rmiData, result, error);
         }
-        return executeAfterHook(rmiData, result, error);
     }
 
     protected RmiResult executeBeforeHook(HotSwapRmiData rmiData) {

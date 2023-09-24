@@ -2,7 +2,9 @@ package six.eared.macaque.agent.asm2.classes;
 
 import six.eared.macaque.asm.ClassReader;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class MultiClassReader implements Iterable<ClazzDefinition> {
     private ClazzDefinitionVisitorFactory visitorFactory;
@@ -22,7 +24,15 @@ public class MultiClassReader implements Iterable<ClazzDefinition> {
 
     @Override
     public Iterator<ClazzDefinition> iterator() {
-        return new MultiClassReaderItr();
+        Iterator<ClazzDefinition> lazy = new MultiClassReaderItr();
+        if (visitorFactory instanceof ClazzDefinitionVisitorFactory.CompatibilityMode) {
+            List<ClazzDefinition> list = new ArrayList<>();
+            while (lazy.hasNext()) {
+                list.add(lazy.next());
+            }
+            return list.iterator();
+        }
+        return lazy;
     }
 
     class MultiClassReaderItr implements Iterator<ClazzDefinition> {
