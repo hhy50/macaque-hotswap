@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-public class TestEnv {
+public class Env {
     static {
-        URL resource = TestEnv.class.getClassLoader().getResource("macaque-agent-lightweight.jar");
+        URL resource = Env.class.getClassLoader().getResource("macaque-agent-lightweight.jar");
         try {
             VirtualMachine attach = VirtualMachine.attach(String.valueOf(PID.getCurrentPid()));
             attach.loadAgent(new File(resource.toURI()).getPath(), "");

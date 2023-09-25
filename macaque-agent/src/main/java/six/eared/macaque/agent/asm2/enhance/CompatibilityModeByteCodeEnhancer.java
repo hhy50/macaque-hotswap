@@ -6,8 +6,6 @@ import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.asm.*;
 import six.eared.macaque.common.util.ClassUtil;
 
-import java.util.Arrays;
-
 public class CompatibilityModeByteCodeEnhancer {
 
     public static byte[] enhance(byte[] bytecode) {
@@ -41,22 +39,9 @@ public class CompatibilityModeByteCodeEnhancer {
         public MethodByteCodeEnhancer(MethodVisitor mv) {
             super(Opcodes.ASM5, mv);
         }
+
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-            switch (opcode) {
-                case Opcodes.INVOKEVIRTUAL:
-                    System.out.println("INVOKEVIRTUAL");
-                    break;
-                case Opcodes.INVOKEDYNAMIC:
-                    System.out.println("INVOKEDYNAMIC");
-                    break;
-                case Opcodes.INVOKEINTERFACE:
-                    System.out.println("INVOKEINTERFACE");
-                    break;
-                case Opcodes.INVOKESTATIC:
-                    System.out.println("INVOKESTATIC");
-                    break;
-            }
             String targetClassName = ClassUtil.classpath2name(owner);
             ClazzDefinition definition = VersionChainTool.findLastClassVersion(targetClassName, true);
             if (definition != null) {

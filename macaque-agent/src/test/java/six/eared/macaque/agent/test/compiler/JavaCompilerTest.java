@@ -1,4 +1,4 @@
-package six.eared.macaque.agent.test;
+package six.eared.macaque.agent.test.compiler;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TestJavaCompiler {
+public class JavaCompilerTest {
 
     static String clazz1 =
             "public class Main {\n" +

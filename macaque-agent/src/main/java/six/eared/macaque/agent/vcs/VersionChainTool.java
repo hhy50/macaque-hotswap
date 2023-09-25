@@ -3,6 +3,7 @@ package six.eared.macaque.agent.vcs;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.definition.Definition;
 import six.eared.macaque.agent.enums.VersionViewStatus;
+import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.VcsException;
 
 import java.util.List;
@@ -26,15 +27,17 @@ public class VersionChainTool {
                 return any.get();
             }
         }
-        VersionDescriptor lastVd = VERSION_CHAIN.findLastVersion(className);
-        if (lastVd != null) {
-            VersionView versionView = VERSION_CHAIN.find(lastVd);
-            Optional<ClazzDefinition> any = versionView.getDefinitions().stream()
-                    .filter(item -> item.getName().equals(className))
-                    .map(ClazzDefinition.class::cast)
-                    .findAny();
-            if (any.isPresent()) {
-                return any.get();
+        if (Environment.isOpenVersionControl()) {
+            VersionDescriptor lastVd = VERSION_CHAIN.findLastVersion(className);
+            if (lastVd != null) {
+                VersionView versionView = VERSION_CHAIN.find(lastVd);
+                Optional<ClazzDefinition> any = versionView.getDefinitions().stream()
+                        .filter(item -> item.getName().equals(className))
+                        .map(ClazzDefinition.class::cast)
+                        .findAny();
+                if (any.isPresent()) {
+                    return any.get();
+                }
             }
         }
         return null;
@@ -69,7 +72,9 @@ public class VersionChainTool {
     }
 
     private static void putLastVersion(VersionView versionView) {
-        VERSION_CHAIN.put(versionView);
+        if (Environment.isOpenVersionControl()) {
+            VERSION_CHAIN.put(versionView);
+        }
     }
 
     public static VersionView getActiveVersionView() {

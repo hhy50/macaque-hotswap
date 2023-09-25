@@ -21,7 +21,7 @@ public class AsmUtil {
      */
     public static final ClazzDefinitionVisitor REUSE_CLASS_VISITOR = new ClazzDefinitionVisitor();
 
-    public synchronized static ClazzDefinition readOriginClass(String className) throws ClassNotFoundException {
+    public static ClazzDefinition readOriginClass(String className) throws ClassNotFoundException {
         try (InputStream is = ClassLoader.getSystemResourceAsStream(ClassUtil.className2path(className));) {
             if (is != null) {
                 return AsmUtil.readClass(FileUtil.is2bytes(is));
@@ -41,14 +41,13 @@ public class AsmUtil {
         return REUSE_CLASS_VISITOR.getDefinition();
     }
 
-    public synchronized static ClazzDefinition readClass(byte[] byteCode, ClazzDefinitionVisitorFactory factory) {
-        ClazzDefinitionVisitor clazzDefinitionVisitor = factory.creatClazzVisitor();
+    public static ClazzDefinition readClass(byte[] byteCode, ClazzDefinitionVisitor clazzVisitor) {
         ClassReader classReader = new ClassReader(byteCode);
-        classReader.accept(clazzDefinitionVisitor, 0);
-        return clazzDefinitionVisitor.getDefinition();
+        classReader.accept(clazzVisitor, 0);
+        return clazzVisitor.getDefinition();
     }
 
-    public synchronized static List<ClazzDefinition> readMultiClass(byte[] byteCode, ClazzDefinitionVisitorFactory factory) {
+    public static List<ClazzDefinition> readMultiClass(byte[] byteCode, ClazzDefinitionVisitorFactory factory) {
         MultiClassReader multiClassReader = new MultiClassReader(byteCode, factory);
         List<ClazzDefinition> definitions = new ArrayList<>();
         for (ClazzDefinition definition : multiClassReader) {

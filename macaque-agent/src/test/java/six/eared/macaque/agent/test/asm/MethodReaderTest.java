@@ -9,16 +9,16 @@ import six.eared.macaque.asm.ClassWriter;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.common.util.FileUtil;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static six.eared.macaque.asm.Opcodes.ASM5;
 
-public class TestMethodReader {
-
+public class MethodReaderTest {
 
     @Test
-    public void test() {
+    public void testPrintMethodByteCode() {
         String classPath = "C:\\Users\\haiyang\\Desktop\\PiDeviceTestController.class";
         ClassReader classReader = new ClassReader(FileUtil.readBytes(classPath));
         ClassWriter classWriter = new ClassWriter(0);
@@ -40,5 +40,11 @@ public class TestMethodReader {
         }, 0);
         byte[] byteArray = classWriter.toByteArray();
         System.out.println(new String(byteArray));
+    }
+
+    @Test
+    public void test() throws IOException {
+        ClassReader classReader = new ClassReader("six.eared.macaque.agent.test.compatibility.EarlyClass$Accessor");
+        classReader.accept(new BinaryClassPrint(new AsmMethodPrinter()), 0);
     }
 }

@@ -21,7 +21,7 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
 
     private ClazzDefinition clazzDefinition;
 
-    private ClassNameGenerator classNameGenerator;
+    private ClassNameGenerator classNameGenerator = new SimpleClassNameGenerator();
 
     public CompatibilityModeMethodVisitor() {
     }
@@ -61,7 +61,6 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
     @VisitEnd
     public void visitEnd() {
         if (CollectionUtil.isNotEmpty(newMethods)) {
-            this.classNameGenerator = this.classNameGenerator == null ? new SimpleClassNameGenerator() : this.classNameGenerator;
             for (AsmMethodHolder newMethod : newMethods) {
                 bindNewMethodToNewClass(newMethod);
                 this.clazzDefinition.addAsmMethod(newMethod.getAsmMethod());
