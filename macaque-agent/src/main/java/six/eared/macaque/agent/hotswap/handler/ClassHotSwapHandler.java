@@ -1,14 +1,10 @@
 package six.eared.macaque.agent.hotswap.handler;
 
 import six.eared.macaque.agent.annotation.HotSwapFileType;
-import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
-import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
-import six.eared.macaque.agent.asm2.enhance.CompatibilityModeByteCodeEnhancer;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.agent.vcs.VersionView;
-import six.eared.macaque.common.ExtPropertyName;
 import six.eared.macaque.common.type.FileType;
 import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 import six.eared.macaque.mbean.rmi.RmiResult;
@@ -35,24 +31,12 @@ public class ClassHotSwapHandler extends FileHookHandler {
         try {
             Map<String, Object> result = new HashMap<>();
 
-            List<ClazzDefinition> definitions = null;
-            boolean compatibilityMode = Boolean.TRUE.toString().equalsIgnoreCase(extProperties.get(ExtPropertyName.COMPATIBILITY_MODE));
-            if (VersionChainTool.inActiveVersionView()) {
-                VersionView versionView = VersionChainTool.getActiveVersionView();
-                definitions = versionView.getDefinitions().stream()
-                        .map(ClazzDefinition.class::cast)
-                        .collect(Collectors.toList());
-            } else {
-                definitions = AsmUtil.readMultiClass(bytes, compatibilityMode
-                        ? ClazzDefinitionVisitorFactory.COMPATIBILITY_MODE
-                        : ClazzDefinitionVisitorFactory.DEFAULT);
-            }
+            VersionView versionView = VersionChainTool.getActiveVersionView();
+            List<ClazzDefinition> definitions = versionView.getDefinitions().stream()
+                    .map(ClazzDefinition.class::cast)
+                    .collect(Collectors.toList());
 
             for (ClazzDefinition definition : definitions) {
-                if (compatibilityMode) {
-                    byte[] enhance = CompatibilityModeByteCodeEnhancer.enhance(definition.getByteCode());
-                    definition.setByteCode(enhance);
-                }
                 int redefineCount = redefine(definition);
                 result.put(definition.getClassName(), redefineCount);
             }

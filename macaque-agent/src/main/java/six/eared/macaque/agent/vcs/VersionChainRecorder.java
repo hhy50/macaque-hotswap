@@ -3,6 +3,7 @@ package six.eared.macaque.agent.vcs;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
+import six.eared.macaque.agent.asm2.enhance.CompatibilityModeByteCodeEnhancer;
 import six.eared.macaque.agent.definition.FileDefinition;
 import six.eared.macaque.common.ExtPropertyName;
 import six.eared.macaque.common.type.FileType;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class VersionChainRecorder implements HotswapHook {
 
     @Override
+    @SuppressWarnings("unchecked")
     public RmiResult executeBefore(HotSwapRmiData rmiData) {
         VersionView versionView = VersionChainTool.startNewEpoch();
         Map<String, String> extProperties = rmiData.getExtProperties();
@@ -25,8 +27,12 @@ public class VersionChainRecorder implements HotswapHook {
             List<ClazzDefinition> definitions = AsmUtil.readMultiClass(rmiData.getFileData(),
                     compatibilityMode ? ClazzDefinitionVisitorFactory.COMPATIBILITY_MODE
                             : ClazzDefinitionVisitorFactory.DEFAULT);
-            for (ClazzDefinition definition : definitions) {
-                versionView.addDefinition(definition);
+            versionView.setDefinitions((List) definitions);
+            if (compatibilityMode) {
+                for (ClazzDefinition definition : definitions) {
+                    byte[] enhance = CompatibilityModeByteCodeEnhancer.enhance(definition.getByteCode());
+                    definition.setByteCode(enhance);
+                }
             }
         } else {
             FileDefinition fileDefinition = new FileDefinition();
