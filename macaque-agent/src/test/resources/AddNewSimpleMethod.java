@@ -1,4 +1,4 @@
-package six.eared.macaque.agent.test.compatibility;
+package six.eared.macaque.agent.test;
 public class EarlyClass {
 
    public String test1() {

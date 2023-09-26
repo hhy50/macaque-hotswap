@@ -98,10 +98,6 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
             invokeAllVisitEnd();
         }
 
-        if (this.methodVisitor != null) {
-            this.methodVisitor.visitEnd();
-        }
-
         ClassWriter writer = ClassWriter.class.cast(this.cv);
         this.definition.setByteCode(writer.toByteArray());
         if (!this.reuse) {
@@ -111,7 +107,9 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
 
     private void invokeAllVisitEnd() {
         Class<VisitEnd> visitEndClass = VisitEnd.class;
-        //
+        if (this.methodVisitor != null) {
+            this.methodVisitor.visitEnd();
+        }
     }
 
     public boolean isReuse() {

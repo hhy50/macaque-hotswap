@@ -1,4 +1,5 @@
 package six.eared.macaque.agent.test;
+
 public class EarlyClass {
 
    public String test1() {
@@ -14,9 +15,18 @@ public class EarlyClass {
 
     public String test3() {
         System.out.println("test3");
-        return test4();
+        return "test3";
     }
-    public static String test4() {
-        return "test4";
+
+    public class Inner {
+        public String test1() {
+            return EarlyClass.this.test1();
+        }
+        public String test2() {
+            return EarlyClass.this.test1();
+        }
+        public String test3() {
+            return EarlyClass.this.test1();
+        }
     }
 }

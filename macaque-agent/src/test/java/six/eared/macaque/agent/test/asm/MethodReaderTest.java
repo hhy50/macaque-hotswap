@@ -44,7 +44,7 @@ public class MethodReaderTest {
 
     @Test
     public void test() throws IOException {
-        ClassReader classReader = new ClassReader("six.eared.macaque.agent.test.compatibility.EarlyClass$Accessor");
+        ClassReader classReader = new ClassReader("six.eared.macaque.agent.test.EarlyClass$Accessor");
         classReader.accept(new BinaryClassPrint(new AsmMethodPrinter()), 0);
     }
 }

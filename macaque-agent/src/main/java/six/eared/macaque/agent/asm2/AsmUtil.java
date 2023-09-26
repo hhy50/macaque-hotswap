@@ -6,6 +6,7 @@ import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
 import six.eared.macaque.agent.asm2.classes.MultiClassReader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.asm.ClassReader;
+import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.FileUtil;
 
@@ -54,5 +55,32 @@ public class AsmUtil {
             definitions.add(definition);
         }
         return definitions;
+    }
+
+    public static String accessToDescriptor(int access) {
+        StringBuilder sb = new StringBuilder();
+
+        // 访问标志
+        if ((access & Opcodes.ACC_PUBLIC) != 0) {
+            sb.append("public ");
+        } else if ((access & Opcodes.ACC_PRIVATE) != 0) {
+            sb.append("private ");
+        } else if ((access & Opcodes.ACC_PROTECTED) != 0) {
+            sb.append("protected ");
+        }
+
+        if ((access & Opcodes.ACC_STATIC) != 0) {
+            sb.append("static ");
+        }
+
+        // 类型
+        if ((access & Opcodes.ACC_INTERFACE) != 0) {
+            sb.append("interface ");
+        } else if ((access & Opcodes.ACC_ENUM) != 0) {
+            sb.append("enum ");
+        } else if ((access & Opcodes.ACC_ANNOTATION) != 0) {
+            sb.append("@interface ");
+        }
+        return sb.toString().trim();
     }
 }

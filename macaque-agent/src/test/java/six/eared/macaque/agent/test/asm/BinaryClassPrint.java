@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.test.asm;
 
 
+import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.asm.*;
 
 import static six.eared.macaque.asm.Opcodes.ASM4;
@@ -42,8 +43,8 @@ public class BinaryClassPrint extends ClassVisitor {
     }
 
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        System.out.println("    " + desc + " " + name);
-        return null;
+        System.out.println("    " + AsmUtil.accessToDescriptor(access) + desc + " " + name);
+        return new AsmFieldPrinter();
     }
 
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
