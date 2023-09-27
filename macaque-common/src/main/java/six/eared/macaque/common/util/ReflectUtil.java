@@ -14,6 +14,14 @@ public class ReflectUtil {
         return clazz.getDeclaredFields();
     }
 
+    public static Method[] getDeclaredMethods(Class<?> clazz) {
+        if (clazz == null) {
+            return null;
+        }
+
+        return clazz.getDeclaredMethods();
+    }
+
     public static <T> T createInstance(Class<T> clazz) {
         T t = null;
         try {
