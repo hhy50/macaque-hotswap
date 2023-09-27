@@ -9,4 +9,6 @@ public interface ClassNameGenerator {
      * @return
      */
     public String generate(String className, String methodName);
+
+    public String generateInnerAccessorName(String className);
 }

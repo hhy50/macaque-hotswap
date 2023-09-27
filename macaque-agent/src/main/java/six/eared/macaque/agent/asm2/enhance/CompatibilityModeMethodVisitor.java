@@ -61,11 +61,26 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
     @VisitEnd
     public void visitEnd() {
         if (CollectionUtil.isNotEmpty(newMethods)) {
+            //
+            createAccessor(false);
             for (AsmMethodHolder newMethod : newMethods) {
                 bindNewMethodToNewClass(newMethod);
                 this.clazzDefinition.addAsmMethod(newMethod.getAsmMethod());
             }
         }
+    }
+
+    private void createAccessor(boolean depth) {
+        String accessorName = this.classNameGenerator.generateInnerAccessorName(this.clazzDefinition.getClassName());
+        if (!CompatibilityModeClassLoader.isLoaded(accessorName)) {
+            Set<FieldDesc> accessibleFields = collectAccessibleFields();
+
+        }
+
+    }
+
+    private Set<FieldDesc> collectAccessibleFields() {
+        return null;
     }
 
     public void bindNewMethodToNewClass(AsmMethodHolder newMethod) {

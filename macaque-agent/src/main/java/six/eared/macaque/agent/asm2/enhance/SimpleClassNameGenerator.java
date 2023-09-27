@@ -7,4 +7,9 @@ public class SimpleClassNameGenerator implements ClassNameGenerator {
     public String generate(String className, String methodName) {
         return className + "$$Macaque_" + methodName;
     }
+
+    @Override
+    public String generateInnerAccessorName(String className)  {
+        return className + "$Macaque_Accessor";
+    }
 }

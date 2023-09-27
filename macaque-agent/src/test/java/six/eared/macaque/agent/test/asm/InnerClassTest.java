@@ -30,7 +30,6 @@ public class InnerClassTest {
         printClassByteCode(compileds.get(1));
     }
 
-
     @Test
     public void testGenerateInnerClass() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         String superClass = "Lsix/eared/macaque/agent/test/EarlyClass;";
