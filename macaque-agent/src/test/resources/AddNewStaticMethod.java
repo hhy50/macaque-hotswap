@@ -12,7 +12,7 @@ public class EarlyClass extends AbsEarlyClass {
         System.out.println("test3");
         return test4();
     }
-    public String test4() {
+    public static String test4() {
         return "test4";
     }
 }

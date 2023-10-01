@@ -24,9 +24,18 @@ public class CompatibilityModeTest extends Env {
     private EarlyClass earlyClass = new EarlyClass();
 
     @Test
-    public void testSimpleNewMethod() {
+    public void testAddNewSimpleMethod() {
         byte[] bytes = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
                 .getResourceAsStream("AddNewSimpleMethod.java"))).get(0);
+        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        Assert.assertEquals(earlyClass.test3(), "test4");
+    }
+
+    @Test
+    public void testAddNewStaticMethod() {
+        byte[] bytes = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
+                .getResourceAsStream("AddNewStaticMethod.java"))).get(0);
         ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         Assert.assertEquals(earlyClass.test3(), "test4");

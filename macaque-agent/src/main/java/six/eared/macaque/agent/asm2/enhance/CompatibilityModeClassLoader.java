@@ -9,10 +9,12 @@ public class CompatibilityModeClassLoader {
 
     private static final HashSet<String> NAMESPACE = new HashSet<>();
 
-    public static void loadClass(String className, byte[] bytes) {
-        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-        ReflectUtil.invokeMethod(systemClassLoader, "defineClass", className, bytes, 0, bytes.length);
-        NAMESPACE.add(className);
+    public synchronized static void loadClass(String className, byte[] bytes) {
+        if (!isLoaded(className)) {
+            ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+            ReflectUtil.invokeMethod(systemClassLoader, "defineClass", className, bytes, 0, bytes.length);
+            NAMESPACE.add(className);
+        }
     }
 
     public static boolean isLoaded(String className) {

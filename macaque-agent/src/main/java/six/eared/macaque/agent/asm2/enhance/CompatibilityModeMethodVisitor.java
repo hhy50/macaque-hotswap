@@ -14,7 +14,6 @@ import six.eared.macaque.common.util.CollectionUtil;
 import java.util.HashSet;
 import java.util.Set;
 
-
 public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
 
     private Set<AsmMethodHolder> newMethods = new HashSet<>();
@@ -61,27 +60,20 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
     @VisitEnd
     public void visitEnd() {
         if (CollectionUtil.isNotEmpty(newMethods)) {
-            //
-            createAccessor(false);
+            createAccessor();
             for (AsmMethodHolder newMethod : newMethods) {
+                // Bind before adding
                 bindNewMethodToNewClass(newMethod);
                 this.clazzDefinition.addAsmMethod(newMethod.getAsmMethod());
             }
         }
     }
 
-    private void createAccessor(boolean depth) {
-        String accessorName = this.classNameGenerator.generateInnerAccessorName(this.clazzDefinition.getClassName());
-        if (!CompatibilityModeClassLoader.isLoaded(accessorName)) {
-            Set<FieldDesc> accessibleFields = collectAccessibleFields();
-
-        }
-
+    private void createAccessor() {
+        int depth = 3;
+        CompatibilityModeAccessorUtil.createAccessor(this.clazzDefinition, this.classNameGenerator, depth);
     }
 
-    private Set<FieldDesc> collectAccessibleFields() {
-        return null;
-    }
 
     public void bindNewMethodToNewClass(AsmMethodHolder newMethod) {
         AsmMethod asmMethod = newMethod.getAsmMethod();

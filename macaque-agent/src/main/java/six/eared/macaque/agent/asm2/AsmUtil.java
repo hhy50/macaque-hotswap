@@ -60,7 +60,6 @@ public class AsmUtil {
     public static String accessToDescriptor(int access) {
         StringBuilder sb = new StringBuilder();
 
-        // 访问标志
         if ((access & Opcodes.ACC_PUBLIC) != 0) {
             sb.append("public ");
         } else if ((access & Opcodes.ACC_PRIVATE) != 0) {
@@ -73,7 +72,6 @@ public class AsmUtil {
             sb.append("static ");
         }
 
-        // 类型
         if ((access & Opcodes.ACC_INTERFACE) != 0) {
             sb.append("interface ");
         } else if ((access & Opcodes.ACC_ENUM) != 0) {

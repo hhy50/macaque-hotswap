@@ -5,8 +5,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import six.eared.macaque.agent.asm2.enhance.CompatibilityModeClassLoader;
 import six.eared.macaque.agent.test.EarlyClass;
+import six.eared.macaque.agent.test.Env;
 import six.eared.macaque.agent.test.compatibility.CompatibilityModeTest;
 import six.eared.macaque.asm.ClassWriter;
+import six.eared.macaque.asm.Label;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.FileUtil;
@@ -21,13 +23,15 @@ import static six.eared.macaque.agent.test.Utils.compileToClass;
 import static six.eared.macaque.agent.test.Utils.printClassByteCode;
 
 
-public class InnerClassTest {
+public class InnerClassTest extends Env {
 
     @Test
     public void testReadInnerClass() {
         List<byte[]> compileds = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
                 .getResourceAsStream("InnerClass.java")));
-        printClassByteCode(compileds.get(1));
+        for (byte[] compiled : compileds) {
+            printClassByteCode(compiled);
+        }
     }
 
     @Test
@@ -67,5 +71,38 @@ public class InnerClassTest {
         Object innerObj = constructor.newInstance(new EarlyClass());
         Assert.assertNotNull(innerObj);
         Assert.assertEquals(ReflectUtil.invokeMethod(innerObj, "test1"), "test1");
+    }
+
+    @Test
+    public void testInnerInvokerSuper() throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+        String superClass = "Lsix/eared/macaque/agent/test/EarlyClass;";
+        ClassWriter innerCw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        innerCw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, "six/eared/macaque/agent/test/EarlyClass_Bind",
+                null, "six/eared/macaque/agent/test/AbsEarlyClass", null);
+
+        MethodVisitor constructVisitor = innerCw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V",
+                null, null);
+        constructVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+        constructVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, "six/eared/macaque/agent/test/AbsEarlyClass", "<init>", "()V", false);
+        constructVisitor.visitInsn(Opcodes.RETURN);
+        constructVisitor.visitMaxs(1, 1);
+        constructVisitor.visitEnd();
+
+        MethodVisitor methodVisitor2 = innerCw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "access$001",
+                "(Lsix/eared/macaque/agent/test/EarlyClass_Bind;)Ljava/lang/String;", null, null);
+        methodVisitor2.visitLineNumber(3, new Label());
+        methodVisitor2.visitVarInsn(Opcodes.ALOAD, 0);
+        methodVisitor2.visitMethodInsn(Opcodes.INVOKESPECIAL, "six/eared/macaque/agent/test/AbsEarlyClass", "test1", "()Ljava/lang/String;", false);
+        methodVisitor2.visitInsn(Opcodes.ARETURN);
+        methodVisitor2.visitMaxs(1, 1);
+
+        // 定义内部类的字节码
+        byte[] innerBytecode = innerCw.toByteArray();
+        printClassByteCode(innerBytecode);
+        CompatibilityModeClassLoader.loadClass("six.eared.macaque.agent.test.EarlyClass_Bind", innerBytecode);
+        Class<?> innerClass = Class.forName("six.eared.macaque.agent.test.EarlyClass_Bind");
+        Object o = innerClass.newInstance();
+        Method test1 = innerClass.getDeclaredMethod("access$001", innerClass);
+        Assert.assertEquals(test1.invoke(null, o), "abs test1");
     }
 }

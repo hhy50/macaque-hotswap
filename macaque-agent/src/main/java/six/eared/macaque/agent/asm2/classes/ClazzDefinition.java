@@ -11,6 +11,10 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     private String className;
 
+    private String superClassName;
+
+    private String[] interfaces;
+
     private byte[] originData;
 
     private byte[] byteCode;
@@ -18,10 +22,6 @@ public class ClazzDefinition implements Cloneable, Definition {
     private List<AsmMethod> asmMethods = new ArrayList<>();
 
     private List<AsmField> asmFields = new ArrayList<>();
-
-    public ClazzDefinition() {
-
-    }
 
     public String getClassName() {
         return className;
@@ -96,5 +96,21 @@ public class ClazzDefinition implements Cloneable, Definition {
     @Override
     public byte[] getByteArray() {
         return byteCode;
+    }
+
+    public void setSuperClassName(String superName) {
+        this.superClassName = superName;
+    }
+
+    public String getSuperClassName() {
+        return superClassName;
+    }
+
+    public void setInterfaces(String[] interfaces) {
+        this.interfaces = interfaces;
+    }
+
+    public String[] getInterfaces() {
+        return interfaces;
     }
 }

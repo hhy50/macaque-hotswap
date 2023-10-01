@@ -5,6 +5,7 @@ import six.eared.macaque.agent.annotation.VisitEnd;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.asm.*;
+import six.eared.macaque.common.util.StringUtil;
 
 
 public class ClazzDefinitionVisitor extends ClassVisitor {
@@ -24,6 +25,7 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
 
     /**
      * not reuse
+     *
      * @param methodVisitor
      * @param fieldVisitor
      */
@@ -48,6 +50,10 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
 
         this.definition = new ClazzDefinition();
         this.definition.setClassName(name.replaceAll("/", "."));
+        if (StringUtil.isNotEmpty(superName)) {
+            this.definition.setSuperClassName(superName.replaceAll("/", "."));
+        }
+        this.definition.setInterfaces(interfaces);
     }
 
     @Override
