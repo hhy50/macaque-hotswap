@@ -2,11 +2,10 @@ package six.eared.macaque.agent.asm2.enhance;
 
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
+import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.FieldDesc;
 import six.eared.macaque.agent.env.Environment;
-import six.eared.macaque.asm.ClassWriter;
-import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.CollectionUtil;
@@ -51,38 +50,46 @@ public class CompatibilityModeAccessorUtil {
     private static String generatorAndLoad(ClazzDefinition definition,
                                            Set<FieldDesc> fieldDescSet, Set<AsmMethod> methodDescSet,
                                            String superAccessorName, ClassNameGenerator classNameGenerator) {
-        String superClassDesc = "L" + ClassUtil.simpleClassName2path(definition.getClassName()) + ";";
+
         String innerAccessorName = classNameGenerator.generateInnerAccessorName(definition.getClassName());
+        String superClassDesc = "L" + ClassUtil.simpleClassName2path(definition.getClassName()) + ";";
 
-        ClassWriter innerCw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        innerCw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, ClassUtil.simpleClassName2path(innerAccessorName), null,
-                superAccessorName != null ? ClassUtil.simpleClassName2path(superAccessorName) : "java/lang/Object", null);
-        innerCw.visitField(Opcodes.ACC_SYNTHETIC | Opcodes.ACC_FINAL, "this$0", superClassDesc, null, null);
-
-        MethodVisitor constructVisitor = innerCw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "(" + superClassDesc + ")V",
-                null, null);
-        constructVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-        constructVisitor.visitVarInsn(Opcodes.ALOAD, 1);
-        constructVisitor.visitFieldInsn(Opcodes.PUTFIELD, ClassUtil.simpleClassName2path(innerAccessorName), "this$0", superClassDesc);
-        constructVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-        constructVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
-        constructVisitor.visitInsn(Opcodes.RETURN);
-        constructVisitor.visitEnd();
+        ClassBuilder classBuilder = AsmUtil
+                .defineClass(Opcodes.ACC_PUBLIC, innerAccessorName, superAccessorName, null, null)
+                .defineField(Opcodes.ACC_SYNTHETIC | Opcodes.ACC_FINAL, "this$0", superClassDesc, null, null)
+                .defineConstruct(Opcodes.ACC_PUBLIC, new String[]{definition.getClassName()}, null, null)
+                .accept(visitor -> {
+                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                    visitor.visitVarInsn(Opcodes.ALOAD, 1);
+                    visitor.visitFieldInsn(Opcodes.PUTFIELD, ClassUtil.simpleClassName2path(innerAccessorName), "this$0", superClassDesc);
+                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                    visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+                    visitor.visitInsn(Opcodes.RETURN);
+                    visitor.visitEnd();
+                });
 
         if (CollectionUtil.isNotEmpty(methodDescSet)) {
             for (AsmMethod method : methodDescSet) {
                 if (method.getMethodName().equals("<init>")) {
                     continue;
                 }
-                MethodVisitor methodVisitor = innerCw.visitMethod(Opcodes.ACC_PUBLIC, method.getMethodName(), method.getDesc(), method.getMethodSign(), method.getExceptions());
-                methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-                methodVisitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.simpleClassName2path(innerAccessorName), "this$0", superClassDesc);
-                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, ClassUtil.simpleClassName2path(definition.getClassName()), method.getMethodName(), method.getDesc(), false);
-                methodVisitor.visitInsn(Opcodes.ARETURN);
-                methodVisitor.visitMaxs(1, 1);
+                if ((method.getModifier() | Opcodes.ACC_PRIVATE) > 0) {
+                    continue;
+                }
+                classBuilder
+                        .defineMethod(Opcodes.ACC_PUBLIC, method.getMethodName(), method.getDesc(), method.getExceptions(), method.getMethodSign())
+                        .accept(visitor -> {
+                            visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                            visitor.visitFieldInsn(Opcodes.GETFIELD,
+                                    ClassUtil.simpleClassName2path(innerAccessorName), "this$0", superClassDesc);
+                            visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                                    ClassUtil.simpleClassName2path(definition.getClassName()), method.getMethodName(), method.getDesc(), false);
+                            visitor.visitInsn(Opcodes.ARETURN);
+                            visitor.visitMaxs(1, 1);
+                        });
             }
         }
-        byte[] innerBytecode = innerCw.toByteArray();
+        byte[] innerBytecode = classBuilder.toByteArray();
         CompatibilityModeClassLoader.loadClass(innerAccessorName, innerBytecode);
         return innerAccessorName;
     }

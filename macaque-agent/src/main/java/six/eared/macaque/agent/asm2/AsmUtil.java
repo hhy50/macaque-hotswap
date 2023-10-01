@@ -79,6 +79,15 @@ public class AsmUtil {
         } else if ((access & Opcodes.ACC_ANNOTATION) != 0) {
             sb.append("@interface ");
         }
-        return sb.toString().trim();
+        return sb.toString();
+    }
+
+    public static ClassBuilder defineClass(int access, String className, String superName, String[] interfaces, String sign) {
+        return new ClassBuilder()
+                .defineClass(access, className, superName, interfaces, sign);
+    }
+
+    public static String toTypeDesc(String type) {
+        return "L" + ClassUtil.simpleClassName2path(type) + ";";
     }
 }

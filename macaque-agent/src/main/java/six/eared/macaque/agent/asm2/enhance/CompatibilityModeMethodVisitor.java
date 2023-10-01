@@ -3,12 +3,12 @@ package six.eared.macaque.agent.asm2.enhance;
 import six.eared.macaque.agent.annotation.VisitEnd;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
+import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.*;
 import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.asm.ClassWriter;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
-import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.CollectionUtil;
 
 import java.util.HashSet;
@@ -84,16 +84,14 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
         MethodBindInfo methodBindInfo = new MethodBindInfo();
         methodBindInfo.setBindClass(bindClassName);
         methodBindInfo.setBindMethod(bindMethodName);
+        asmMethod.setMethodBindInfo(methodBindInfo);
 
         // load the bind class
-        ClassWriter cw = new ClassWriter(0);
-        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, ClassUtil.simpleClassName2path(methodBindInfo.getBindClass()), null, "java/lang/Object", null);
-        caller.accept(cw.visitMethod(asmMethod.getModifier() | Opcodes.ACC_STATIC, methodBindInfo.getBindMethod(), asmMethod.getDesc(),
-                asmMethod.getMethodSign(), asmMethod.getExceptions()));
-        cw.visitEnd();
-        CompatibilityModeClassLoader.loadClass(bindClassName, cw.toByteArray());
-
-        asmMethod.setMethodBindInfo(methodBindInfo);
+        ClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, methodBindInfo.getBindClass(), null, null, null)
+                .defineMethod(asmMethod.getModifier() | Opcodes.ACC_STATIC, methodBindInfo.getBindMethod(), asmMethod.getDesc(), null, null)
+                .accept(caller::accept)
+                .end();
+        CompatibilityModeClassLoader.loadClass(bindClassName, classBuilder.toByteArray());
     }
 
     public ClassNameGenerator getClassNameGenerator() {
