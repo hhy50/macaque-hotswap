@@ -3,41 +3,53 @@ package six.eared.macaque.agent.asm2.enhance;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
+import six.eared.macaque.agent.asm2.MethodBuilder;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
+import six.eared.macaque.asm.ClassVisitor;
+import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.CollectionUtil;
+import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.StringUtil;
 
+import java.io.File;
+import java.sql.Ref;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class CompatibilityModeAccessorUtil {
 
-    public static ClazzDefinition createAccessor(ClazzDefinition definition, ClassNameGenerator classNameGenerator, int deepth) {
-        ClazzDefinition superAccessor = null;
-        String superClassName = definition.getSuperClassName();
-        if (deepth > 0) {
-            if (StringUtil.isNotEmpty(superClassName)
-                    && !isSystemClass(superClassName)) {
-                try {
-                    superAccessor = createAccessor(AsmUtil.readOriginClass(superClassName), classNameGenerator, --deepth);
-                } catch (ClassNotFoundException e) {
-                    if (Environment.isDebug()) {
-                        e.printStackTrace();
-                    }
+    public static ClazzDefinition createAccessor(String className, ClassNameGenerator classNameGenerator, int deepth) {
+        try {
+            ClazzDefinition outClazzDefinition = AsmUtil.readOriginClass(className);
+            String superClassName = outClazzDefinition.getSuperClassName();
+            ClazzDefinition superAccessor = null;
+            if (deepth > 0) {
+                if (StringUtil.isNotEmpty(superClassName)
+                        && !isSystemClass(superClassName)) {
+                    superAccessor = createAccessor(superClassName, classNameGenerator, --deepth);
                 }
             }
+            String superAccessorName = tryGetAccessorClassName(superClassName, classNameGenerator);
+            ClassBuilder classBuilder = generateAccessorClass(outClazzDefinition, superAccessorName, classNameGenerator);
+
+            collectAccessibleMethods(outClazzDefinition, classBuilder, superAccessor);
+            collectAccessibleFields(outClazzDefinition, superAccessorName == null, classBuilder);
+
+            CompatibilityModeClassLoader.loadClass(classBuilder.getClassName(), classBuilder.toByteArray());
+            FileUtil.writeBytes(
+                    new File("C:\\Users\\haiyang\\IdeaProjects\\macaque-hotswap\\macaque-agent\\build" + File.separator + classBuilder.getSimpleClassName() + ".class"),
+                    classBuilder.toByteArray());
+            return AsmUtil.readClass(classBuilder.toByteArray());
+        } catch (Exception e) {
+            throw new AccessorCreateException(e);
         }
-        String superAccessorName = tryGetAccessorClassName(superClassName, classNameGenerator);
-        ClassBuilder classBuilder = generateAccessorClass(definition, superAccessorName, classNameGenerator);
-
-        collectAccessibleMethods(definition, classBuilder, superAccessor);
-        collectAccessibleFields(definition, superAccessorName == null, classBuilder);
-
-        CompatibilityModeClassLoader.loadClass(classBuilder.getClassName(), classBuilder.toByteArray());
-        return AsmUtil.readClass(classBuilder.toByteArray());
     }
 
 
@@ -127,10 +139,9 @@ public class CompatibilityModeAccessorUtil {
             }
 
             // non private method in super class
-            if (superAccessor == null && StringUtil.isNotEmpty(definition.getSuperClassName())) {
-                String superClassName = definition.getSuperClassName();
-                ClazzDefinition superClassDefinition = null;
-
+            ClazzDefinition superClassDefinition = null;
+            String superClassName = definition.getSuperClassName();
+            if (superAccessor == null && StringUtil.isNotEmpty(superClassName)) {
                 superClassDefinition = AsmUtil.readOriginClass(superClassName);
 
                 for (AsmMethod superMethod : superClassDefinition.getAsmMethods()) {
@@ -160,6 +171,31 @@ public class CompatibilityModeAccessorUtil {
             }
 
             // default method with interface class
+            // TODO
+
+            if (CollectionUtil.isNotEmpty(superMethods)) {
+                Map<String, AsmMethod> superMethodMap = superMethods.stream().collect(Collectors
+                        .toMap(item -> item.getMethodName() + item.getDesc(), Function.identity()));
+                superClassDefinition = superClassDefinition == null ? AsmUtil.readOriginClass(superClassName) : superClassDefinition;
+                while (superClassDefinition != null && !superMethodMap.isEmpty()) {
+                    superClassDefinition.revisit(new ClassVisitor(Opcodes.ASM5) {
+                        @Override
+                        public MethodVisitor visitMethod(int access, String methodName, String methodDesc, String signature, String[] exceptions) {
+                            if (superMethods.stream()
+                                    .anyMatch(item -> item.getMethodName().equals(methodName) && item.getDesc().equals(methodDesc))) {
+                                MethodBuilder methodBuilder = accessorClassBuilder
+                                        .defineMethod(Opcodes.ACC_PUBLIC, "super_"+methodName, methodDesc, exceptions, signature);
+                                superMethodMap.remove(methodName + methodDesc);
+                                return new MethodVisitor(Opcodes.ASM5, methodBuilder.getMethodVisitor()) {
+
+                                };
+                            }
+                            return null;
+                        }
+                    });
+                    superClassDefinition = AsmUtil.readOriginClass(superClassDefinition.getSuperClassName());
+                }
+            }
 
             System.out.println();
         } catch (Exception e) {

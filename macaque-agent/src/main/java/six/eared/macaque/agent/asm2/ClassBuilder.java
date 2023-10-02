@@ -65,6 +65,10 @@ public class ClassBuilder {
         return className;
     }
 
+    public String getSimpleClassName() {
+        return className.substring(className.lastIndexOf(".") + 1);
+    }
+
     public void setClassName(String className) {
         this.className = className;
     }

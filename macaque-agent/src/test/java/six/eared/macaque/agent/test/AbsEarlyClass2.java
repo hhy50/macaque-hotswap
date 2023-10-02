@@ -16,4 +16,9 @@ public class AbsEarlyClass2 extends AbsEarlyClass {
         System.out.println("abs test3");
         return "abs2 test3";
     }
+
+    public String test4() {
+        System.out.println("abs test4");
+        return "abs2 test4";
+    }
 }

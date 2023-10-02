@@ -10,4 +10,8 @@ public abstract class AbsEarlyClass {
         System.out.println("abs test2");
         return "abs test2";
     }
+
+    public String test3() {
+        return test1() + test2();
+    }
 }

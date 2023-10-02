@@ -71,7 +71,7 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
 
     private void createAccessor() {
         int depth = 3;
-        CompatibilityModeAccessorUtil.createAccessor(this.clazzDefinition, this.classNameGenerator, depth);
+        CompatibilityModeAccessorUtil.createAccessor(this.clazzDefinition.getClassName(), this.classNameGenerator, depth);
     }
 
 

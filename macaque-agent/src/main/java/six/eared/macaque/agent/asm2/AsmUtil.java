@@ -6,6 +6,7 @@ import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
 import six.eared.macaque.agent.asm2.classes.MultiClassReader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.asm.ClassReader;
+import six.eared.macaque.asm.ClassVisitor;
 import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.FileUtil;
@@ -43,9 +44,13 @@ public class AsmUtil {
     }
 
     public static ClazzDefinition readClass(byte[] byteCode, ClazzDefinitionVisitor clazzVisitor) {
-        ClassReader classReader = new ClassReader(byteCode);
-        classReader.accept(clazzVisitor, 0);
+        visitClass(byteCode, clazzVisitor);
         return clazzVisitor.getDefinition();
+    }
+
+    public static void visitClass(byte[] byteCode, ClassVisitor classVisitor) {
+        ClassReader classReader = new ClassReader(byteCode);
+        classReader.accept(classVisitor, 0);
     }
 
     public static List<ClazzDefinition> readMultiClass(byte[] byteCode, ClazzDefinitionVisitorFactory factory) {

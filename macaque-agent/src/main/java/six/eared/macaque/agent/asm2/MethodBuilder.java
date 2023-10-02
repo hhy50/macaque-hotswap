@@ -19,4 +19,8 @@ public class MethodBuilder {
         consumer.accept(this.methodVisitor);
         return this.classBuilder;
     }
+
+    public MethodVisitor getMethodVisitor() {
+        return methodVisitor;
+    }
 }
