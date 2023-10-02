@@ -77,6 +77,11 @@ public class ClazzDefinition implements Cloneable, Definition {
                 .anyMatch(item -> item.equals(method));
     }
 
+    public boolean hasMethod(String name, String desc) {
+        return asmMethods.stream()
+                .anyMatch(item -> item.getMethodName().equals(name) && item.getDesc().equals(desc));
+    }
+
     public AsmMethod getMethod(String name, String desc) {
         return asmMethods.stream()
                 .filter(item -> item.getMethodName().equals(name) && item.getDesc().equals(desc))

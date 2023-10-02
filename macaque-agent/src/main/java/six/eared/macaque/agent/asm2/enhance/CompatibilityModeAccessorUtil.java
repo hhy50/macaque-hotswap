@@ -4,11 +4,10 @@ import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
-import six.eared.macaque.agent.asm2.classes.FieldDesc;
 import six.eared.macaque.agent.env.Environment;
+import six.eared.macaque.agent.exceptions.AccessorCreateException;
 import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.ClassUtil;
-import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.StringUtil;
 
 import java.util.HashSet;
@@ -16,14 +15,14 @@ import java.util.Set;
 
 public class CompatibilityModeAccessorUtil {
 
-    public static String createAccessor(ClazzDefinition definition, ClassNameGenerator classNameGenerator, int deepth) {
-        String superAccessorName = null;
+    public static ClazzDefinition createAccessor(ClazzDefinition definition, ClassNameGenerator classNameGenerator, int deepth) {
+        ClazzDefinition superAccessor = null;
         String superClassName = definition.getSuperClassName();
         if (deepth > 0) {
             if (StringUtil.isNotEmpty(superClassName)
                     && !isSystemClass(superClassName)) {
                 try {
-                    superAccessorName = createAccessor(AsmUtil.readOriginClass(superClassName), classNameGenerator, --deepth);
+                    superAccessor = createAccessor(AsmUtil.readOriginClass(superClassName), classNameGenerator, --deepth);
                 } catch (ClassNotFoundException e) {
                     if (Environment.isDebug()) {
                         e.printStackTrace();
@@ -31,30 +30,30 @@ public class CompatibilityModeAccessorUtil {
                 }
             }
         }
-        if (superAccessorName == null && StringUtil.isNotEmpty(superClassName)) {
-            superAccessorName = tryGetAccessorClassName(superClassName, classNameGenerator);
-        }
-        Set<FieldDesc> accessibleFields = collectAccessibleFields(definition, superAccessorName != null);
-        Set<AsmMethod> accessibleMethods = collectAccessibleMethods(definition, superAccessorName != null);
-        return generatorAndLoad(definition, accessibleFields, accessibleMethods, superAccessorName, classNameGenerator);
+        String superAccessorName = tryGetAccessorClassName(superClassName, classNameGenerator);
+        ClassBuilder classBuilder = generateAccessorClass(definition, superAccessorName, classNameGenerator);
+
+        collectAccessibleMethods(definition, classBuilder, superAccessor);
+        collectAccessibleFields(definition, superAccessorName == null, classBuilder);
+
+        CompatibilityModeClassLoader.loadClass(classBuilder.getClassName(), classBuilder.toByteArray());
+        return AsmUtil.readClass(classBuilder.toByteArray());
     }
+
 
     /**
      * @param definition
-     * @param fieldDescSet
-     * @param methodDescSet
      * @param superAccessorName
      * @param classNameGenerator
      * @return
      */
-    private static String generatorAndLoad(ClazzDefinition definition,
-                                           Set<FieldDesc> fieldDescSet, Set<AsmMethod> methodDescSet,
-                                           String superAccessorName, ClassNameGenerator classNameGenerator) {
+    private static ClassBuilder generateAccessorClass(ClazzDefinition definition,
+                                                      String superAccessorName, ClassNameGenerator classNameGenerator) {
 
         String innerAccessorName = classNameGenerator.generateInnerAccessorName(definition.getClassName());
         String superClassDesc = "L" + ClassUtil.simpleClassName2path(definition.getClassName()) + ";";
 
-        ClassBuilder classBuilder = AsmUtil
+        return AsmUtil
                 .defineClass(Opcodes.ACC_PUBLIC, innerAccessorName, superAccessorName, null, null)
                 .defineField(Opcodes.ACC_SYNTHETIC | Opcodes.ACC_FINAL, "this$0", superClassDesc, null, null)
                 .defineConstruct(Opcodes.ACC_PUBLIC, new String[]{definition.getClassName()}, null, null)
@@ -67,31 +66,6 @@ public class CompatibilityModeAccessorUtil {
                     visitor.visitInsn(Opcodes.RETURN);
                     visitor.visitEnd();
                 });
-
-        if (CollectionUtil.isNotEmpty(methodDescSet)) {
-            for (AsmMethod method : methodDescSet) {
-                if (method.getMethodName().equals("<init>")) {
-                    continue;
-                }
-                if ((method.getModifier() | Opcodes.ACC_PRIVATE) > 0) {
-                    continue;
-                }
-                classBuilder
-                        .defineMethod(Opcodes.ACC_PUBLIC, method.getMethodName(), method.getDesc(), method.getExceptions(), method.getMethodSign())
-                        .accept(visitor -> {
-                            visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                            visitor.visitFieldInsn(Opcodes.GETFIELD,
-                                    ClassUtil.simpleClassName2path(innerAccessorName), "this$0", superClassDesc);
-                            visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                                    ClassUtil.simpleClassName2path(definition.getClassName()), method.getMethodName(), method.getDesc(), false);
-                            visitor.visitInsn(Opcodes.ARETURN);
-                            visitor.visitMaxs(1, 1);
-                        });
-            }
-        }
-        byte[] innerBytecode = classBuilder.toByteArray();
-        CompatibilityModeClassLoader.loadClass(innerAccessorName, innerBytecode);
-        return innerAccessorName;
     }
 
     /**
@@ -111,23 +85,106 @@ public class CompatibilityModeAccessorUtil {
         return null;
     }
 
-    private static Set<AsmMethod> collectAccessibleMethods(ClazzDefinition definition, boolean containSuper) {
-        Set<AsmMethod> accessible = new HashSet<>();
-        // my all method
-        accessible.addAll(definition.getAsmMethods());
-        // non private method in super class
+    private static void collectAccessibleMethods(ClazzDefinition definition, ClassBuilder accessorClassBuilder, ClazzDefinition superAccessor) {
+        try {
+            String innerAccessorName = accessorClassBuilder.getClassName();
+            String outClassDesc = "L" + ClassUtil.simpleClassName2path(definition.getClassName()) + ";";
 
-        // default method with interface class
+            Set<AsmMethod> privateMethods = new HashSet<>();
+            Set<AsmMethod> superMethods = new HashSet<>();
 
-        return accessible;
+            // my all method
+            for (AsmMethod method : definition.getAsmMethods()) {
+                if (method.getMethodName().equals("<init>") || method.getMethodName().equals("<clinit>")) {
+                    continue;
+                }
+
+                // 私有方法
+                if ((method.getModifier() & Opcodes.ACC_PRIVATE) > 0) {
+                    privateMethods.add(method);
+                    continue;
+                }
+
+                // 继承而来 （如果自己重写了父类的方法, 就保存父类的字节码，防止 super调用）
+                if (superAccessor != null
+                        && inherited(definition.getSuperClassName(), method.getMethodName(), method.getDesc())) {
+                    superMethods.add(method);
+                    continue;
+                }
+
+                // 没有重写的
+                accessorClassBuilder
+                        .defineMethod(Opcodes.ACC_PUBLIC, method.getMethodName(), method.getDesc(), method.getExceptions(), method.getMethodSign())
+                        .accept(visitor -> {
+                            visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                            visitor.visitFieldInsn(Opcodes.GETFIELD,
+                                    ClassUtil.simpleClassName2path(innerAccessorName), "this$0", outClassDesc);
+                            visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                                    ClassUtil.simpleClassName2path(definition.getClassName()), method.getMethodName(), method.getDesc(), false);
+                            visitor.visitInsn(Opcodes.ARETURN);
+                            visitor.visitMaxs(1, 1);
+                        });
+            }
+
+            // non private method in super class
+            if (superAccessor == null && StringUtil.isNotEmpty(definition.getSuperClassName())) {
+                String superClassName = definition.getSuperClassName();
+                ClazzDefinition superClassDefinition = null;
+
+                superClassDefinition = AsmUtil.readOriginClass(superClassName);
+
+                for (AsmMethod superMethod : superClassDefinition.getAsmMethods()) {
+                    if (superMethod.getMethodName().equals("<init>") || superMethod.getMethodName().equals("<clinit>")) {
+                        continue;
+                    }
+                    // skip private
+                    if ((superMethod.getModifier() & Opcodes.ACC_PRIVATE) > 0) {
+                        continue;
+                    }
+
+                    if (superClassName.equals("java.lang.Object")) {
+                        continue;
+                    }
+                    accessorClassBuilder
+                            .defineMethod(Opcodes.ACC_PUBLIC, superMethod.getMethodName(), superMethod.getDesc(), superMethod.getExceptions(), superMethod.getMethodSign())
+                            .accept(visitor -> {
+                                visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                                visitor.visitFieldInsn(Opcodes.GETFIELD,
+                                        ClassUtil.simpleClassName2path(innerAccessorName), "this$0", outClassDesc);
+                                visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                                        ClassUtil.simpleClassName2path(definition.getClassName()), superMethod.getMethodName(), superMethod.getDesc(), false);
+                                visitor.visitInsn(Opcodes.ARETURN);
+                                visitor.visitMaxs(1, 1);
+                            });
+                }
+            }
+
+            // default method with interface class
+
+            System.out.println();
+        } catch (Exception e) {
+            throw new AccessorCreateException(e);
+        }
     }
 
-    private static Set<FieldDesc> collectAccessibleFields(ClazzDefinition definition, boolean containSuper) {
+    private static boolean inherited(String superClass, String methodName, String methodDesc) throws ClassNotFoundException {
+        while (StringUtil.isNotEmpty(superClass)
+                && !superClass.equals("java.lang.Object")) {
+            ClazzDefinition definition = AsmUtil.readOriginClass(superClass);
+            if (definition.hasMethod(methodName, methodDesc)) {
+                return true;
+            }
+            superClass = definition.getSuperClassName();
+        }
+        return false;
+    }
+
+    private static void collectAccessibleFields(ClazzDefinition definition, boolean containSuper, ClassBuilder classBuilder) {
+        // need rewrite
+
         // my all field
 
         // non private field in super class
-
-        return null;
     }
 
 

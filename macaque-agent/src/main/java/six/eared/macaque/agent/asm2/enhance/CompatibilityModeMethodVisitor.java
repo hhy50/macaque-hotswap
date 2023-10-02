@@ -59,8 +59,8 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
 
     @VisitEnd
     public void visitEnd() {
+        createAccessor();
         if (CollectionUtil.isNotEmpty(newMethods)) {
-            createAccessor();
             for (AsmMethodHolder newMethod : newMethods) {
                 // Bind before adding
                 bindNewMethodToNewClass(newMethod);

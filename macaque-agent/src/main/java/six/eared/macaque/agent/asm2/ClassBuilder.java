@@ -11,7 +11,11 @@ import java.util.stream.Collectors;
 
 public class ClassBuilder {
 
-    public ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+    private String className;
+
+    private String superClassName;
+
+    private ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 
     public ClassBuilder() {
 
@@ -20,6 +24,8 @@ public class ClassBuilder {
     public ClassBuilder defineClass(int access, String className, String superName, String[] interfaces, String signature) {
         this.classWriter.visit(Opcodes.V1_8, access, ClassUtil.simpleClassName2path(className), signature,
                 superName != null ? ClassUtil.simpleClassName2path(superName) : "java/lang/Object", interfaces);
+        this.className = className;
+        this.superClassName = superName;
         return this;
     }
 
@@ -53,5 +59,21 @@ public class ClassBuilder {
 
     public byte[] toByteArray() {
         return this.classWriter.toByteArray();
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public String getSuperClassName() {
+        return superClassName;
+    }
+
+    public void setSuperClassName(String superClassName) {
+        this.superClassName = superClassName;
     }
 }
