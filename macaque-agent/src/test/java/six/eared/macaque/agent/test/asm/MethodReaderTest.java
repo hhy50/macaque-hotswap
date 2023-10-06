@@ -47,4 +47,12 @@ public class MethodReaderTest {
         ClassReader classReader = new ClassReader("six.eared.macaque.agent.test.EarlyClass$Accessor");
         classReader.accept(new BinaryClassPrint(new AsmMethodPrinter()), 0);
     }
+
+
+    @Test
+    public void test2() throws IOException {
+        ClassReader classReader = new ClassReader("six.eared.macaque.agent.test.EarlyInterface");
+        classReader.accept(new BinaryClassPrint(new AsmMethodPrinter("      ")), 0);
+    }
+
 }

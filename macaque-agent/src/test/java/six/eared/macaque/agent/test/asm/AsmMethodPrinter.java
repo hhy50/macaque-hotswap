@@ -143,7 +143,7 @@ public class AsmMethodPrinter extends MethodVisitor {
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
-        System.out.println(str + String.format("index=%d, visitVarInsn(), opcode='%d', type='%s'",
+        System.out.println(str + String.format("index=%d, visitTypeInsn(), opcode='%d', type='%s'",
                 index++, opcode, type));
         super.visitTypeInsn(opcode, type);
     }

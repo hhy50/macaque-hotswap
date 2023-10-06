@@ -54,6 +54,10 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
             this.definition.setSuperClassName(superName.replaceAll("/", "."));
         }
         this.definition.setInterfaces(interfaces);
+
+        if (this.methodVisitor != null) {
+            this.methodVisitor.visitStart(this.definition);
+        }
     }
 
     @Override

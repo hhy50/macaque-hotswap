@@ -8,6 +8,7 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ClassHotSwapper {
 
@@ -28,5 +29,9 @@ public class ClassHotSwapper {
         ClassDefinition[] array = needRedefineClass.toArray(new ClassDefinition[0]);
         inst.redefineClasses(array);
         return array.length;
+    }
+
+    public static Map<String, Integer> redefine(List<ClazzDefinition> definitions) {
+        return null;
     }
 }

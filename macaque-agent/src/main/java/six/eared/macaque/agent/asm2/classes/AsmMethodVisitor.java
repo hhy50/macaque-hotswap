@@ -13,6 +13,10 @@ public interface AsmMethodVisitor {
      */
     public MethodVisitor visitMethod(AsmMethod method, ClazzDefinition clazzDefinition, ClassWriter writer);
 
+    default void visitStart(ClazzDefinition definition) {
+
+    }
+
     default void visitEnd() {
 
     }

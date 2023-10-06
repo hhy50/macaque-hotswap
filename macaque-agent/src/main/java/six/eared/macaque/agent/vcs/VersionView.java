@@ -42,7 +42,9 @@ public class VersionView {
         if (this.definitions == null) {
             this.definitions = new ArrayList<>();
         }
-        this.definitions.add(definition);
+        if (this.definitions.stream().noneMatch(item -> item.getName().equals(definition.getName()))) {
+            this.definitions.add(definition);
+        }
     }
 
     public int getStatus() {

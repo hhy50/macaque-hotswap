@@ -8,6 +8,10 @@ public class MethodBindInfo {
 
     private String bindMethod;
 
+    private boolean privateMethod;
+
+    private String accessorClassName;
+
     public String getBindClass() {
         return bindClass;
     }
@@ -36,5 +40,21 @@ public class MethodBindInfo {
     @Override
     public int hashCode() {
         return Objects.hash(bindClass, bindMethod);
+    }
+
+    public boolean isPrivateMethod() {
+        return privateMethod;
+    }
+
+    public void setPrivateMethod(boolean privateMethod) {
+        this.privateMethod = privateMethod;
+    }
+
+    public String getAccessorClassName() {
+        return accessorClassName;
+    }
+
+    public void setAccessorClassName(String accessorClassName) {
+        this.accessorClassName = accessorClassName;
     }
 }

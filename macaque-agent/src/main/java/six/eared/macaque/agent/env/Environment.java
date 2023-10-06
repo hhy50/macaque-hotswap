@@ -60,4 +60,10 @@ public class Environment {
     public static boolean isOpenVersionControl() {
         return VERSION_CHAIN;
     }
+
+    public static int getJdkVersion() {
+        String jdkversion = System.getProperty("java.specification.version");
+        jdkversion = jdkversion.contains(".") ? jdkversion.substring(jdkversion.lastIndexOf('.') + 1) : jdkversion;
+        return Integer.parseInt(jdkversion);
+    }
 }

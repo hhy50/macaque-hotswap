@@ -75,6 +75,7 @@ public class InnerClassTest extends Env {
                         methodVisitor.visitMaxs(1, 1);
                     });
         }
+        classBuilder.end();
 
         // 定义内部类的字节码
         byte[] innerBytecode = classBuilder.toByteArray();

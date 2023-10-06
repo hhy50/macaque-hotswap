@@ -5,7 +5,9 @@ import six.eared.macaque.agent.definition.Definition;
 import six.eared.macaque.agent.enums.VersionViewStatus;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.VcsException;
+import six.eared.macaque.common.util.CollectionUtil;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -19,12 +21,14 @@ public class VersionChainTool {
     public static ClazzDefinition findLastClassVersion(String className, boolean dirtyRead) {
         if (dirtyRead && inActiveVersionView()) {
             List<Definition> definitions = CURRENT_EPOCH.get().getDefinitions();
-            Optional<ClazzDefinition> any = definitions.stream()
-                    .filter(item -> item.getName().equals(className))
-                    .map(ClazzDefinition.class::cast)
-                    .findAny();
-            if (any.isPresent()) {
-                return any.get();
+            if (CollectionUtil.isNotEmpty(definitions)) {
+                Optional<ClazzDefinition> any = definitions.stream()
+                        .filter(item -> item.getName().equals(className))
+                        .map(ClazzDefinition.class::cast)
+                        .findAny();
+                if (any.isPresent()) {
+                    return any.get();
+                }
             }
         }
         if (Environment.isOpenVersionControl()) {

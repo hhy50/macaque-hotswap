@@ -6,6 +6,7 @@ import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
 import six.eared.macaque.agent.asm2.enhance.CompatibilityModeByteCodeEnhancer;
 import six.eared.macaque.agent.env.Environment;
+import six.eared.macaque.agent.hotswap.ClassHotSwapper;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.agent.vcs.VersionView;
 import six.eared.macaque.common.ExtPropertyName;
@@ -17,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static six.eared.macaque.agent.hotswap.ClassHotSwapper.redefine;
 
 @HotSwapFileType(fileType = FileType.Class)
 public class ClassHotSwapHandler extends FileHookHandler {
@@ -46,7 +46,7 @@ public class ClassHotSwapHandler extends FileHookHandler {
                     byte[] enhance = CompatibilityModeByteCodeEnhancer.enhance(definition.getByteCode());
                     definition.setByteCode(enhance);
                 }
-                int redefineCount = redefine(definition);
+                int redefineCount = ClassHotSwapper.redefine(definition);
                 result.put(definition.getClassName(), redefineCount);
             }
             return RmiResult.success().data(result);

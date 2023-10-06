@@ -12,4 +12,8 @@ public class ClassUtil {
     public static String classpath2name(String clazz) {
         return clazz.replace('/', '.');
     }
+
+    public static String toSimpleName(String className) {
+        return className.substring(className.lastIndexOf(".") + 1);
+    }
 }

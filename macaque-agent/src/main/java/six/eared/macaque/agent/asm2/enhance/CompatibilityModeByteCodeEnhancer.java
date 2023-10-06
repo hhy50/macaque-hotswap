@@ -1,7 +1,9 @@
 package six.eared.macaque.agent.asm2.enhance;
 
 import six.eared.macaque.agent.asm2.AsmMethod;
+import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
+import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.asm.*;
 import six.eared.macaque.common.util.ClassUtil;
@@ -16,6 +18,9 @@ public class CompatibilityModeByteCodeEnhancer {
     }
 
     static class Enhancer extends ClassVisitor {
+
+        private String className;
+
         public Enhancer() {
             super(Opcodes.ASM5, new ClassWriter(0));
         }
@@ -26,15 +31,51 @@ public class CompatibilityModeByteCodeEnhancer {
         }
 
         @Override
+        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+            super.visit(version, access, name, signature, superName, interfaces);
+            this.className = ClassUtil.classpath2name(name);
+        }
+
+        @Override
         public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
             MethodVisitor writer = super.visitMethod(access, name, desc, signature, exceptions);
-            return new MethodByteCodeEnhancer(writer);
+
+            String targetClassName = ClassUtil.classpath2name(this.className);
+            ClazzDefinition definition = VersionChainTool.findLastClassVersion(targetClassName, true);
+            if (definition == null) {
+                return new MethodByteCodeEnhancer(writer);
+            }
+
+            AsmMethod method = definition.getMethod(name, desc);
+            if (method != null) {
+                if (method.getMethodBindInfo() != null) {
+                    //
+//                    updateMethodBody(writer, method, desc);
+                    return null;
+                }
+                return new MethodByteCodeEnhancer(writer);
+            }
+            throw new EnhanceException("attempted to add a method");
+        }
+
+        private void updateMethodBody(MethodVisitor writer, AsmMethod method) {
+            MethodBindInfo methodBindInfo = method.getMethodBindInfo();
+            String accessorClassName = methodBindInfo.getAccessorClassName();
+            String bindClass = methodBindInfo.getBindClass();
+            String bindMethod = methodBindInfo.getBindMethod();
+            String desc = method.getDesc();
+
+            writer.visitTypeInsn(Opcodes.NEW, accessorClassName);
+            writer.visitInsn(Opcodes.DUP);
+            writer.visitVarInsn(Opcodes.ALOAD, 0);
+            writer.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorClassName, "<init>", "("+ AsmUtil.toTypeDesc(className) +")V", false);
+
+            writer.visitMethodInsn(Opcodes.INVOKESTATIC, ClassUtil.simpleClassName2path(bindClass), bindMethod, AsmUtil.addArgsDesc(desc, accessorClassName, true), false);
+            writer.visitInsn(Opcodes.ARETURN);
         }
     }
 
     static class MethodByteCodeEnhancer extends MethodVisitor {
-
-        private int index;
 
         public MethodByteCodeEnhancer(MethodVisitor mv) {
             super(Opcodes.ASM5, mv);
@@ -53,12 +94,6 @@ public class CompatibilityModeByteCodeEnhancer {
                 }
             }
             super.visitMethodInsn(opcode, owner, name, desc, itf);
-        }
-    }
-
-    static class FieldByteCodeEnhancer extends FieldVisitor {
-        public FieldByteCodeEnhancer() {
-            super(Opcodes.ASM5);
         }
     }
 }

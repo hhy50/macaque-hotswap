@@ -95,4 +95,17 @@ public class AsmUtil {
     public static String toTypeDesc(String type) {
         return "L" + ClassUtil.simpleClassName2path(type) + ";";
     }
+
+    public static String addArgsDesc(String desc, String accessorClassName, boolean header) {
+        // (Lsix/eared/macaque/agent/test/EarlyClass$Macaque_Accessor;)Ljava/lang/String;
+        String delimiter = header ? "\\(" : "\\)";
+        String[] split = desc.split(delimiter);
+        split[0] += AsmUtil.toTypeDesc(accessorClassName);
+        return header ? ("(" + split[0] + split[1]) : (split[0] + ")" + split[1]);
+    }
+
+    public static String addAccessorDesc(String desc, String accessorClassName) {
+
+        return null;
+    }
 }

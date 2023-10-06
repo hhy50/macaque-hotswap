@@ -1,8 +1,11 @@
 package six.eared.macaque.agent.asm2.enhance;
 
 
+import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.ReflectUtil;
 
+import java.io.File;
 import java.util.HashSet;
 
 public class CompatibilityModeClassLoader {
@@ -13,6 +16,9 @@ public class CompatibilityModeClassLoader {
         if (!isLoaded(className)) {
             ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
             ReflectUtil.invokeMethod(systemClassLoader, "defineClass", className, bytes, 0, bytes.length);
+            FileUtil.writeBytes(
+                    new File("C:\\Users\\haiyang\\IdeaProjects\\macaque-hotswap\\macaque-agent\\build" + File.separator + ClassUtil.toSimpleName(className) + ".class"),
+                    bytes);
             NAMESPACE.add(className);
         }
     }
