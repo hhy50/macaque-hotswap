@@ -51,7 +51,12 @@ public class HotSwap implements HotSwapMBean {
             fileType = FileType.Class.getType();
         }
 
-        HotSwapHandler handler = HandlerRegister.getHandler(fileType);
+        HotSwapHandler handler = null;
+        try {
+            handler = HandlerRegister.getHandler(fileType);
+        } catch (Exception e) {
+            return RmiResult.error("System exception");
+        }
         return handler.handlerRequest(request);
     }
 
