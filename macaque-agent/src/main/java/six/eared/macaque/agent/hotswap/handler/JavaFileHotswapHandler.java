@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.hotswap.handler;
 
+import six.eared.macaque.agent.annotation.HotSwapFileType;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.definition.FileDefinition;
 import six.eared.macaque.agent.exceptions.HotswapException;
@@ -14,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+@HotSwapFileType(fileType = FileType.Java)
 public class JavaFileHotswapHandler implements HotSwapHandler {
 
     private ClassHotSwapHandler classHotSwapHandler;

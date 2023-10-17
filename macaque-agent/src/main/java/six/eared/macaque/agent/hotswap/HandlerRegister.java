@@ -4,6 +4,7 @@ import six.eared.macaque.agent.annotation.HotSwapFileType;
 import six.eared.macaque.agent.hotswap.handler.HotSwapHandler;
 import six.eared.macaque.common.type.FileType;
 import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.ReflectUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,8 +39,8 @@ public class HandlerRegister {
         if (!HANDLERS.isEmpty()) {
             return;
         }
-        List<Class> classes = ClassUtil.scanClass(HANDLER_CLASS_PATH);
-        for (Class clazz : classes) {
+        List<Class<?>> classes = ClassUtil.scanClass(HANDLER_CLASS_PATH);
+        for (Class<?> clazz : classes) {
             if (!HotSwapHandler.class.isAssignableFrom(clazz)) {
                 continue;
             }
@@ -48,12 +49,11 @@ public class HandlerRegister {
             if (annotation == null) {
                 continue;
             }
-            HANDLERS.putIfAbsent(annotation.fileType(), handlerClazz.getConstructor().newInstance());
+            HANDLERS.putIfAbsent(annotation.fileType(), ReflectUtil.newInstance(handlerClazz));
         }
-
     }
 
-    public static HotSwapHandler getHandler(String fileType) throws Exception {
+    public static HotSwapHandler getHandler(String fileType) {
         return HANDLERS.get(FileType.ofType(fileType));
     }
 }

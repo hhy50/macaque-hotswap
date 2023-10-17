@@ -27,11 +27,12 @@ public class ClassUtil {
 
     /**
      * 根据包名扫描class
+     *
      * @param packageName
      * @return
      */
-    public static List<Class> scanClass(String packageName) throws IOException, ClassNotFoundException {
-        List<Class> classes = new ArrayList<>();
+    public static List<Class<?>> scanClass(String packageName) throws IOException, ClassNotFoundException {
+        List<Class<?>> classes = new ArrayList<>();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         String path = packageName.replace(".", "/");
         Enumeration<URL> resources = classLoader.getResources(path);

@@ -35,4 +35,8 @@ public class CorrelationClazzDefinition {
     public void setLoaded(boolean loaded) {
         isLoaded = loaded;
     }
+
+    public ClazzDefinition getClazzDefinition() {
+        return clazzDefinition;
+    }
 }
