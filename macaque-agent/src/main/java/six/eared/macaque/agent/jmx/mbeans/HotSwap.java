@@ -36,6 +36,9 @@ public class HotSwap implements HotSwapMBean {
             }
 
             HotSwapHandler handler = HandlerRegister.getHandler(request.getFileType());
+            if (handler == null) {
+                throw new HotswapException("Not supported file type: " + request.getFileType());
+            }
             return handler.handlerRequest(request);
         } catch (HotswapException e) {
             if (Environment.isDebug()) {
