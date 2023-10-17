@@ -12,6 +12,12 @@ public interface HotswapHook {
      */
     public RmiResult executeBefore(HotSwapRmiData rmiData);
 
+    /**
+     * 编译后
+     * @return
+     */
+//    public RmiResult compilerAfter(Defa);
+
 
     /**
      *

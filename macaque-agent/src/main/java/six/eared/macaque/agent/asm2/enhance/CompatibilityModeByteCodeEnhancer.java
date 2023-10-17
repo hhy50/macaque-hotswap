@@ -49,8 +49,7 @@ public class CompatibilityModeByteCodeEnhancer {
             AsmMethod method = definition.getMethod(name, desc);
             if (method != null) {
                 if (method.getMethodBindInfo() != null) {
-                    //
-//                    updateMethodBody(writer, method, desc);
+                    updateMethodBody(writer, method);
                     return null;
                 }
                 return new MethodByteCodeEnhancer(writer);

@@ -1,7 +1,6 @@
 package six.eared.macaque.agent.asm2.enhance;
 
 import six.eared.macaque.agent.asm2.*;
-import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.MethodVisitorProxy;
 import six.eared.macaque.agent.env.Environment;
@@ -15,7 +14,9 @@ import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.StringUtil;
 
 import java.lang.instrument.UnmodifiableClassException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -82,10 +83,6 @@ public class CompatibilityModeAccessorUtil {
      */
     private static String tryGetAccessorClassName(String className, ClassNameGenerator classNameGenerator) {
         String accessorName = classNameGenerator.generateInnerAccessorName(className);
-//        Set<Class<?>> loadedClass = InstrumentationUtil.findLoadedClass(Environment.getInst(), accessorName);
-//        if (CollectionUtil.isNotEmpty(loadedClass)) {
-//            return accessorName;
-//        }
         if (CompatibilityModeClassLoader.isLoaded(accessorName)) {
             return accessorName;
         }
@@ -176,38 +173,6 @@ public class CompatibilityModeAccessorUtil {
 
             // 将私有方法绑定到另一个类，方便以后修改
             if (CollectionUtil.isNotEmpty(privateMethods)) {
-//                Map<String, AsmMethodVisitorCaller> methodCallerMap = new HashMap<>();
-//                definition.revisit(new ClassVisitor(Opcodes.ASM5) {
-//                    @Override
-//                    public MethodVisitor visitMethod(int access, String methodName, String methodDesc, String signature, String[] exceptions) {
-//                        if (privateMethods.stream()
-//                                .anyMatch(item -> item.getMethodName().equals(methodName) && item.getDesc().equals(methodDesc))) {
-//                            AsmMethodVisitorCaller caller = new AsmMethodVisitorCaller();
-//                            methodCallerMap.put(methodName + methodDesc, caller);
-//                            return new MethodVisitorProxy(caller.createProxyObj());
-//                        }
-//                        return null;
-//                    }
-//                });
-
-//                for (AsmMethod privateMethod : privateMethods) {
-//                    AsmMethodVisitorCaller caller = methodCallerMap.get(privateMethod.getMethodName() + privateMethod.getDesc());
-//
-//                    String bindMethodName = privateMethod.getMethodName();
-//                    String bindClassName = classNameGenerator.generate(definition.getClassName(), bindMethodName);
-//                    MethodBindInfo methodBindInfo = new MethodBindInfo();
-//                    methodBindInfo.setBindClass(bindClassName);
-//                    methodBindInfo.setBindMethod(bindMethodName);
-//
-//                    // load the bind class
-//                    // TODO 重写 => privateMethod.getDesc() & 方法体
-//                    ClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, methodBindInfo.getBindClass(), null, null, null)
-//                            .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, methodBindInfo.getBindMethod(), privateMethod.getDesc(), null, null)
-//                            .accept(caller::accept)
-//                            .end();
-//                    CompatibilityModeClassLoader.loadClass(bindClassName, classBuilder.toByteArray());
-//                    privateMethod.setMethodBindInfo(methodBindInfo);
-//                }
                 for (AsmMethod privateMethod : privateMethods) {
                     String bindMethodName = privateMethod.getMethodName();
                     String bindClassName = classNameGenerator.generate(definition.getClassName(), bindMethodName);
@@ -243,8 +208,6 @@ public class CompatibilityModeAccessorUtil {
                     superClassDefinition = AsmUtil.readOriginClass(superClassDefinition.getSuperClassName());
                 }
             }
-
-            System.out.println();
         } catch (Exception e) {
             throw new AccessorCreateException(e);
         }

@@ -6,6 +6,7 @@ import six.eared.macaque.common.util.FileUtil;
 
 import javax.tools.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class JavaSourceCompiler implements Compiler {
 
@@ -49,8 +50,12 @@ public class JavaSourceCompiler implements Compiler {
         boolean result = task.call();
         if (!result || collector.getDiagnostics().size() > 0) {
             if (Environment.isDebug()) {
-                for (Diagnostic<? extends JavaFileObject> diagnostic : collector.getDiagnostics()) {
-                    System.out.println("line: " + diagnostic.getLineNumber() + ", message: " + diagnostic.getMessage(Locale.US));
+                Map<String, List<Diagnostic<? extends JavaFileObject>>> compileFailed = collector.getDiagnostics().stream()
+                        .collect(Collectors.groupingBy(diagnostic -> diagnostic.getSource().getName()));
+                for (Map.Entry<String, List<Diagnostic<? extends JavaFileObject>>> fileEntry : compileFailed.entrySet()) {
+                    System.out.println("compile error: " + fileEntry.getKey());
+                    System.out.println(fileEntry.getValue().stream().map(diagnostic -> " line: " + diagnostic.getLineNumber() + ", message: " + diagnostic.getMessage(Locale.US))
+                            .collect(Collectors.joining("\n     ")));
                 }
             }
             return null;
@@ -58,7 +63,7 @@ public class JavaSourceCompiler implements Compiler {
         return fileManager.getByteCodes();
     }
 
-    public boolean isPrepare() {
+    public boolean isPrepared() {
         return this.compiler != null
                 && this.baseFileManager != null;
     }

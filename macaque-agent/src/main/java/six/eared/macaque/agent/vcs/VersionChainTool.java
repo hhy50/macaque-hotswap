@@ -7,7 +7,6 @@ import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.VcsException;
 import six.eared.macaque.common.util.CollectionUtil;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;

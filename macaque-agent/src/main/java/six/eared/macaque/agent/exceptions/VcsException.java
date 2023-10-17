@@ -1,9 +1,8 @@
 package six.eared.macaque.agent.exceptions;
 
-public class VcsException extends RuntimeException {
+public class VcsException extends MacaqueException {
 
-    public VcsException(String msg) {
-        super(msg);
+    public VcsException(String details) {
+        super(details);
     }
-
 }

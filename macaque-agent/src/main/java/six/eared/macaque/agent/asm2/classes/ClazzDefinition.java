@@ -21,6 +21,8 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     private byte[] byteCode;
 
+    private List<CorrelationClazzDefinition> correlationClasses;
+
     private List<AsmMethod> asmMethods = new ArrayList<>();
 
     private List<AsmField> asmFields = new ArrayList<>();
@@ -118,5 +120,16 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     public void revisit(ClassVisitor classVisitor) {
         AsmUtil.visitClass(this.byteCode, classVisitor);
+    }
+
+    public List<CorrelationClazzDefinition> getCorrelationClasses() {
+        return correlationClasses;
+    }
+
+    public void putCorrelationClass(CorrelationClazzDefinition correlationClass) {
+        if (this.correlationClasses == null) {
+            this.correlationClasses = new ArrayList<>();
+        }
+        this.correlationClasses.add(correlationClass);
     }
 }

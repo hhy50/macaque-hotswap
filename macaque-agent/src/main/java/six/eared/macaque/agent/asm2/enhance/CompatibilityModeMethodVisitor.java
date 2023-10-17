@@ -15,7 +15,6 @@ import six.eared.macaque.common.util.CollectionUtil;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.jar.JarEntry;
 
 public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
 
