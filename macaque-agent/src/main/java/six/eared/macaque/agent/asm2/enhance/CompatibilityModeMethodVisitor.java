@@ -61,7 +61,7 @@ public class CompatibilityModeMethodVisitor implements AsmMethodVisitor {
         holder.setCaller(caller);
         holder.setAsmMethod(method);
         this.methodHolds.add(holder);
-        return new MethodVisitorProxy(caller.createProxyObj());
+        return caller.createProxyObj();
     }
 
     @VisitEnd

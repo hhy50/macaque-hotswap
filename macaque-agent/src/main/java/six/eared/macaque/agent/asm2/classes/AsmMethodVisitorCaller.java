@@ -14,7 +14,7 @@ public class AsmMethodVisitorCaller implements InvocationHandler {
 
     private int index;
 
-    private List<AsmMethodVisitCall> calls;
+    protected List<AsmMethodVisitCall> calls;
 
     public void accept(MethodVisitor mv) {
         for (AsmMethodVisitCall call : this.calls) {
@@ -28,11 +28,26 @@ public class AsmMethodVisitorCaller implements InvocationHandler {
             this.calls = new ArrayList<>();
         }
         this.calls.add(new AsmMethodVisitCall(++index, method, args));
+        if (method.getName().equals("visitStart")) {
+            visitStart();
+        }
+        if (method.getName().equals("visitEnd")) {
+            visitEnd();
+        }
         return null;
     }
 
-    public IMethodVisitor createProxyObj() {
-        return (IMethodVisitor) Proxy.newProxyInstance(CompatibilityModeMethodVisitor.class.getClassLoader(),
+    public MethodVisitor createProxyObj() {
+        IMethodVisitor visitor = (IMethodVisitor) Proxy.newProxyInstance(CompatibilityModeMethodVisitor.class.getClassLoader(),
                 new Class[]{IMethodVisitor.class}, this);
+         return new MethodVisitorProxy(visitor);
+    }
+
+    protected void visitStart() {
+
+    }
+
+    protected void visitEnd() {
+
     }
 }

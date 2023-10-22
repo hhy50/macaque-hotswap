@@ -23,7 +23,14 @@ public class AsmUtil {
      */
     public static final ClazzDefinitionVisitor REUSE_CLASS_VISITOR = new ClazzDefinitionVisitor();
 
-    public static ClazzDefinition readOriginClass(String className) throws ClassNotFoundException {
+
+    /**
+     * 对于没有class文件的class会抛出ClassNotFoundException
+     * @param className
+     * @return
+     * @throws ClassNotFoundException
+     */
+    public static ClazzDefinition readOriginClass(String className) throws ClassNotFoundException, IOException {
         try (InputStream is = ClassLoader.getSystemResourceAsStream(ClassUtil.className2path(className));) {
             if (is != null) {
                 return AsmUtil.readClass(FileUtil.is2bytes(is));
@@ -33,6 +40,7 @@ public class AsmUtil {
                 System.out.println("findLastView error");
                 e.printStackTrace();
             }
+            throw e;
         }
         throw new ClassNotFoundException();
     }

@@ -100,32 +100,4 @@ public class AsmMethod {
             return asmMethod;
         }
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AsmMethod asmMethod = (AsmMethod) o;
-        return modifier == asmMethod.modifier
-                && Objects.equals(methodName, asmMethod.methodName)
-                && Objects.equals(methodSign, asmMethod.methodSign)
-                && Objects.equals(desc, asmMethod.desc)
-                && Objects.equals(methodBindInfo, asmMethod.methodBindInfo)
-                && Arrays.equals(exceptions, asmMethod.exceptions);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Objects.hash(modifier, methodName, methodSign, desc);
-        result = 31 * result + Arrays.hashCode(exceptions);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "AsmMethod{" +
-                "methodName='" + methodName + '\'' +
-                ", methodSign='" + methodSign + '\'' +
-                '}';
-    }
 }

@@ -6,6 +6,7 @@ import org.junit.Test;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.enhance.CompatibilityModeClassLoader;
+import six.eared.macaque.agent.test.AbsEarlyClass;
 import six.eared.macaque.agent.test.EarlyClass;
 import six.eared.macaque.agent.test.Env;
 import six.eared.macaque.agent.test.compatibility.CompatibilityModeTest;
@@ -18,6 +19,9 @@ import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.ReflectUtil;
 
 import java.lang.instrument.UnmodifiableClassException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -119,5 +123,22 @@ public class InnerClassTest extends Env {
         Object o = innerClass.newInstance();
         Method test1 = innerClass.getDeclaredMethod("access$001", innerClass);
         Assert.assertEquals(test1.invoke(null, o), "abs test1");
+    }
+
+    @Test
+    public void testInnerInvokerSuper2() throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, UnmodifiableClassException, InterruptedException {
+        EarlyClass earlyClass = new EarlyClass();
+
+        MethodType type = MethodType.methodType(String.class);
+
+        MethodHandles.Lookup lookup = ReflectUtil.newInstance(MethodHandles.Lookup.class, earlyClass.getClass());
+        try {
+            MethodHandle mh = lookup.findSpecial(AbsEarlyClass.class,
+                    "test1", type, earlyClass.getClass());
+            Object invoke = mh.invoke(earlyClass);
+            System.out.println(invoke);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 }

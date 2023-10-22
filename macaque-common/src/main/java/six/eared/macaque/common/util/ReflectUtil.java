@@ -43,6 +43,7 @@ public class ReflectUtil {
             }
             for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
                 if (checkParamsType(constructor.getParameterTypes(), paramTypes)) {
+                    constructor.setAccessible(true);
                     return (T) constructor.newInstance(args);
                 }
             }
