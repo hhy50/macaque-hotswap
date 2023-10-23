@@ -3,21 +3,53 @@ package six.eared.macaque.agent.asm2.enhance;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.*;
-import six.eared.macaque.agent.enums.CorrelationEnum;
 import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.asm.*;
 import six.eared.macaque.common.util.ClassUtil;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 public class CompatibilityModeByteCodeEnhancer {
 
     public static void enhance(ClazzDefinition definition) throws IOException, ClassNotFoundException {
-        Enhancer enhancer = new Enhancer(definition);
-        definition.revisit(enhancer);
+        // 准备阶段
+        prepare(definition);
+
+        // 转换阶段
+        bytecodeConvert();
+    }
+
+    private static void prepare(ClazzDefinition definition) throws IOException, ClassNotFoundException {
+//        ClazzDefinition originDefinition = AsmUtil.readOriginClass(definition.getClassName());
+        ClazzDefinition lastClassVersion = VersionChainTool.findLastClassVersion(definition.getClassName(), false);
+        if (lastClassVersion == null) {
+            lastClassVersion = AsmUtil.readOriginClass(definition.getClassName());
+        }
+        assert lastClassVersion != null;
+        for (AsmMethod asmMethod : definition.getAsmMethods()) {
+            AsmMethod method = lastClassVersion.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
+
+            // 已存在的方法
+            if (method != null) {
+                if (method.isPrivate()) {
+                    MethodBindInfo methodBindInfo = null;
+                    if (method.getMethodBindInfo() != null) {
+                        methodBindInfo = method.getMethodBindInfo().clone();
+                    }
+                    asmMethod.setMethodBindInfo(methodBindInfo);
+                }
+                continue;
+            }
+
+            // 新方法
+
+        }
+    }
+
+    private static void bytecodeConvert() {
+
     }
 
     static class Enhancer extends ClassVisitor {
@@ -53,7 +85,7 @@ public class CompatibilityModeByteCodeEnhancer {
 
             // 上一个版本存在的
             ClazzDefinition definition = VersionChainTool.findLastClassVersion(this.newDefinition.getClassName(), false);
-            if (definition != null &&  definition.getMethod(name, desc) != null) {
+            if (definition != null && definition.getMethod(name, desc) != null) {
                 MethodBindInfo methodBindInfo = definition.getMethod(name, desc).getMethodBindInfo();
                 Optional<CorrelationClazzDefinition> bindClassOp = definition.getCorrelationClasses().stream()
                         .filter(item -> item.getClazzDefinition().getClassName().equals(methodBindInfo.getBindClass())).findFirst();
