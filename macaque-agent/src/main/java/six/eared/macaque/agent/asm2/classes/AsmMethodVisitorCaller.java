@@ -1,6 +1,5 @@
 package six.eared.macaque.agent.asm2.classes;
 
-import six.eared.macaque.agent.asm2.enhance.CompatibilityModeMethodVisitor;
 import six.eared.macaque.asm.IMethodVisitor;
 import six.eared.macaque.asm.MethodVisitor;
 
@@ -38,7 +37,7 @@ public class AsmMethodVisitorCaller implements InvocationHandler {
     }
 
     public MethodVisitor createProxyObj() {
-        IMethodVisitor visitor = (IMethodVisitor) Proxy.newProxyInstance(CompatibilityModeMethodVisitor.class.getClassLoader(),
+        IMethodVisitor visitor = (IMethodVisitor) Proxy.newProxyInstance(AsmMethodVisitorCaller.class.getClassLoader(),
                 new Class[]{IMethodVisitor.class}, this);
          return new MethodVisitorProxy(visitor);
     }

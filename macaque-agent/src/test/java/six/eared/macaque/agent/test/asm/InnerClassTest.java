@@ -18,6 +18,7 @@ import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.ReflectUtil;
 
+import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -43,7 +44,7 @@ public class InnerClassTest extends Env {
     }
 
     @Test
-    public void testReadInnerClass2() throws ClassNotFoundException {
+    public void testReadInnerClass2() throws ClassNotFoundException, IOException {
         printClassByteCode(AsmUtil.readOriginClass("six.eared.macaque.agent.test.EarlyClass").getOriginData());
         printClassByteCode(AsmUtil.readOriginClass("six.eared.macaque.agent.test.EarlyClass$Macaque_Accessor").getOriginData());
     }

@@ -38,8 +38,7 @@ public class ClassHotSwapHandler extends FileHookHandler {
 
         for (ClazzDefinition definition : definitions) {
             if (compatibilityMode) {
-                CompatibilityModeByteCodeEnhancer
-                        .enhance(definition);
+                CompatibilityModeByteCodeEnhancer.enhance(definition);
             }
             versionView.addDefinition(definition);
         }

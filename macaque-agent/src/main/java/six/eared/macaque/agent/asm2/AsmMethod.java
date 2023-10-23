@@ -4,9 +4,6 @@ package six.eared.macaque.agent.asm2;
 import six.eared.macaque.agent.asm2.enhance.MethodBindInfo;
 import six.eared.macaque.asm.Opcodes;
 
-import java.util.Arrays;
-import java.util.Objects;
-
 /**
  *
  */
@@ -54,6 +51,14 @@ public class AsmMethod {
 
     public boolean isPrivate() {
         return (this.modifier & Opcodes.ACC_PRIVATE) > 0;
+    }
+
+    public boolean isConstructor() {
+        return this.methodName.equals("<init>");
+    }
+
+    public boolean isClinit() {
+        return this.methodName.equals("<clinit>");
     }
 
     public static final class AsmMethodBuilder {

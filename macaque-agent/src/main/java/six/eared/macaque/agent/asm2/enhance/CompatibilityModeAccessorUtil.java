@@ -12,8 +12,12 @@ import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.StringUtil;
+import sun.reflect.generics.tree.ClassTypeSignature;
 
+import javax.rmi.CORBA.ClassDesc;
+import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
+import java.lang.invoke.MethodType;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +26,12 @@ import java.util.stream.Collectors;
 
 public class CompatibilityModeAccessorUtil {
 
+    /**
+     * @param className          外部类类名
+     * @param classNameGenerator 类名生成器
+     * @param deepth             深度
+     * @return
+     */
     public static ClazzDefinition createAccessor(String className, ClassNameGenerator classNameGenerator, int deepth) {
         String innerAccessorName = classNameGenerator.generateInnerAccessorName(className);
         if (CompatibilityModeClassLoader.isLoaded(innerAccessorName)) {
@@ -100,12 +110,12 @@ public class CompatibilityModeAccessorUtil {
 
             // my all method
             for (AsmMethod method : definition.getAsmMethods()) {
-                if (method.getMethodName().equals("<init>") || method.getMethodName().equals("<clinit>")) {
+                if (method.isConstructor() || method.isClinit()) {
                     continue;
                 }
 
                 // 私有方法
-                if ((method.getModifier() & Opcodes.ACC_PRIVATE) > 0) {
+                if (method.isPrivate()) {
                     privateMethods.add(method);
                     continue;
                 }
@@ -219,7 +229,8 @@ public class CompatibilityModeAccessorUtil {
         VersionChainTool.getActiveVersionView().addDefinition(definition);
     }
 
-    private static boolean inherited(String superClass, String methodName, String methodDesc) throws ClassNotFoundException {
+    private static boolean inherited(String superClass, String methodName, String methodDesc)
+            throws ClassNotFoundException, IOException {
         while (StringUtil.isNotEmpty(superClass)
                 && !superClass.equals("java.lang.Object")) {
             ClazzDefinition definition = AsmUtil.readOriginClass(superClass);
