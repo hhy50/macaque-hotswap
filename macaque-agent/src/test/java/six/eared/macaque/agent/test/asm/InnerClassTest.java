@@ -47,6 +47,7 @@ public class InnerClassTest extends Env {
     public void testReadInnerClass2() throws ClassNotFoundException, IOException {
         printClassByteCode(AsmUtil.readOriginClass("six.eared.macaque.agent.test.EarlyClass").getOriginData());
         printClassByteCode(AsmUtil.readOriginClass("six.eared.macaque.agent.test.EarlyClass$Macaque_Accessor").getOriginData());
+        printClassByteCode(AsmUtil.readOriginClass("six.eared.macaque.agent.test.AbsEarlyClass2$Macaque_Accessor").getOriginData());
     }
 
     @Test

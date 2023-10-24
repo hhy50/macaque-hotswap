@@ -13,7 +13,9 @@ import six.eared.macaque.common.util.FileUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AsmUtil {
@@ -26,6 +28,7 @@ public class AsmUtil {
 
     /**
      * 对于没有class文件的class会抛出ClassNotFoundException
+     *
      * @param className
      * @return
      * @throws ClassNotFoundException
@@ -115,5 +118,13 @@ public class AsmUtil {
     public static String addAccessorDesc(String desc, String accessorClassName) {
 
         return null;
+    }
+
+    public static String methodType(String rDesc, String... pDesc) {
+        String desc = "";
+        for (String s : pDesc) {
+            desc += s;
+        }
+        return "(" + desc + ")" + rDesc;
     }
 }

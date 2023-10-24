@@ -16,4 +16,8 @@ public class EarlyClass extends AbsEarlyClass2 {
     public String test3() {
         return "test3";
     }
+
+//    public class Macaque_Accessor extends AbsEarlyClass2.Macaque_Accessor {
+//
+//    }
 }

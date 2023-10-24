@@ -15,7 +15,7 @@ public class ClassBuilder {
 
     private String superClassName;
 
-    private ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+    private ClassWriter classWriter = new ClassWriter(0);
 
     public ClassBuilder() {
 
