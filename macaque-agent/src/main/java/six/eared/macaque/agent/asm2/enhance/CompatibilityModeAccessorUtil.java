@@ -5,17 +5,16 @@ import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.MethodVisitorProxy;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
-import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.asm.ClassVisitor;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
+import six.eared.macaque.asm.Type;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.StringUtil;
 
 import java.io.IOException;
-import java.lang.instrument.UnmodifiableClassException;
-import java.lang.invoke.MethodType;
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -68,17 +67,22 @@ public class CompatibilityModeAccessorUtil {
     private static ClassBuilder generateAccessorClass(String innerAccessorName, ClazzDefinition definition,
                                                       String superAccessorName) {
         String outClassDesc = "L" + ClassUtil.simpleClassName2path(definition.getClassName()) + ";";
-        return AsmUtil
+        String innerAccessorDesc = ClassUtil.simpleClassName2path(innerAccessorName);
+        ClassBuilder classBuilder = AsmUtil
                 .defineClass(Opcodes.ACC_PUBLIC, innerAccessorName, superAccessorName, null, null)
-                .defineField(Opcodes.ACC_SYNTHETIC | Opcodes.ACC_FINAL, "this$0", outClassDesc, null, null)
                 .defineConstruct(Opcodes.ACC_PUBLIC, new String[]{definition.getClassName()}, null, null)
                 .accept(visitor -> {
                     visitor.visitMaxs(2, 2);
                     boolean containSupper = superAccessorName != null;
 
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    visitor.visitVarInsn(Opcodes.ALOAD, 1);
-                    visitor.visitFieldInsn(Opcodes.PUTFIELD, ClassUtil.simpleClassName2path(innerAccessorName), "this$0", outClassDesc);
+                    if (!containSupper) {
+                        // this$0 = {outClassObj}
+                        visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                        visitor.visitVarInsn(Opcodes.ALOAD, 1);
+                        visitor.visitFieldInsn(Opcodes.PUTFIELD, innerAccessorDesc, "this$0", "Ljava/lang/Object;");
+                    }
+
+                    // super({outClassObj}.this)
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
                     if (containSupper) {
                         visitor.visitVarInsn(Opcodes.ALOAD, 1);
@@ -86,10 +90,63 @@ public class CompatibilityModeAccessorUtil {
                     visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,
                             containSupper ? ClassUtil.simpleClassName2path(superAccessorName) : "java/lang/Object", "<init>",
                             containSupper ? AsmUtil.methodType("V", AsmUtil.toTypeDesc(definition.getSuperClassName())) : "()V", false);
+
                     visitor.visitInsn(Opcodes.RETURN);
                     visitor.visitEnd();
-                })
-                .end();
+                });
+
+        /**
+         * public {Accessor_Class} this$0;
+         */
+        if (superAccessorName == null) {
+            classBuilder.defineField(Opcodes.ACC_PUBLIC, "this$0", "Ljava/lang/Object;", null, null);
+        }
+
+        /**
+         * public static MethodHandles.Lookup LOOKUP;
+         */
+        classBuilder.defineField(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;",
+                null, null);
+
+        /**
+         *         static {
+         *             Constructor<?> constructor = MethodHandles.Lookup.class.getDeclaredConstructors()[0];
+         *             constructor.setAccessible(true);
+         *             LOOKUP = (MethodHandles.Lookup) constructor.newInstance(EarlyClass.class);
+         *         }
+         */
+        classBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V", null, null)
+                .accept(visitor -> {
+                    visitor.visitMaxs(5, 2);
+
+                    // Constructor<?> constructor = MethodHandles.Lookup.class.getDeclaredConstructors()[0];
+                    visitor.visitLdcInsn(Type.getType("Ljava/lang/invoke/MethodHandles$Lookup;"));
+                    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Class", "getDeclaredConstructors",
+                            "()[Ljava/lang/reflect/Constructor;", false);
+                    visitor.visitInsn(Opcodes.ICONST_0);
+                    visitor.visitInsn(Opcodes.AALOAD);
+                    visitor.visitVarInsn(Opcodes.ASTORE, 0);
+
+                    // constructor.setAccessible(true);
+                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                    visitor.visitInsn(Opcodes.ICONST_1);
+                    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/reflect/Constructor", "setAccessible", "(Z)V", false);
+
+                    // LOOKUP = (MethodHandles.Lookup) constructor.newInstance(EarlyClass.class);
+                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                    visitor.visitInsn(Opcodes.ICONST_1);
+                    visitor.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
+                    visitor.visitInsn(Opcodes.DUP);
+                    visitor.visitInsn(Opcodes.ICONST_0);
+                    visitor.visitLdcInsn(Type.getType(outClassDesc));
+                    visitor.visitInsn(Opcodes.AASTORE);
+                    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/reflect/Constructor", "newInstance",
+                            "([Ljava/lang/Object;)Ljava/lang/Object;", false);
+                    visitor.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/invoke/MethodHandles$Lookup");
+                    visitor.visitFieldInsn(Opcodes.PUTSTATIC, innerAccessorDesc, "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
+                    visitor.visitInsn(Opcodes.RETURN);
+                });
+        return classBuilder;
     }
 
     /**
@@ -108,7 +165,7 @@ public class CompatibilityModeAccessorUtil {
     private static void collectAccessibleMethods(ClazzDefinition definition, ClassBuilder accessorClassBuilder, ClazzDefinition superAccessor,
                                                  ClassNameGenerator classNameGenerator) {
         try {
-            String innerAccessorName = accessorClassBuilder.getClassName();
+            String this0holder = findThis0Holder(accessorClassBuilder.getClassName(), superAccessor);
             String outClassDesc = "L" + ClassUtil.simpleClassName2path(definition.getClassName()) + ";";
 
             Set<AsmMethod> privateMethods = new HashSet<>();
@@ -137,7 +194,9 @@ public class CompatibilityModeAccessorUtil {
                         .accept(visitor -> {
                             visitor.visitVarInsn(Opcodes.ALOAD, 0);
                             visitor.visitFieldInsn(Opcodes.GETFIELD,
-                                    ClassUtil.simpleClassName2path(innerAccessorName), "this$0", outClassDesc);
+                                    ClassUtil.simpleClassName2path(this0holder), "this$0", "Ljava/lang/Object;");
+                            visitor.visitTypeInsn(Opcodes.CHECKCAST,
+                                    ClassUtil.simpleClassName2path(definition.getClassName()));
                             visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                                     ClassUtil.simpleClassName2path(definition.getClassName()), method.getMethodName(), method.getDesc(), false);
                             visitor.visitInsn(Opcodes.ARETURN);
@@ -160,23 +219,6 @@ public class CompatibilityModeAccessorUtil {
                         continue;
                     }
                     superMethods.add(superMethod);
-//                    if (definition.hasMethod(superMethod.getMethodName(), superMethod.getDesc())) {
-//                        continue;
-//                    }
-//                    if (superClassName.equals("java.lang.Object")) {
-//                        continue;
-//                    }
-//                    accessorClassBuilder
-//                            .defineMethod(Opcodes.ACC_PUBLIC, superMethod.getMethodName(), superMethod.getDesc(), superMethod.getExceptions(), superMethod.getMethodSign())
-//                            .accept(visitor -> {
-//                                visitor.visitVarInsn(Opcodes.ALOAD, 0);
-//                                visitor.visitFieldInsn(Opcodes.GETFIELD,
-//                                        ClassUtil.simpleClassName2path(innerAccessorName), "this$0", outClassDesc);
-//                                visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-//                                        ClassUtil.simpleClassName2path(definition.getClassName()), superMethod.getMethodName(), superMethod.getDesc(), false);
-//                                visitor.visitInsn(Opcodes.ARETURN);
-//                                visitor.visitMaxs(1, 1);
-//                            });
                 }
             }
 
@@ -194,7 +236,6 @@ public class CompatibilityModeAccessorUtil {
                     methodBindInfo.setBindClass(bindClassName);
                     methodBindInfo.setBindMethod(bindMethodName);
                     methodBindInfo.setPrivateMethod(true);
-                    methodBindInfo.setAccessorClassName(accessorClassBuilder.getClassName());
                     privateMethod.setMethodBindInfo(methodBindInfo);
                 }
             }
@@ -226,10 +267,33 @@ public class CompatibilityModeAccessorUtil {
         }
     }
 
-    private static void updatePrivateMethodBody(Set<AsmMethod> privateMethods, ClazzDefinition definition)
-            throws UnmodifiableClassException, ClassNotFoundException {
-//        ClassHotSwapper.redefine(definition);
-        VersionChainTool.getActiveVersionView().addDefinition(definition);
+    /**
+     * 获取this0字段在哪个类里面
+     * @param superAccessor
+     * @return
+     */
+    private static String findThis0Holder(String accessorName, ClazzDefinition superAccessor) throws ClassNotFoundException, NoSuchFieldException {
+        if (superAccessor == null) {
+            return accessorName;
+        }
+        if (superAccessor.getSuperClassName() == null || superAccessor.getSuperClassName().equals("java.lang.Object")) {
+            return superAccessor.getClassName();
+        }
+
+        Class<?> clazz = Class.forName(superAccessor.getClassName());
+        Field this$0 = clazz.getField("this$0");
+        return this$0.getDeclaringClass().getName();
+    }
+
+    private static void collectAccessibleFields(ClazzDefinition definition, ClassBuilder containSuper, ClazzDefinition classBuilder) {
+        // my all field
+        for (AsmField asmField : definition.getAsmFields()) {
+            if ((asmField.getModifier() & Opcodes.ACC_PRIVATE) > 0) {
+
+            }
+        }
+        // non private field in super class
+
     }
 
     private static boolean inherited(String superClass, String methodName, String methodDesc)
@@ -244,18 +308,6 @@ public class CompatibilityModeAccessorUtil {
         }
         return false;
     }
-
-    private static void collectAccessibleFields(ClazzDefinition definition, ClassBuilder containSuper, ClazzDefinition classBuilder) {
-        // my all field
-        for (AsmField asmField : definition.getAsmFields()) {
-            if ((asmField.getModifier() & Opcodes.ACC_PRIVATE) > 0) {
-
-            }
-        }
-        // non private field in super class
-
-    }
-
 
     public static boolean isSystemClass(String className) {
         if (className.startsWith("java.") || className.startsWith("javax.") || className.startsWith("sun.")) {

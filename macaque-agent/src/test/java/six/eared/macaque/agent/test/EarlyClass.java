@@ -1,8 +1,6 @@
 package six.eared.macaque.agent.test;
 
-
 public class EarlyClass extends AbsEarlyClass2 {
-
     public String test1() {
         System.out.println("test1");
         return "test1";
@@ -17,7 +15,7 @@ public class EarlyClass extends AbsEarlyClass2 {
         return "test3";
     }
 
-//    public class Macaque_Accessor extends AbsEarlyClass2.Macaque_Accessor {
-//
-//    }
+    public String test5() {
+        return "test5";
+    }
 }

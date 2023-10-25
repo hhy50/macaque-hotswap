@@ -6,34 +6,26 @@ import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 
 import java.io.IOException;
+import java.util.List;
 
 public class CompatibilityModeByteCodeEnhancer {
 
     private static final ClassNameGenerator CLASS_NAME_GENERATOR = new SimpleClassNameGenerator();
 
-    public static void enhance(ClazzDefinition definition) throws IOException, ClassNotFoundException {
-        ClazzDefinition accessor = createAccessor(definition);
-
-        // 准备阶段
-        prepare(definition, accessor);
-
-        // 转换阶段
-        bytecodeConvert(definition, accessor);
+    public static void enhance(List<ClazzDefinition> definitions) throws IOException, ClassNotFoundException {
+        for (ClazzDefinition definition : definitions) {
+            // 准备
+            prepare(definition);
+        }
+        for (ClazzDefinition definition : definitions) {
+            // 转换
+            bytecodeConvert(definition);
+        }
     }
 
-    /**
-     * 创建访问器
-     *
-     * @param definition
-     */
-    private static ClazzDefinition createAccessor(ClazzDefinition definition) {
-        // 计算深度
-        int depth = 3;
-        ClazzDefinition accessor = CompatibilityModeAccessorUtil.createAccessor(definition.getClassName(), CLASS_NAME_GENERATOR, depth);
-        return accessor;
-    }
+    private static void prepare(ClazzDefinition definition) throws IOException, ClassNotFoundException {
+        createAccessor(AsmUtil.readOriginClass(definition.getClassName()));
 
-    private static void prepare(ClazzDefinition definition, ClazzDefinition assessorDefinition) throws IOException, ClassNotFoundException {
         ClazzDefinition lastClassVersion = VersionChainTool.findLastClassVersion(definition.getClassName(), false);
         if (lastClassVersion == null) {
             lastClassVersion = AsmUtil.readOriginClass(definition.getClassName());
@@ -68,12 +60,23 @@ public class CompatibilityModeByteCodeEnhancer {
             MethodBindInfo methodBindInfo = new MethodBindInfo();
             methodBindInfo.setBindClass(bindClassName);
             methodBindInfo.setBindMethod(bindMethodName);
-            methodBindInfo.setAccessorClassName(assessorDefinition.getClassName());
             asmMethod.setMethodBindInfo(methodBindInfo);
         }
     }
 
-    private static void bytecodeConvert(ClazzDefinition definition, ClazzDefinition accessor) {
+    private static void bytecodeConvert(ClazzDefinition definition) {
 
+    }
+
+    /**
+     * 创建访问器
+     *
+     * @param definition
+     */
+    private static ClazzDefinition createAccessor(ClazzDefinition definition) {
+        // 计算深度
+        int depth = 3;
+        ClazzDefinition accessor = CompatibilityModeAccessorUtil.createAccessor(definition.getClassName(), CLASS_NAME_GENERATOR, depth);
+        return accessor;
     }
 }

@@ -21,6 +21,7 @@ public class CompatibilityModeClassLoader {
             FileUtil.writeBytes(
                     new File("C:\\Users\\haiyang\\IdeaProjects\\macaque-hotswap\\macaque-agent\\build" + File.separator + ClassUtil.toSimpleName(className) + ".class"),
                     bytes);
+            System.out.println();
         }
     }
 

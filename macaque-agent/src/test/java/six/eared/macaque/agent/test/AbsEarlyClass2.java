@@ -21,22 +21,4 @@ public class AbsEarlyClass2 extends AbsEarlyClass {
         System.out.println("abs test4");
         return "abs2 test4";
     }
-
-//    public class Macaque_Accessor {
-//        public String test1() {
-//            return AbsEarlyClass2.this.test1();
-//        }
-//
-//        public String test2() {
-//            return AbsEarlyClass2.this.test2();
-//        }
-//
-//        public String test3() {
-//            return AbsEarlyClass2.this.test3();
-//        }
-//
-//        public String test4() {
-//            return AbsEarlyClass2.this.test4();
-//        }
-//    }
 }

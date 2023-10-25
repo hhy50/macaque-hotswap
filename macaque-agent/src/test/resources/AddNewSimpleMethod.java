@@ -18,7 +18,13 @@ public class EarlyClass extends AbsEarlyClass2 {
         return "test3";
     }
 
-    private String test5() {
+    private String aaaaa() {
+        System.out.println("test4");
+        System.out.println("test4");
+        return "test4";
+    }
+
+    public String test5() {
         System.out.println("test4");
         System.out.println("test4");
         return "test4";

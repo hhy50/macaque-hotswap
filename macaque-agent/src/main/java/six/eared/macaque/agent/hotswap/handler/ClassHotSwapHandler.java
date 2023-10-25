@@ -30,28 +30,27 @@ public class ClassHotSwapHandler extends FileHookHandler {
 
     @SuppressWarnings("unchecked")
     public RmiResult handler(byte[] bytes, Map<String, String> extProperties) throws Exception {
-        VersionView versionView = VersionChainTool.getActiveVersionView();
-
         List<ClazzDefinition> definitions = AsmUtil.readMultiClass(bytes, ClazzDefinitionVisitorFactory.DEFAULT);
         boolean compatibilityMode = Boolean.TRUE.toString()
                 .equalsIgnoreCase(extProperties.get(ExtPropertyName.COMPATIBILITY_MODE));
 
-        for (ClazzDefinition definition : definitions) {
-            if (compatibilityMode) {
-                CompatibilityModeByteCodeEnhancer.enhance(definition);
-            }
-            versionView.addDefinition(definition);
+        if (compatibilityMode) {
+            CompatibilityModeByteCodeEnhancer.enhance(definitions);
         }
         return RmiResult.success().data(ClassHotSwapper
                 .redefine(flatClassDefinition(definitions)));
     }
 
     private List<ClazzDefinition> flatClassDefinition(List<ClazzDefinition> definitions) {
+        VersionView versionView = VersionChainTool.getActiveVersionView();
+
         List<ClazzDefinition> result = new ArrayList<>();
         for (ClazzDefinition definition : definitions) {
             result.add(definition);
             result.addAll(definition.getCorrelationClasses().stream().map(CorrelationClazzDefinition::getClazzDefinition)
                     .collect(Collectors.toList()));
+
+            versionView.addDefinition(definition);
         }
         return result;
     }

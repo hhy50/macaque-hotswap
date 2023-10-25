@@ -6,7 +6,6 @@ import org.junit.Test;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.enhance.CompatibilityModeClassLoader;
-import six.eared.macaque.agent.test.AbsEarlyClass;
 import six.eared.macaque.agent.test.EarlyClass;
 import six.eared.macaque.agent.test.Env;
 import six.eared.macaque.agent.test.compatibility.CompatibilityModeTest;
@@ -20,9 +19,6 @@ import six.eared.macaque.common.util.ReflectUtil;
 
 import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -47,7 +43,7 @@ public class InnerClassTest extends Env {
     public void testReadInnerClass2() throws ClassNotFoundException, IOException {
         printClassByteCode(AsmUtil.readOriginClass("six.eared.macaque.agent.test.EarlyClass").getOriginData());
         printClassByteCode(AsmUtil.readOriginClass("six.eared.macaque.agent.test.EarlyClass$Macaque_Accessor").getOriginData());
-        printClassByteCode(AsmUtil.readOriginClass("six.eared.macaque.agent.test.AbsEarlyClass2$Macaque_Accessor").getOriginData());
+//        printClassByteCode(AsmUtil.readOriginClass("six.eared.macaque.agent.test.AbsEarlyClass2$Macaque_Accessor").getOriginData());
     }
 
     @Test
@@ -130,17 +126,19 @@ public class InnerClassTest extends Env {
     @Test
     public void testInnerInvokerSuper2() throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, UnmodifiableClassException, InterruptedException {
         EarlyClass earlyClass = new EarlyClass();
+//
+//        MethodType type = MethodType.methodType(String.class);
+//
+//        MethodHandles.Lookup lookup = ReflectUtil.newInstance(MethodHandles.Lookup.class, earlyClass.getClass());
+//        try {
+//            MethodHandle mh = lookup.findSpecial(AbsEarlyClass.class, "test1", type, earlyClass.getClass());
+//            Object invoke = mh.invoke(earlyClass);
+//            System.out.println(invoke);
+//        } catch (Throwable e) {
+//            e.printStackTrace();
+//        }
 
-        MethodType type = MethodType.methodType(String.class);
-
-        MethodHandles.Lookup lookup = ReflectUtil.newInstance(MethodHandles.Lookup.class, earlyClass.getClass());
-        try {
-            MethodHandle mh = lookup.findSpecial(AbsEarlyClass.class,
-                    "test1", type, earlyClass.getClass());
-            Object invoke = mh.invoke(earlyClass);
-            System.out.println(invoke);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
+//        EarlyClass.Macaque_Accessor macaqueAccessor = earlyClass.new Macaque_Accessor();
+//        macaqueAccessor.super_test1();
     }
 }

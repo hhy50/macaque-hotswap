@@ -13,9 +13,7 @@ import six.eared.macaque.common.util.FileUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.MethodType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class AsmUtil {

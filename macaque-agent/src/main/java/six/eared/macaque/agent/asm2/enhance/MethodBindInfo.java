@@ -10,8 +10,6 @@ public class MethodBindInfo implements Cloneable {
 
     private boolean privateMethod;
 
-    private String accessorClassName;
-
     public String getBindClass() {
         return bindClass;
     }
@@ -34,14 +32,6 @@ public class MethodBindInfo implements Cloneable {
 
     public void setPrivateMethod(boolean privateMethod) {
         this.privateMethod = privateMethod;
-    }
-
-    public String getAccessorClassName() {
-        return accessorClassName;
-    }
-
-    public void setAccessorClassName(String accessorClassName) {
-        this.accessorClassName = accessorClassName;
     }
 
     @Override
