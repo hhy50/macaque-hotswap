@@ -189,4 +189,23 @@ public class ReflectUtil {
             throw new IllegalStateException(exception);
         }
     }
+
+
+    public static Object invokeStaticMethod(Class<?> target, String methodName, Object... args) {
+        try {
+            Class<?>[] paramTypes = new Class<?>[args.length];
+            for (int i = 0; i < paramTypes.length; i++) {
+                paramTypes[i] = args[i].getClass();
+            }
+
+            Method method = findMethod(target, methodName, paramTypes);
+            if (method == null) {
+                throw new NoSuchMethodException();
+            }
+            method.setAccessible(true);
+            return method.invoke(null, args);
+        } catch (Exception exception) {
+            throw new IllegalStateException(exception);
+        }
+    }
 }

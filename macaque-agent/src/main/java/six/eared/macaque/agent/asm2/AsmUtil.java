@@ -8,6 +8,7 @@ import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.asm.ClassReader;
 import six.eared.macaque.asm.ClassVisitor;
 import six.eared.macaque.asm.Opcodes;
+import six.eared.macaque.asm.Type;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.FileUtil;
 
@@ -113,16 +114,15 @@ public class AsmUtil {
         return header ? ("(" + split[0] + split[1]) : (split[0] + ")" + split[1]);
     }
 
-    public static String addAccessorDesc(String desc, String accessorClassName) {
-
-        return null;
-    }
-
     public static String methodType(String rDesc, String... pDesc) {
         String desc = "";
         for (String s : pDesc) {
             desc += s;
         }
         return "(" + desc + ")" + rDesc;
+    }
+
+    public static String generateMethodCallDesc(Type rType, Type[] argumentTypes) {
+        return null;
     }
 }

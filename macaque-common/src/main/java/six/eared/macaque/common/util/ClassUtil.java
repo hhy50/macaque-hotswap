@@ -56,4 +56,10 @@ public class ClassUtil {
         }
         return classes;
     }
+
+    public static String firstCharUppercase(String className) {
+        char[] charArray = className.toCharArray();
+        charArray[0] -= 32;
+        return new String(charArray);
+    }
 }

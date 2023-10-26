@@ -8,8 +8,6 @@ public class MethodBindInfo implements Cloneable {
 
     private String bindMethod;
 
-    private boolean privateMethod;
-
     public String getBindClass() {
         return bindClass;
     }
@@ -24,14 +22,6 @@ public class MethodBindInfo implements Cloneable {
 
     public void setBindMethod(String bindMethod) {
         this.bindMethod = bindMethod;
-    }
-
-    public boolean isPrivateMethod() {
-        return privateMethod;
-    }
-
-    public void setPrivateMethod(boolean privateMethod) {
-        this.privateMethod = privateMethod;
     }
 
     @Override

@@ -83,6 +83,7 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         AsmMethod asmMethod = AsmMethod.AsmMethodBuilder
                 .builder()
+                .className(this.definition.getClassName())
                 .modifier(access)
                 .methodName(name)
                 .desc(desc)

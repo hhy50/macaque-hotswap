@@ -4,10 +4,14 @@ package six.eared.macaque.agent.asm2;
 import six.eared.macaque.agent.asm2.enhance.MethodBindInfo;
 import six.eared.macaque.asm.Opcodes;
 
+import java.util.Objects;
+
 /**
  *
  */
 public class AsmMethod {
+
+    private String className;
 
     private int modifier;
 
@@ -21,8 +25,8 @@ public class AsmMethod {
 
     private MethodBindInfo methodBindInfo;
 
-    public int getModifier() {
-        return modifier;
+    public String getClassName() {
+        return className;
     }
 
     public String getMethodName() {
@@ -61,7 +65,21 @@ public class AsmMethod {
         return this.methodName.equals("<clinit>");
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AsmMethod asmMethod = (AsmMethod) o;
+        return Objects.equals(methodName, asmMethod.methodName) && Objects.equals(desc, asmMethod.desc);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(methodName, desc);
+    }
+
     public static final class AsmMethodBuilder {
+        private String className;
         private int modifier;
         private String methodName;
         private String methodSign;
@@ -73,6 +91,11 @@ public class AsmMethod {
 
         public static AsmMethodBuilder builder() {
             return new AsmMethodBuilder();
+        }
+
+        public AsmMethodBuilder className(String className) {
+            this.className = className;
+            return this;
         }
 
         public AsmMethodBuilder modifier(int modifier) {
@@ -102,6 +125,7 @@ public class AsmMethod {
 
         public AsmMethod build() {
             AsmMethod asmMethod = new AsmMethod();
+            asmMethod.className = this.className;
             asmMethod.modifier = this.modifier;
             asmMethod.methodName = this.methodName;
             asmMethod.methodSign = this.methodSign;
