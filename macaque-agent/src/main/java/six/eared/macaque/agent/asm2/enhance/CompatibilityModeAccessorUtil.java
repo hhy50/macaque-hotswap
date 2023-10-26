@@ -193,12 +193,9 @@ public class CompatibilityModeAccessorUtil {
                         .defineMethod(Opcodes.ACC_PUBLIC, method.getMethodName(), method.getDesc(), method.getExceptions(), method.getMethodSign())
                         .accept(visitor -> {
                             visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                            visitor.visitFieldInsn(Opcodes.GETFIELD,
-                                    ClassUtil.simpleClassName2path(this0holder), "this$0", "Ljava/lang/Object;");
-                            visitor.visitTypeInsn(Opcodes.CHECKCAST,
-                                    ClassUtil.simpleClassName2path(definition.getClassName()));
-                            visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                                    ClassUtil.simpleClassName2path(definition.getClassName()), method.getMethodName(), method.getDesc(), false);
+                            visitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.simpleClassName2path(this0holder), "this$0", "Ljava/lang/Object;");
+                            visitor.visitTypeInsn(Opcodes.CHECKCAST, ClassUtil.simpleClassName2path(definition.getClassName()));
+                            visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, ClassUtil.simpleClassName2path(definition.getClassName()), method.getMethodName(), method.getDesc(), false);
                             visitor.visitInsn(Opcodes.ARETURN);
                             visitor.visitMaxs(1, 1);
                         });
@@ -215,14 +212,14 @@ public class CompatibilityModeAccessorUtil {
                         continue;
                     }
                     // skip private
-                    if ((superMethod.getModifier() & Opcodes.ACC_PRIVATE) > 0) {
+                    if (superMethod.isPrivate()) {
                         continue;
                     }
                     superMethods.add(superMethod);
                 }
             }
 
-            // default method with interface class
+            // default method in interface class
             if (Environment.getJdkVersion() > 7) {
 
             }
