@@ -284,13 +284,13 @@ public class CompatibilityModeAccessorUtil {
 
                                 // MethodType type = MethodType.methodType(String.class);
                                 visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/invoke/MethodType", "methodType", selectMethodCallDesc(argumentTypes.length), false);
-                                visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 0); // solt_0 = MethodType type
+                                visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 1); // slot_1 = MethodType type
 
                                 // LOOKUP.findSpecial({super_outClass}.class, "{method}", type, {outClass}.class)
                                 visitor.visitFieldInsn(Opcodes.GETSTATIC, ClassUtil.simpleClassName2path(accessorClassBuilder.getClassName()), "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
                                 visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(ClassUtil.simpleClassName2path(asmMethod.getClassName()))));
                                 visitor.visitLdcInsn(asmMethod.getMethodName());
-                                visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 0); // solt_0 = type
+                                visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 1); // slot_1 = type
                                 visitor.visitLdcInsn(Type.getType(outClassDesc));
                                 visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandles$Lookup", "findSpecial", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;", false);
 
@@ -298,19 +298,19 @@ public class CompatibilityModeAccessorUtil {
                                 visitor.visitVarInsn(Opcodes.ALOAD, 0);
                                 visitor.visitFieldInsn(Opcodes.GETFIELD, this0holder, "this$0", "Ljava/lang/Object;");
                                 visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "bindTo", "(Ljava/lang/Object;)Ljava/lang/invoke/MethodHandle;", false);
-                                visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 1); // solt_1 = MethodHandle mh
+                                visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 2); // slot_2 = MethodHandle mh
 
                                 // mh.invoke({arg0...n});
-                                visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 1); // solt_1 = mh
+                                visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 2); // slot_2 = mh
                                 for (int i = 0; i < argumentTypes.length; i++) {
                                     visitor.visitVarInsn(Opcodes.ALOAD, i + 1);
                                 }
                                 visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", asmMethod.getDesc(), false);
 
-                                if (methodType.getReturnType().getDescriptor().equals("V")) {
+                                if (methodType.getReturnType().getSort() == Type.VOID) {
                                     visitor.visitInsn(Opcodes.RETURN);
                                 } else {
-                                    visitor.visitInsn(Opcodes.ARETURN);
+                                    visitor.visitInsn(methodType.getOpcode(Opcodes.IRETURN));
                                 }
                             });
                 }
