@@ -1,14 +1,17 @@
 package six.eared.macaque.agent.asm2.enhance;
 
-import six.eared.macaque.agent.asm2.*;
+import six.eared.macaque.agent.asm2.AsmField;
+import six.eared.macaque.agent.asm2.AsmMethod;
+import six.eared.macaque.agent.asm2.AsmUtil;
+import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
+import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.asm.Type;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.CollectionUtil;
-import six.eared.macaque.common.util.ReflectUtil;
 import six.eared.macaque.common.util.StringUtil;
 
 import java.io.IOException;
@@ -163,8 +166,6 @@ public class CompatibilityModeAccessorUtil {
                                                  ClassNameGenerator classNameGenerator) {
         try {
             String this0holder = findThis0Holder(accessorClassBuilder.getClassName(), superAccessor);
-            String outClassDesc = "L" + ClassUtil.simpleClassName2path(definition.getClassName()) + ";";
-
             Set<AsmMethod> privateMethods = new HashSet<>();
             Map<String, AsmMethod> accessibleSuperMethods = new HashMap<>();
 
@@ -215,6 +216,9 @@ public class CompatibilityModeAccessorUtil {
                         accessibleSuperMethods.put(superMethod.getMethodName() + "|" + superMethod.getDesc(), superMethod);
                     }
                 }
+                if (superAccessor != null) {
+                    break;
+                }
                 if (superClassDefinition.getClassName().equals("java.lang.Object") || superClassDefinition.getSuperClassName() == null) {
                     break;
                 }
@@ -246,77 +250,103 @@ public class CompatibilityModeAccessorUtil {
                     accessorClassBuilder
                             .defineMethod(Opcodes.ACC_PUBLIC, "super_" + asmMethod.getMethodName(), asmMethod.getDesc(), asmMethod.getExceptions(), asmMethod.getMethodSign())
                             .accept(visitor -> {
+                                // TODO 多态调用
                                 Type methodType = Type.getMethodType(asmMethod.getDesc());
-                                Type[] argumentTypes = methodType.getArgumentTypes();
-                                int lvbOffset = argumentTypes.length;
 
-                                visitor.visitMaxs(6, lvbOffset + 2);
-                                if (methodType.getReturnType().getSort() <= Type.DOUBLE) {
-                                    visitor.visitFieldInsn(Opcodes.GETSTATIC, getPrimitiveClass(methodType.getReturnType().getClassName()), "TYPE", "Ljava/lang/Class;");
-                                } else {
-                                    visitor.visitLdcInsn(methodType.getReturnType());
-                                }
-                                for (int i = 0; i < lvbOffset; i++) {
-                                    if (i == 0) {
-                                        if (argumentTypes[i].getSort() <= Type.DOUBLE) {
-                                            visitor.visitFieldInsn(Opcodes.GETSTATIC, getPrimitiveClass(argumentTypes[i].getClassName()), "TYPE", "Ljava/lang/Class;");
-                                        } else {
-                                            visitor.visitLdcInsn(argumentTypes[i]);
-                                        }
-                                        continue;
-                                    }
-                                    if (i == 1) {
-                                        visitor.visitInsn(Opcodes.ICONST_1);
-                                        visitor.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Class");
-                                        visitor.visitInsn(Opcodes.DUP);
-                                        visitor.visitInsn(Opcodes.ICONST_0);
-                                    }
-                                    if (argumentTypes[i].getSort() <= Type.DOUBLE) {
-                                        visitor.visitFieldInsn(Opcodes.GETSTATIC, getPrimitiveClass(argumentTypes[i].getClassName()), "TYPE", "Ljava/lang/Class;");
-                                    } else {
-                                        visitor.visitLdcInsn(argumentTypes[i]);
-                                    }
-                                    visitor.visitInsn(Opcodes.AASTORE);
-                                    if (i == argumentTypes.length - 1) {
-                                        visitor.visitInsn(Opcodes.AASTORE);
-                                    }
-                                }
+                                // invokeSpecial
+                                invokeSpecial(visitor, accessorClassBuilder.getClassName(), definition.getClassName(), this0holder,
+                                        asmMethod.getClassName(), asmMethod.getMethodName(), methodType);
 
-                                // MethodType type = MethodType.methodType(String.class);
-                                visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/invoke/MethodType", "methodType", selectMethodCallDesc(argumentTypes.length), false);
-                                visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 1); // slot_1 = MethodType type
-
-                                // LOOKUP.findSpecial({super_outClass}.class, "{method}", type, {outClass}.class)
-                                visitor.visitFieldInsn(Opcodes.GETSTATIC, ClassUtil.simpleClassName2path(accessorClassBuilder.getClassName()), "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
-                                visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(ClassUtil.simpleClassName2path(asmMethod.getClassName()))));
-                                visitor.visitLdcInsn(asmMethod.getMethodName());
-                                visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 1); // slot_1 = type
-                                visitor.visitLdcInsn(Type.getType(outClassDesc));
-                                visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandles$Lookup", "findSpecial", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;", false);
-
-                                // .bindTo({outClass}.this);
-                                visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                                visitor.visitFieldInsn(Opcodes.GETFIELD, this0holder, "this$0", "Ljava/lang/Object;");
-                                visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "bindTo", "(Ljava/lang/Object;)Ljava/lang/invoke/MethodHandle;", false);
-                                visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 2); // slot_2 = MethodHandle mh
-
-                                // mh.invoke({arg0...n});
-                                visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 2); // slot_2 = mh
-                                for (int i = 0; i < argumentTypes.length; i++) {
-                                    visitor.visitVarInsn(Opcodes.ALOAD, i + 1);
-                                }
-                                visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", asmMethod.getDesc(), false);
-
-                                if (methodType.getReturnType().getSort() == Type.VOID) {
-                                    visitor.visitInsn(Opcodes.RETURN);
-                                } else {
-                                    visitor.visitInsn(methodType.getOpcode(Opcodes.IRETURN));
-                                }
+                                // return;
+                                areturn(visitor, methodType.getReturnType());
                             });
                 }
             }
         } catch (Exception e) {
             throw new AccessorCreateException(e);
+        }
+    }
+
+
+    /**
+     * @param visitor
+     * @param className      自己的类名
+     * @param superClassName 父类名
+     * @param methodName     父类方法名
+     * @param methodType     方法类型
+     */
+    private static void invokeSpecial(MethodVisitor visitor, String className, String ouClassName, String this0holder,
+                                      String superClassName, String methodName, Type methodType) {
+        Type[] argumentTypes = methodType.getArgumentTypes();
+        // locals = this(1) + args + type + mh
+        visitor.visitMaxs(6, methodType.getArgumentTypes().length + 3);
+
+        adaptType(visitor, methodType.getReturnType());
+        for (int i = 0; i < argumentTypes.length; i++) {
+            if (i == 0) {
+                adaptType(visitor, argumentTypes[i]);
+                continue;
+            }
+            if (i == 1) {
+                visitor.visitInsn(Opcodes.ICONST_1);
+                visitor.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Class");
+            } else {
+                visitor.visitInsn(Opcodes.AASTORE);
+            }
+            visitor.visitInsn(Opcodes.DUP);
+            visitor.visitInsn(Opcodes.ICONST_0 + i - 1);
+            adaptType(visitor, argumentTypes[i]);
+
+            if (i == argumentTypes.length - 1) {
+                visitor.visitInsn(Opcodes.AASTORE);
+            }
+        }
+
+        int lvbOffset = argumentTypes.length;
+        // MethodType type = MethodType.methodType(String.class);
+        visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/invoke/MethodType", "methodType", selectMethodCallDesc(argumentTypes.length), false);
+        visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 1); // def slot_1 = MethodType type
+
+        // LOOKUP.findSpecial({super_outClass}.class, "{method}", type, {outClass}.class)
+        visitor.visitFieldInsn(Opcodes.GETSTATIC, ClassUtil.simpleClassName2path(className), "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
+        visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(superClassName)));
+        visitor.visitLdcInsn(methodName);
+        visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 1); // slot_1 = type
+        visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(ouClassName)));
+        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandles$Lookup", "findSpecial", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;", false);
+
+        // .bindTo({outClass}.this);
+        visitor.visitVarInsn(Opcodes.ALOAD, 0);
+        visitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.simpleClassName2path(this0holder), "this$0", "Ljava/lang/Object;");
+        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "bindTo", "(Ljava/lang/Object;)Ljava/lang/invoke/MethodHandle;", false);
+        visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 2); // slot_2 = MethodHandle mh
+
+        // mh.invoke({arg0...n});
+        visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 2); // slot_2 = mh
+        for (int i = 0; i < argumentTypes.length; i++) {
+            visitor.visitVarInsn(argumentTypes[0].getOpcode(Opcodes.ILOAD), i + 1);
+        }
+        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", methodType.getDescriptor(), false);
+    }
+
+
+    private static void areturn(MethodVisitor writer, Type rType) {
+        if (rType.getReturnType().getSort() == Type.VOID) {
+            writer.visitInsn(Opcodes.RETURN);
+        } else {
+            writer.visitInsn(rType.getOpcode(Opcodes.IRETURN));
+        }
+    }
+
+    /**
+     * @param visitor
+     * @param methodType
+     */
+    private static void adaptType(MethodVisitor visitor, Type methodType) {
+        if (methodType.getReturnType().getSort() <= Type.DOUBLE) {
+            visitor.visitFieldInsn(Opcodes.GETSTATIC, getPrimitiveClass(methodType.getReturnType().getClassName()), "TYPE", "Ljava/lang/Class;");
+        } else {
+            visitor.visitLdcInsn(methodType.getReturnType());
         }
     }
 
@@ -350,6 +380,12 @@ public class CompatibilityModeAccessorUtil {
 
     }
 
+    /**
+     * @param superClass
+     * @param methodName
+     * @param methodDesc
+     * @return 返回这个方法是否继承而来的方法
+     */
     private static boolean inherited(String superClass, String methodName, String methodDesc)
             throws ClassNotFoundException, IOException {
         while (StringUtil.isNotEmpty(superClass)
@@ -388,7 +424,27 @@ public class CompatibilityModeAccessorUtil {
     }
 
     private static String getPrimitiveClass(String className) {
-        Class<?> wClass = (Class<?>) ReflectUtil.invokeStaticMethod(Class.class, "getPrimitiveClass", className);
-        return ClassUtil.simpleClassName2path(wClass.getName());
+        switch (className) {
+            case "void":
+                return "java/lang/Void";
+            case "boolean":
+                return "java/lang/Boolean";
+            case "char":
+                return "java/lang/Character";
+            case "byte":
+                return "java/lang/Byte";
+            case "short":
+                return "java/lang/Short";
+            case "int":
+                return "java/lang/Integer";
+            case "float":
+                return "java/lang/Float";
+            case "long":
+                return "java/lang/Long";
+            case "double":
+                return "java/lang/Double";
+            default:
+                return "";
+        }
     }
 }

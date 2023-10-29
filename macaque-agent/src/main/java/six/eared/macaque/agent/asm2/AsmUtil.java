@@ -102,8 +102,8 @@ public class AsmUtil {
                 .defineClass(access, className, superName, interfaces, sign);
     }
 
-    public static String toTypeDesc(String type) {
-        return "L" + ClassUtil.simpleClassName2path(type) + ";";
+    public static String toTypeDesc(String className) {
+        return "L" + ClassUtil.simpleClassName2path(className) + ";";
     }
 
     public static String addArgsDesc(String desc, String accessorClassName, boolean header) {

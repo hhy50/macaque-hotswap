@@ -28,10 +28,18 @@ public class EarlyClass extends AbsEarlyClass2 {
     }
 
     public void test6() throws NoSuchMethodException, IllegalAccessException {
-        MethodType type = MethodType.methodType(void.class, byte.class, short.class, int.class, long.class, float.class, double.class, char.class, boolean.class);
+        MethodType type = MethodType.methodType(void.class, byte.class, short.class, int.class, char.class, long.class, float.class);
         MethodHandle mh = lookup
-                .findSpecial(String.class,"test1", type, void. class);
+                .findSpecial(String.class, "test1", type, this.getClass());
+
     }
+
+    public void test7(long arg1, int arg2) throws Throwable {
+        MethodType var2 = MethodType.methodType(Void.TYPE, Long.TYPE, Integer.TYPE);
+        MethodHandle var3 = lookup.findSpecial(Object.class, "wait", var2, AbsEarlyClass.class).bindTo(this.getClass());
+        var3.invoke(arg1, arg2);
+    }
+
 
     public class Macaque_Accessor {
         protected MethodHandles.Lookup lookup;
