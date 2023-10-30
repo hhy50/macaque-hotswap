@@ -4,7 +4,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Parameter;
 
 public class EarlyClass extends AbsEarlyClass2 {
     private MethodHandles.Lookup lookup;
@@ -27,43 +26,20 @@ public class EarlyClass extends AbsEarlyClass2 {
         return "test5";
     }
 
-    public void test6() throws NoSuchMethodException, IllegalAccessException {
-        MethodType type = MethodType.methodType(void.class, byte.class, short.class, int.class, char.class, long.class, float.class);
-        MethodHandle mh = lookup
-                .findSpecial(String.class, "test1", type, this.getClass());
-
+    public String aaaa(long arg1, long arg2, long arg3, long arg4, long arg5, long arg6, long arg7, long arg8, long arg9, long arg10,
+                       int var1, int var2, int var3, int var4, int var5, int var6, int var7, int var8, int var9, int var10) {
+        System.out.println("abs test4");
+        return "abs2 test4";
     }
 
-    public void test7(long arg1, int arg2) throws Throwable {
-        MethodType var2 = MethodType.methodType(Void.TYPE, Long.TYPE, Integer.TYPE);
-        MethodHandle var3 = lookup.findSpecial(Object.class, "wait", var2, AbsEarlyClass.class).bindTo(this.getClass());
-        var3.invoke(arg1, arg2);
+    public String bbbb(Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10,
+                       int var1, int var2, int var3, int var4, int var5, int var6, int var7, int var8, int var9, int var10) {
+        System.out.println("abs test4");
+        return "abs2 test4";
     }
 
-
-    public class Macaque_Accessor {
-        protected MethodHandles.Lookup lookup;
-
-        public Macaque_Accessor() {
-            try {
-                Constructor<?> constructor = MethodHandles.Lookup.class.getConstructors()[0];
-                constructor.setAccessible(true);
-                lookup = (MethodHandles.Lookup) MethodHandles.Lookup.class.getConstructors()[0].newInstance(EarlyClass.class);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public String super_test1(EarlyClass arg1, AbsEarlyClass arg2) {
-            MethodType type = MethodType.methodType(EarlyClass.class, Parameter.class, String.class);
-            try {
-                MethodHandle mh = lookup
-                        .findSpecial(AbsEarlyClass.class, "test1", type, EarlyClass.class)
-                        .bindTo(EarlyClass.this);
-                return (String) mh.invoke(arg1, arg2);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        }
+    public long test7(long arg1, long arg2, long arg3, long arg4, long arg5, long arg6, long arg7, long arg8, long arg9, long arg10,
+                      int var1, int var2, int var3, int var4, int var5, int var6, int var7, int var8, int var9, int var10) throws Throwable {
+        return arg1 + arg2;
     }
 }

@@ -186,14 +186,12 @@ public class CompatibilityModeAccessorUtil {
                 if (inherited && superAccessor != null) {
                     continue;
                 }
-                // 不是继承而来的 或者 继承来的但是没有父accessor
 
-
+                // 不是继承而来的 或者 继承来的但是没有父accessor, 就生成方法调用
                 accessorClassBuilder
                         .defineMethod(Opcodes.ACC_PUBLIC, method.getMethodName(), method.getDesc(), method.getExceptions(), method.getMethodSign())
                         .accept(visitor -> {
                             Type methodType = Type.getType(method.getDesc());
-                            visitor.visitMaxs(1, 1);
                             // invokerVirtual
                             invokerVirtual(visitor, accessorClassBuilder.getClassName(), this0holder, definition.getClassName(), method.getMethodName(), methodType);
                             // areturn
@@ -239,13 +237,6 @@ public class CompatibilityModeAccessorUtil {
 
             }
 
-            /**
-             *             MethodType type = MethodType.methodType(String.class);
-             *             MethodHandle mh = lookup
-             *                     .findSpecial({super_outClass}.class, "test1", type, {outClass}.class)
-             *                     .bindTo({outClass}.this);
-             *             mh.invoke({arg0...n});
-             */
             if (accessibleSuperMethods.size() > 0) {
                 for (Map.Entry<String, AsmMethod> methodEntry : accessibleSuperMethods.entrySet()) {
                     AsmMethod asmMethod = methodEntry.getValue();
@@ -271,31 +262,48 @@ public class CompatibilityModeAccessorUtil {
 
 
     /**
+     * <p>
      *
+     * </p>
      */
     private static void invokerVirtual(MethodVisitor visitor, String className, String this0holder,
                                        String ouClassName, String methodName, Type methodType) {
+        Type[] argumentTypes = methodType.getArgumentTypes();
+        int lvbOffset = calculateLvbOffset(argumentTypes);
+        visitor.visitMaxs(lvbOffset + 2, lvbOffset);
+
         visitor.visitVarInsn(Opcodes.ALOAD, 0);
         visitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.simpleClassName2path(this0holder), "this$0", "Ljava/lang/Object;");
         visitor.visitTypeInsn(Opcodes.CHECKCAST, ClassUtil.simpleClassName2path(ouClassName));
+
+        loadArgs(visitor, argumentTypes);
         visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, ClassUtil.simpleClassName2path(ouClassName), methodName, methodType.getDescriptor(), false);
     }
 
-
+    /**
+     * <p>
+     *      MethodType type = MethodType.methodType({arg0...n});
+     *      MethodHandle mh = {@param accessorClassName}.LOOKUP.findSpecial({super_outClass}.class, "{@param methodName}", type, {@param superClassName}.class)
+     *                              .bindTo({@param this0holder}.this$0);
+     *      return mh.invoke({arg0...n});
+     * </p>
+     */
     /**
      * @param visitor
-     * @param className      自己的类名
-     * @param superClassName 父类名
-     * @param methodName     父类方法名
-     * @param methodType     方法类型
+     * @param accessorClassName 访问器的类名
+     * @param this0holder       访问器的类名
+     * @param outClassName      调用类的类名
+     * @param superOutClassName 父类名
+     * @param outClassName      父类方法名
+     * @param methodType        方法类型
      */
-    private static void invokeSpecial(MethodVisitor visitor, String className, String this0holder, String ouClassName,
-                                      String superClassName, String methodName, Type methodType) {
+    private static void invokeSpecial(MethodVisitor visitor, String accessorClassName, String this0holder,
+                                      String outClassName, String superOutClassName, String superMethodName, Type methodType) {
         Type[] argumentTypes = methodType.getArgumentTypes();
         // locals = this(1) + args + type + mh
 
         int lvbOffset = calculateLvbOffset(methodType.getArgumentTypes());
-        visitor.visitMaxs(6, lvbOffset + 2);
+        visitor.visitMaxs(lvbOffset + 4, lvbOffset + 2);
 
         adaptType(visitor, methodType.getReturnType());
         for (int i = 0; i < argumentTypes.length; i++) {
@@ -304,13 +312,17 @@ public class CompatibilityModeAccessorUtil {
                 continue;
             }
             if (i == 1) {
-                visitor.visitInsn(Opcodes.ICONST_1);
+                visitor.visitIntInsn(Opcodes.BIPUSH, argumentTypes.length - 1);
                 visitor.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Class");
             } else {
                 visitor.visitInsn(Opcodes.AASTORE);
             }
             visitor.visitInsn(Opcodes.DUP);
-            visitor.visitInsn(Opcodes.ICONST_0 + i - 1);
+            if (i - 1 > 5) {
+                visitor.visitIntInsn(Opcodes.BIPUSH, i - 1);
+            } else {
+                visitor.visitInsn(Opcodes.ICONST_0 + i - 1);
+            }
             adaptType(visitor, argumentTypes[i]);
 
             if (i == argumentTypes.length - 1) {
@@ -318,36 +330,28 @@ public class CompatibilityModeAccessorUtil {
             }
         }
 
-        // MethodType type = MethodType.methodType(String.class);
+        // MethodType type = MethodType.methodType({arg0...n});
         visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/invoke/MethodType", "methodType", selectMethodCallDesc(argumentTypes.length), false);
-        visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 0); // def slot_1 = MethodType type
+        visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 0); // slot_0 = MethodType type
 
-        // LOOKUP.findSpecial({super_outClass}.class, "{method}", type, {outClass}.class)
-        visitor.visitFieldInsn(Opcodes.GETSTATIC, ClassUtil.simpleClassName2path(className), "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
-        visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(superClassName)));
-        visitor.visitLdcInsn(methodName);
-        visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 0); // slot_1 = type
-        visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(ouClassName)));
+        // MethodHandle mh = {@param accessorClassName}.LOOKUP.findSpecial({super_outClass}.class, "{@param methodName}", type, {@param superClassName}.class)
+        visitor.visitFieldInsn(Opcodes.GETSTATIC, ClassUtil.simpleClassName2path(accessorClassName), "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
+        visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(superOutClassName)));
+        visitor.visitLdcInsn(superMethodName);
+        visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 0); // slot_0 = type
+        visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(outClassName)));
         visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandles$Lookup", "findSpecial", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;", false);
 
-        // .bindTo({outClass}.this);
+        // .bindTo({@param this0holder}.this$0);
         visitor.visitVarInsn(Opcodes.ALOAD, 0);
         visitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.simpleClassName2path(this0holder), "this$0", "Ljava/lang/Object;");
         visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "bindTo", "(Ljava/lang/Object;)Ljava/lang/invoke/MethodHandle;", false);
-        visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 1); // slot_2 = MethodHandle mh
+        visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 1); // slot_1 = MethodHandle mh
 
-        // mh.invoke({arg0...n});
-        visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 1); // slot_2 = mh
+        // return mh.invoke({arg0...n});
+        visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 1); // slot_1 = mh
 
-        int i = 0;
-        for (Type argumentType : argumentTypes) {
-            visitor.visitVarInsn(argumentType.getOpcode(Opcodes.ILOAD), i + 1);
-            if (argumentType.getSort() == Type.DOUBLE || argumentType.getSort() == Type.LONG) {
-                i++;
-            }
-            i++;
-        }
-
+        loadArgs(visitor, argumentTypes);
         visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", methodType.getDescriptor(), false);
     }
 
@@ -364,6 +368,21 @@ public class CompatibilityModeAccessorUtil {
             lvbLen += setup;
         }
         return lvbLen;
+    }
+
+    /**
+     * 加载方法参数
+     *
+     * @param visitor
+     * @param argumentTypes
+     */
+    private static void loadArgs(MethodVisitor visitor, Type[] argumentTypes) {
+        int i = 0;
+        for (Type argumentType : argumentTypes) {
+            visitor.visitVarInsn(argumentType.getOpcode(Opcodes.ILOAD), i + 1);
+            if (argumentType.getSort() == Type.DOUBLE || argumentType.getSort() == Type.LONG) i++;
+            i++;
+        }
     }
 
 

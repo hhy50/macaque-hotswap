@@ -15,11 +15,7 @@ public class CompatibilityModeClassLoader {
     public synchronized static void loadClass(String className, byte[] bytes) {
         if (!isLoaded(className)) {
             ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-
-            FileUtil.writeBytes(
-                    new File("C:\\Users\\haiyang\\IdeaProjects\\macaque-hotswap\\macaque-agent\\build" + File.separator + ClassUtil.toSimpleName(className) + ".class"),
-                    bytes);
-            Class<?> clazz = (Class<?>) ReflectUtil.invokeMethod(systemClassLoader, "defineClass", className, bytes, 0, bytes.length);
+            ReflectUtil.invokeMethod(systemClassLoader, "defineClass", className, bytes, 0, bytes.length);
             NAMESPACE.add(className);
             System.out.println();
         }
