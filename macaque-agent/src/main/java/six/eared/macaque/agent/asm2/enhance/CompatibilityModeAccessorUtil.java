@@ -234,21 +234,32 @@ public class CompatibilityModeAccessorUtil {
             // 1. MethodHandler的方式（可维护性强）
             // 2. 将字节码绑定到新的类（性能好）
             if (CollectionUtil.isNotEmpty(privateMethods)) {
-
+                for (AsmMethod privateMethod : privateMethods) {
+                    accessorClassBuilder
+                            .defineMethod(Opcodes.ACC_PUBLIC, privateMethod.getMethodName(), privateMethod.getDesc(), privateMethod.getExceptions(), privateMethod.getMethodSign())
+                            .accept(visitor -> {
+                                Type methodType = Type.getMethodType(privateMethod.getDesc());
+                                // invokeSpecial
+                                invokeSpecial(visitor, accessorClassBuilder.getClassName(), this0holder, definition.getClassName(),
+                                        privateMethod.getClassName(), privateMethod.getMethodName(), methodType);
+                                // return;
+                                areturn(visitor, methodType.getReturnType());
+                            });
+                }
             }
 
             if (accessibleSuperMethods.size() > 0) {
                 for (Map.Entry<String, AsmMethod> methodEntry : accessibleSuperMethods.entrySet()) {
-                    AsmMethod asmMethod = methodEntry.getValue();
+                    AsmMethod superMethod = methodEntry.getValue();
                     accessorClassBuilder
-                            .defineMethod(Opcodes.ACC_PUBLIC, "super_" + asmMethod.getMethodName(), asmMethod.getDesc(), asmMethod.getExceptions(), asmMethod.getMethodSign())
+                            .defineMethod(Opcodes.ACC_PUBLIC, "super_" + superMethod.getMethodName(), superMethod.getDesc(), superMethod.getExceptions(), superMethod.getMethodSign())
                             .accept(visitor -> {
                                 // TODO 多态调用
-                                Type methodType = Type.getMethodType(asmMethod.getDesc());
+                                Type methodType = Type.getMethodType(superMethod.getDesc());
 
                                 // invokeSpecial
                                 invokeSpecial(visitor, accessorClassBuilder.getClassName(), this0holder, definition.getClassName(),
-                                        asmMethod.getClassName(), asmMethod.getMethodName(), methodType);
+                                        superMethod.getClassName(), superMethod.getMethodName(), methodType);
 
                                 // return;
                                 areturn(visitor, methodType.getReturnType());
@@ -259,7 +270,6 @@ public class CompatibilityModeAccessorUtil {
             throw new AccessorCreateException(e);
         }
     }
-
 
     /**
      * <p>
@@ -289,23 +299,22 @@ public class CompatibilityModeAccessorUtil {
      * </p>
      */
     /**
-     * @param visitor
-     * @param accessorClassName 访问器的类名
-     * @param this0holder       访问器的类名
-     * @param outClassName      调用类的类名
-     * @param superOutClassName 父类名
-     * @param outClassName      父类方法名
-     * @param methodType        方法类型
+     * @param visitor             方法字节码的visitor
+     * @param accessorClassName   访问器的类名
+     * @param this0holder         持有this$0对象的类
+     * @param outClassName        调用类的类名
+     * @param beInvokedClass      被调用的类名
+     * @param beInvokedMethod     被调用的方法
+     * @param beInvokedMethodType 方法类型
      */
     private static void invokeSpecial(MethodVisitor visitor, String accessorClassName, String this0holder,
-                                      String outClassName, String superOutClassName, String superMethodName, Type methodType) {
-        Type[] argumentTypes = methodType.getArgumentTypes();
+                                      String outClassName, String beInvokedClass, String beInvokedMethod, Type beInvokedMethodType) {
+        Type[] argumentTypes = beInvokedMethodType.getArgumentTypes();
         // locals = this(1) + args + type + mh
-
-        int lvbOffset = calculateLvbOffset(methodType.getArgumentTypes());
+        int lvbOffset = calculateLvbOffset(argumentTypes);
         visitor.visitMaxs(lvbOffset + 4, lvbOffset + 2);
 
-        adaptType(visitor, methodType.getReturnType());
+        adaptType(visitor, beInvokedMethodType.getReturnType());
         for (int i = 0; i < argumentTypes.length; i++) {
             if (i == 0) {
                 adaptType(visitor, argumentTypes[i]);
@@ -324,7 +333,6 @@ public class CompatibilityModeAccessorUtil {
                 visitor.visitInsn(Opcodes.ICONST_0 + i - 1);
             }
             adaptType(visitor, argumentTypes[i]);
-
             if (i == argumentTypes.length - 1) {
                 visitor.visitInsn(Opcodes.AASTORE);
             }
@@ -336,8 +344,8 @@ public class CompatibilityModeAccessorUtil {
 
         // MethodHandle mh = {@param accessorClassName}.LOOKUP.findSpecial({super_outClass}.class, "{@param methodName}", type, {@param superClassName}.class)
         visitor.visitFieldInsn(Opcodes.GETSTATIC, ClassUtil.simpleClassName2path(accessorClassName), "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
-        visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(superOutClassName)));
-        visitor.visitLdcInsn(superMethodName);
+        visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(beInvokedClass)));
+        visitor.visitLdcInsn(beInvokedMethod);
         visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 0); // slot_0 = type
         visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(outClassName)));
         visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandles$Lookup", "findSpecial", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;", false);
@@ -352,7 +360,7 @@ public class CompatibilityModeAccessorUtil {
         visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 1); // slot_1 = mh
 
         loadArgs(visitor, argumentTypes);
-        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", methodType.getDescriptor(), false);
+        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", beInvokedMethodType.getDescriptor(), false);
     }
 
     /**
