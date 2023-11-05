@@ -10,7 +10,6 @@ import six.eared.macaque.http.handler.BaseRequestHandler;
 import six.eared.macaque.http.request.MultipartFile;
 
 import java.util.Arrays;
-import java.util.HashMap;
 
 public class MacaqueHttpServerTest {
 
@@ -22,27 +21,18 @@ public class MacaqueHttpServerTest {
         this.config.setRootPath("/test");
     }
 
-
     @Test(timeout = 5000)
     public void testServerStart() throws InterruptedException {
-        new MacaqueHttpServer(this.config, Arrays.asList(new TestRequestHandler()))
+        new MacaqueHttpServer(this.config, Arrays.asList(new RequestHandler()))
                 .start();
     }
+
     @Path(value = "/getUser",method = {RequestMethod.POST, RequestMethod.GET})
-    public static class TestRequestHandler extends BaseRequestHandler<User> {
+    public static class RequestHandler extends BaseRequestHandler<User> {
         @Override
         public Object process0(User user) {
             System.out.println(user);
             return user;
-        }
-    }
-
-    @Path("/upload")
-    public static class TestFile extends BaseRequestHandler<MyFile> {
-        @Override
-        public Object process0(MyFile file) {
-
-            return new HashMap<>();
         }
     }
 

@@ -53,7 +53,7 @@ package six.eared.macaque.asm;
  * 
  * @author Eric Bruneton
  */
-public abstract class MethodVisitor {
+public abstract class MethodVisitor implements IMethodVisitor {
 
     /**
      * The ASM API version implemented by this visitor. The value of this field
@@ -65,7 +65,7 @@ public abstract class MethodVisitor {
      * The method visitor to which this visitor must delegate method calls. May
      * be null.
      */
-    protected MethodVisitor mv;
+    protected IMethodVisitor mv;
 
     /**
      * Constructs a new {@link MethodVisitor}.
@@ -88,7 +88,7 @@ public abstract class MethodVisitor {
      *            the method visitor to which this visitor must delegate method
      *            calls. May be null.
      */
-    public MethodVisitor(final int api, final MethodVisitor mv) {
+    public MethodVisitor(final int api, final IMethodVisitor mv) {
         if (api != Opcodes.ASM4 && api != Opcodes.ASM5) {
             throw new IllegalArgumentException();
         }

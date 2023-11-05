@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> {
@@ -35,7 +36,6 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
             return javaFileObject;
         }
         javaFileObject = new ByteCodeOutStream(className);
-//        javaFileObject = super.getJavaFileForOutput(location, className, kind, sibling);
         byteCodes.put(className, javaFileObject);
         return javaFileObject;
     }
@@ -56,5 +56,10 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
                     }
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse) throws IOException {
+        return super.list(location, packageName, kinds, recurse);
     }
 }

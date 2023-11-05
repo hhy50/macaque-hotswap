@@ -2,10 +2,12 @@ package six.eared.macaque.agent.compiler.java;
 
 import six.eared.macaque.agent.compiler.Compiler;
 import six.eared.macaque.agent.env.Environment;
+import six.eared.macaque.agent.exceptions.MemoryCompileException;
 import six.eared.macaque.common.util.FileUtil;
 
 import javax.tools.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class JavaSourceCompiler implements Compiler {
 
@@ -29,7 +31,7 @@ public class JavaSourceCompiler implements Compiler {
      * @return
      */
     @Override
-    public List<byte[]> compile(Map<String, byte[]> sourceCodes) {
+    public List<byte[]> compile(Map<String, byte[]> sourceCodes) throws MemoryCompileException {
         List<JavaFileObject> javaFileObjects = new ArrayList<>();
 
         Set<Map.Entry<String, byte[]>> entries = sourceCodes.entrySet();
@@ -47,18 +49,26 @@ public class JavaSourceCompiler implements Compiler {
                 Collections.singleton("-Xlint:unchecked"), null, javaFileObjects);
 
         boolean result = task.call();
-        if (!result || collector.getDiagnostics().size() > 0) {
-            if (Environment.isDebug()) {
-                for (Diagnostic<? extends JavaFileObject> diagnostic : collector.getDiagnostics()) {
-                    System.out.println("line: " + diagnostic.getLineNumber() + ", message: " + diagnostic.getMessage(Locale.US));
-                }
-            }
-            return null;
+        Map<String, List<Diagnostic<? extends JavaFileObject>>> errors = collector.getDiagnostics().stream()
+                .filter(item -> item.getKind() == Diagnostic.Kind.ERROR)
+                .collect(Collectors.groupingBy(diagnostic -> diagnostic.getSource().getName()));
+        if (!result || !errors.isEmpty()) {
+            throw new MemoryCompileException(formatCompileErrorText(errors));
         }
         return fileManager.getByteCodes();
     }
 
-    public boolean isPrepare() {
+    private String formatCompileErrorText(Map<String, List<Diagnostic<? extends JavaFileObject>>> errors) {
+        StringBuilder sbuilder = new StringBuilder("compile error: \n");
+        for (Map.Entry<String, List<Diagnostic<? extends JavaFileObject>>> errorEntry : errors.entrySet()) {
+            sbuilder.append("   ").append("class: " + errorEntry.getKey()).append("\n");
+            sbuilder.append("   ").append(errorEntry.getValue().stream().map(diagnostic -> " line: " + diagnostic.getLineNumber() + ", message: " + diagnostic.getMessage(Locale.US))
+                    .collect(Collectors.joining("\n     "))).append("\n");
+        }
+        return sbuilder.toString();
+    }
+
+    public boolean isPrepared() {
         return this.compiler != null
                 && this.baseFileManager != null;
     }

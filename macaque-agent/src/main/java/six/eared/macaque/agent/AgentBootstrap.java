@@ -43,7 +43,8 @@ public class AgentBootstrap {
                 // init jmx, mbeans
                 JMX_MBEAN_MANAGER = initJmxService(jmxPort);
 
-                loadLibrary();
+                // init Library
+                LibrarySpiLoader.initLibrary();
 
                 JMX_MBEAN_MANAGER.registerAllMBean();
 
@@ -57,10 +58,6 @@ public class AgentBootstrap {
             }
         }
         return false;
-    }
-
-    private static void loadLibrary() {
-        LibrarySpiLoader.initLibrary();
     }
 
     private static JmxMBeanManager initJmxService(int port) throws IOException {

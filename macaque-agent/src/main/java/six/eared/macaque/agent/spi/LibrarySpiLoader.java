@@ -24,7 +24,7 @@ public class LibrarySpiLoader {
         return loader.iterator();
     }
 
-    public static void initLibrary() {
+    public static void initLibrary() throws Exception {
         for (LibraryDefinition library : findLibrary()) {
             Library libraryAnnotation = library.getClazz().getAnnotation(Library.class);
             if (libraryAnnotation != null) {
@@ -36,51 +36,55 @@ public class LibrarySpiLoader {
     }
 
     public static List<LibraryDefinition> findLibrary() {
-        List<LibraryDefinition> libraries = new ArrayList<>();
-
         try {
+            List<LibraryDefinition> libraries = new ArrayList<>();
             Enumeration<URL> libraryUrls = LibrarySpiLoader.class.getClassLoader().getResources(PATH);
             while (libraryUrls.hasMoreElements()) {
                 URL url = libraryUrls.nextElement();
                 if (inJar(url)) {
-                    if (url.openConnection() instanceof JarURLConnection) {
-                        JarURLConnection connection = (JarURLConnection) url.openConnection();
-                        JarFile jarFile = connection.getJarFile();
-                        Enumeration<JarEntry> entries = jarFile.entries();
-
-                        while (entries.hasMoreElements()) {
-                            JarEntry entry = entries.nextElement();
-                            String relativePath = entry.getName();
-                            if (relativePath.startsWith(PATH) && !entry.isDirectory()) {
-                                try (InputStream is = jarFile.getInputStream(entry)) {
-                                    String[] split = relativePath.split("/");
-                                    LibraryDefinition definition = createDefinition(split[split.length - 1], is);
-                                    if (definition != null) {
-                                        libraries.add(definition);
-                                    }
-                                }
-                            }
+                    findLibraryFromJarFile(url, libraries);
+                    continue;
+                }
+                File libraryDirectory = new File(url.getPath());
+                if (!libraryDirectory.exists() || !libraryDirectory.isDirectory()) {
+                    continue;
+                }
+                File[] files = libraryDirectory.listFiles();
+                if (files != null) {
+                    for (File library : files) {
+                        LibraryDefinition definition = null;
+                        try (FileInputStream fis = new FileInputStream(library.getPath())) {
+                            definition = createDefinition(library.getName(), fis);
                         }
-                    }
-                } else {
-                    File libraryDirectory = new File(url.getPath());
-                    if (libraryDirectory.exists() && libraryDirectory.isDirectory()
-                            && libraryDirectory.listFiles() != null) {
-                        for (File library : libraryDirectory.listFiles()) {
-                            try (FileInputStream fis = new FileInputStream(library.getPath())) {
-                                LibraryDefinition definition = createDefinition(library.getName(), fis);
-                                if (definition != null) {
-                                    libraries.add(definition);
-                                }
-                            }
-                        }
+                        if (definition != null) libraries.add(definition);
                     }
                 }
             }
+            return libraries;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return libraries;
+    }
+
+    private static void findLibraryFromJarFile(URL url, List<LibraryDefinition> libraries) throws IOException {
+        if (url.openConnection() instanceof JarURLConnection) {
+            JarURLConnection connection = (JarURLConnection) url.openConnection();
+            JarFile jarFile = connection.getJarFile();
+            Enumeration<JarEntry> entries = jarFile.entries();
+
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                String relativePath = entry.getName();
+                if (relativePath.startsWith(PATH) && !entry.isDirectory()) {
+                    LibraryDefinition definition = null;
+                    try (InputStream is = jarFile.getInputStream(entry)) {
+                        String[] split = relativePath.split("/");
+                        definition = createDefinition(split[split.length - 1], is);
+                    }
+                    if (definition != null) libraries.add(definition);
+                }
+            }
+        }
     }
 
     private static LibraryDefinition createDefinition(String name, InputStream is) {
@@ -102,9 +106,5 @@ public class LibrarySpiLoader {
 
     private static boolean inJar(URL url) {
         return url.getPath().contains(".jar!");
-    }
-
-    public static void main(String[] args) {
-        initLibrary();
     }
 }
