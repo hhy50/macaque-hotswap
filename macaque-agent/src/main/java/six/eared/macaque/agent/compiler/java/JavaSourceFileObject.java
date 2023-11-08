@@ -8,15 +8,12 @@ import java.io.IOException;
 
 public class JavaSourceFileObject extends SimpleJavaFileObject {
 
-    private final File sourceFile;
-
     public JavaSourceFileObject(File file) {
         super(file.toURI(), Kind.SOURCE);
-        this.sourceFile = file;
     }
 
     @Override
     public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
-        return new String(FileUtil.readBytes(sourceFile.getPath()));
+        return new String(FileUtil.readBytes(super.uri.getPath()));
     }
 }
