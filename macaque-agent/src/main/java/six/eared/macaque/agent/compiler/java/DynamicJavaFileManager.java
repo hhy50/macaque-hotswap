@@ -28,21 +28,33 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         for (String jarPath : jars) {
             try (JarFile jarFile = new JarFile(jarPath)) {
                 Manifest manifest = jarFile.getManifest();
+                if (manifest == null) {
+                    continue;
+                }
                 String classpath = manifest.getMainAttributes().getValue(new Attributes.Name("Class-Path"));
                 if (StringUtil.isNotEmpty(classpath)) {
-                    String[] libs = classpath.split(File.pathSeparator);
-                    for (String lib : libs) {
-                        if (!lib.endsWith(".jar")) {
-                            CLASS_PATH_ROOTS.add(lib);
+                    for (StringTokenizer st = new StringTokenizer(classpath); st.hasMoreTokens(); ) {
+                        String elt = st.nextToken();
+                        if (elt.startsWith("file:/")) elt = elt.substring(6);
+                        if (!elt.endsWith(".jar")) {
+                            CLASS_PATH_ROOTS.add(elt);
                             continue;
                         }
-                        JAR_LIBRARIES.add(lib);
+                        JAR_LIBRARIES.add(elt);
                     }
                 }
             } catch (IOException e) {
                 // ignore
             }
         }
+    }
+
+    @Override
+    public String inferBinaryName(Location location, JavaFileObject file) {
+        if (file instanceof JavaClassFileObject) {
+            return ((JavaClassFileObject) file).getClassName();
+        }
+        return super.inferBinaryName(location, file);
     }
 
     @Override
@@ -85,8 +97,9 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         if (location == StandardLocation.CLASS_PATH) {
             for (String root : CLASS_PATH_ROOTS) {
                 File packageFile = new File(root, ClassUtil.simpleClassName2path(packageName));
-                if (packageFile.exists()) {
-                    for (File classFile : packageFile.listFiles()) {
+                if (packageFile.exists() && packageFile.isDirectory()) {
+                    for (File classFile : packageFile.listFiles(item -> !item.isDirectory()
+                            && item.getName().endsWith(".class"))) {
                         result.add(new JavaClassFileObject(classFile));
                     }
                 }
@@ -98,31 +111,48 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         return result;
     }
 
-//    public static void main(String[] args) {
-//        List<String> jarLibraries = new ArrayList<>();
-//        List<String> classPathRoots = new ArrayList<>();
-//
+    private static List<String> getPathEntries(String classPath) {
+        List<String> entries = new ArrayList<>();
+        int start = 0;
+        while (start <= classPath.length()) {
+            int sep = classPath.indexOf(File.pathSeparatorChar, start);
+            if (sep == -1)
+                sep = classPath.length();
+            if (start < sep)
+                entries.add(classPath.substring(start, sep));
+            start = sep + 1;
+        }
+        return entries;
+    }
+
+    public static void main(String[] args) {
+        List<String> jarLibraries = new ArrayList<>();
+        List<String> classPathRoots = new ArrayList<>();
+
 //        String classPath = System.getProperty("java.class.path");
-////        String[] jars = classPath.split(File.pathSeparator);
 //        String[] jars = {"C:\\Users\\49168\\Desktop\\classpath69898995.jar"};
 //        for (String jarPath : jars) {
 //            try (JarFile jarFile = new JarFile(jarPath)) {
 //                Manifest manifest = jarFile.getManifest();
-//                Object classpath = manifest.getMainAttributes().get(new Attributes.Name("Class-Path"));
-//                if (StringUtil.isNotEmpty(classpath.toString())) {
-//                    String[] libs = classPath.split(File.pathSeparator);
-//                    for (String lib : libs) {
-//                        if (lib.endsWith(".jar")) {
-//                            jarLibraries.add(lib);
-//                        } else {
-//                            classPathRoots.add(lib);
+//                if (manifest == null) {
+//                    continue;
+//                }
+//                String classpath = manifest.getMainAttributes().getValue(new Attributes.Name("Class-Path"));
+//                if (StringUtil.isNotEmpty(classpath)) {
+//                    for (StringTokenizer st = new StringTokenizer(classpath); st.hasMoreTokens(); ) {
+//                        String elt = st.nextToken();
+//                        if (!elt.endsWith(".jar")) {
+//                            CLASS_PATH_ROOTS.add(elt);
+//                            continue;
 //                        }
+//                        if (elt.startsWith("file:/")) elt = elt.substring(6);
+//                        JAR_LIBRARIES.add(elt);
 //                    }
 //                }
 //            } catch (IOException e) {
-//                throw new RuntimeException(e);
+//                // ignore
 //            }
 //        }
-//        System.out.println(1);
-//    }
+        System.out.println(1);
+    }
 }
