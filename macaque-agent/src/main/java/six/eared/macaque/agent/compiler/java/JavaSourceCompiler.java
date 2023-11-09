@@ -1,21 +1,60 @@
 package six.eared.macaque.agent.compiler.java;
 
+import com.sun.tools.javac.file.JavacFileManager;
 import six.eared.macaque.agent.compiler.Compiler;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.MemoryCompileException;
 import six.eared.macaque.common.util.FileUtil;
+import six.eared.macaque.common.util.StringUtil;
 
 import javax.tools.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 public class JavaSourceCompiler implements Compiler {
+
+    private static final Set<String> CLASS_PATH_ROOTS = new HashSet<>();
+
+    private static final Set<String> JAR_LIBRARIES = new HashSet<>();
+
+    private static JavaSourceCompiler INSTANCE = null;
 
     private final JavaCompiler compiler;
 
     private final StandardJavaFileManager baseFileManager;
 
-    public JavaSourceCompiler() {
+    static {
+        String[] jars = System.getProperty("java.class.path").split(File.pathSeparator);
+        for (String jarPath : jars) {
+            try (JarFile jarFile = new JarFile(jarPath)) {
+                Manifest manifest = jarFile.getManifest();
+                if (manifest == null) {
+                    continue;
+                }
+                String classpath = manifest.getMainAttributes().getValue(new Attributes.Name("Class-Path"));
+                if (StringUtil.isNotEmpty(classpath)) {
+                    for (StringTokenizer st = new StringTokenizer(classpath); st.hasMoreTokens(); ) {
+                        String elt = st.nextToken();
+                        if (elt.startsWith("file:/")) elt = elt.substring(6);
+                        if (elt.endsWith(".jar") || elt.endsWith(".zip")) {
+                            JAR_LIBRARIES.add(elt);
+                            continue;
+                        }
+                        CLASS_PATH_ROOTS.add(elt);
+                    }
+                }
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+    }
+
+    private JavaSourceCompiler() {
         this.compiler = ToolProvider.getSystemJavaCompiler();
         if (this.compiler == null) {
             if (Environment.isDebug()) {
@@ -23,6 +62,19 @@ public class JavaSourceCompiler implements Compiler {
             }
         }
         this.baseFileManager = this.compiler == null ? null : this.compiler.getStandardFileManager(null, null, null);
+    }
+
+    public static JavaSourceCompiler getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new JavaSourceCompiler();
+            try {
+                JavacFileManager javac = (JavacFileManager) INSTANCE.baseFileManager;
+                javac.setLocation(StandardLocation.CLASS_PATH, JAR_LIBRARIES.stream().map(item -> new File(item)).collect(Collectors.toList()));
+            } catch (IOException e) {
+
+            }
+        }
+        return INSTANCE;
     }
 
     /**
@@ -42,7 +94,7 @@ public class JavaSourceCompiler implements Compiler {
             javaFileObjects.add(sourceFile);
         }
 
-        DynamicJavaFileManager fileManager = new DynamicJavaFileManager(baseFileManager);
+        DynamicJavaFileManager fileManager = new DynamicJavaFileManager(baseFileManager, CLASS_PATH_ROOTS);
         DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
 
         JavaCompiler.CompilationTask task = this.compiler.getTask(null, fileManager, collector,

@@ -120,7 +120,7 @@ public class TestJavaCompiler {
 
     @Test
     public void testClassByteAr() {
-        JavaSourceCompiler javaSourceCompiler = new JavaSourceCompiler();
+        JavaSourceCompiler javaSourceCompiler = JavaSourceCompiler.getInstance();
 
         Map<String, byte[]> javaSource = new HashMap<>();
         javaSource.put("Main.java", clazz1.getBytes());
@@ -136,7 +136,7 @@ public class TestJavaCompiler {
 
     @Test
     public void testMultiClassReader() {
-        JavaSourceCompiler javaSourceCompiler = new JavaSourceCompiler();
+        JavaSourceCompiler javaSourceCompiler = JavaSourceCompiler.getInstance();
 
         Map<String, byte[]> javaSource = new HashMap<>();
         javaSource.put("Main.java", clazz1.getBytes());

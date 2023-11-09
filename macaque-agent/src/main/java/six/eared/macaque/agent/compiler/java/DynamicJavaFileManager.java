@@ -1,58 +1,29 @@
 package six.eared.macaque.agent.compiler.java;
 
-
+import com.sun.tools.javac.util.BaseFileManager;
 import six.eared.macaque.common.util.ClassUtil;
-import six.eared.macaque.common.util.StringUtil;
 
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> {
-    private static final List<String> JAR_LIBRARIES = new ArrayList<>();
-
-    private static final List<String> CLASS_PATH_ROOTS = new ArrayList<>();
 
     private final Map<String, JavaFileObject> byteCodes = new HashMap<>();
+    private final Set<String> classRootPath;
 
-    public DynamicJavaFileManager(JavaFileManager fileManager) {
+    public DynamicJavaFileManager(JavaFileManager fileManager, Set<String> classRootPath) {
         super(fileManager);
-
-        String[] jars = System.getProperty("java.class.path").split(File.pathSeparator);
-        for (String jarPath : jars) {
-            try (JarFile jarFile = new JarFile(jarPath)) {
-                Manifest manifest = jarFile.getManifest();
-                if (manifest == null) {
-                    continue;
-                }
-                String classpath = manifest.getMainAttributes().getValue(new Attributes.Name("Class-Path"));
-                if (StringUtil.isNotEmpty(classpath)) {
-                    for (StringTokenizer st = new StringTokenizer(classpath); st.hasMoreTokens(); ) {
-                        String elt = st.nextToken();
-                        if (elt.startsWith("file:/")) elt = elt.substring(6);
-                        if (!elt.endsWith(".jar")) {
-                            CLASS_PATH_ROOTS.add(elt);
-                            continue;
-                        }
-                        JAR_LIBRARIES.add(elt);
-                    }
-                }
-            } catch (IOException e) {
-                // ignore
-            }
-        }
+        this.classRootPath = classRootPath != null ? classRootPath : new HashSet<>();
     }
 
     @Override
     public String inferBinaryName(Location location, JavaFileObject file) {
-        if (file instanceof JavaClassFileObject) {
-            return ((JavaClassFileObject) file).getClassName();
+        if (file instanceof JavaSourceFileObject) {
+            return ((JavaSourceFileObject) file).getClassName();
         }
         return super.inferBinaryName(location, file);
     }
@@ -95,12 +66,15 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
 
         List<JavaFileObject> result = new ArrayList<>();
         if (location == StandardLocation.CLASS_PATH) {
-            for (String root : CLASS_PATH_ROOTS) {
+            for (String root : classRootPath) {
                 File packageFile = new File(root, ClassUtil.simpleClassName2path(packageName));
                 if (packageFile.exists() && packageFile.isDirectory()) {
-                    for (File classFile : packageFile.listFiles(item -> !item.isDirectory()
-                            && item.getName().endsWith(".class"))) {
-                        result.add(new JavaClassFileObject(classFile));
+                    File[] files = packageFile.listFiles(item ->
+                            !item.isDirectory()
+                                    && kinds.contains(BaseFileManager.getKind(item.getName())
+                            ));
+                    for (File classFile : files) {
+                        result.add(new JavaSourceFileObject(classFile));
                     }
                 }
             }
