@@ -12,7 +12,7 @@ import java.util.Map;
 public class Utils {
 
     public static List<byte[]> compileToClass(String javaFileName, byte[] sourceCode) {
-        JavaSourceCompiler javaSourceCompiler = new JavaSourceCompiler();
+        JavaSourceCompiler javaSourceCompiler = JavaSourceCompiler.getInstance();
         Map<String, byte[]> javaSource = new HashMap<>();
         javaSource.put(javaFileName, sourceCode);
 
