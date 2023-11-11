@@ -12,7 +12,6 @@ import six.eared.macaque.mbean.rmi.RmiResult;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-// E:\dev\jdk1.8_361\bin\java.exe -agentlib:jdwp=transport=dt_socket,address=127.0.0.1:58350,suspend=y,server=n -XX:TieredStopAtLevel=1 -noverify -Dspring.output.ansi.enabled=always -Dcom.sun.management.jmxremote -Dspring.jmx.enabled=true -Dspring.liveBeansView.mbeanDomain -Dspring.application.admin.enabled=true -javaagent:D:\ideaIU-2023.1.3\plugins\java\lib\rt\debugger-agent.jar -Dfile.encoding=UTF-8 -classpath C:\Users\haiyang\AppData\Local\Temp\classpath1397808741.jar com.yuyuka.billiards.service.ServicesProvider
 /**
  * 热加载MBean
  */
@@ -41,11 +40,11 @@ public class HotSwap implements HotSwapMBean {
                 throw new HotswapException("Not supported file type: " + request.getFileType());
             }
             return handler.handlerRequest(request);
-        } catch (HotswapException e) {
+        } catch (Throwable e) {
             if (Environment.isDebug()) {
                 e.printStackTrace();
             }
-            errMsg = e.getDetails();
+            errMsg = e.getMessage();
         }
         return RmiResult.error(errMsg);
     }

@@ -98,35 +98,4 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         }
         return entries;
     }
-
-    public static void main(String[] args) {
-        List<String> jarLibraries = new ArrayList<>();
-        List<String> classPathRoots = new ArrayList<>();
-
-//        String classPath = System.getProperty("java.class.path");
-//        String[] jars = {"C:\\Users\\49168\\Desktop\\classpath69898995.jar"};
-//        for (String jarPath : jars) {
-//            try (JarFile jarFile = new JarFile(jarPath)) {
-//                Manifest manifest = jarFile.getManifest();
-//                if (manifest == null) {
-//                    continue;
-//                }
-//                String classpath = manifest.getMainAttributes().getValue(new Attributes.Name("Class-Path"));
-//                if (StringUtil.isNotEmpty(classpath)) {
-//                    for (StringTokenizer st = new StringTokenizer(classpath); st.hasMoreTokens(); ) {
-//                        String elt = st.nextToken();
-//                        if (!elt.endsWith(".jar")) {
-//                            CLASS_PATH_ROOTS.add(elt);
-//                            continue;
-//                        }
-//                        if (elt.startsWith("file:/")) elt = elt.substring(6);
-//                        JAR_LIBRARIES.add(elt);
-//                    }
-//                }
-//            } catch (IOException e) {
-//                // ignore
-//            }
-//        }
-        System.out.println(1);
-    }
 }

@@ -3,11 +3,13 @@ package six.eared.macaque.agent;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.jmx.JmxMBeanManager;
 import six.eared.macaque.agent.spi.LibrarySpiLoader;
+import six.eared.macaque.common.util.FileUtil;
 
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.rmi.registry.LocateRegistry;
@@ -48,6 +50,13 @@ public class AgentBootstrap {
 
                 JMX_MBEAN_MANAGER.registerAllMBean();
 
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    @Override
+                    public void run() {
+                        // 清理临时目录
+                        FileUtil.deleteFile(new File(FileUtil.getProcessTmpPath()));
+                    }
+                });
                 System.out.printf("attach success, jmx port=%d\n", jmxPort);
                 return true;
             } catch (Exception e) {

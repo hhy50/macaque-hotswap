@@ -36,10 +36,6 @@ public class JavaSourceFileObject extends SimpleJavaFileObject {
     }
 
     public String getClassName() {
-        int index = fileName.lastIndexOf(".");
-        if (index != -1) {
-            return fileName.substring(0, index);
-        }
-        return fileName;
+        return FileUtil.getFileName(fileName);
     }
 }
