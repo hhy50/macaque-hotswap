@@ -11,7 +11,6 @@ public class ByteCodeOutStream extends SimpleJavaFileObject {
     private static final char PKG_SEPARATOR = '.';
     private static final char DIR_SEPARATOR = '/';
 
-
     private final String className;
     private ByteArrayOutputStream byteArrayOutputStream;
 

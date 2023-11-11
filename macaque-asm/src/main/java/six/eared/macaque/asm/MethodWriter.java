@@ -449,7 +449,7 @@ class MethodWriter extends MethodVisitor {
      *            <tt>true</tt> if the stack map tables must be recomputed from
      *            scratch.
      */
-    MethodWriter(final ClassWriter cw, final int access, final String name,
+    public MethodWriter(final ClassWriter cw, final int access, final String name,
                  final String desc, final String signature,
                  final String[] exceptions, final boolean computeMaxs,
                  final boolean computeFrames) {
