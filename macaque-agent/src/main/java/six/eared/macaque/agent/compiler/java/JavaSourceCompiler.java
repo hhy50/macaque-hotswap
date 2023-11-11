@@ -30,8 +30,7 @@ public class JavaSourceCompiler implements Compiler {
 
     static {
         String userDir = System.getProperty("user.dir");
-//        String[] jars = System.getProperty("java.class.path").split(File.pathSeparator);
-        String[] jars = {"C:\\Users\\49168\\Desktop\\billiards\\billiards-service-1.0-SNAPSHOT.jar"};
+        String[] jars = System.getProperty("java.class.path").split(File.pathSeparator);
         for (String jarPath : jars) {
             try (JarFile jarFile = new JarFile(getJarAbsolutePath(jarPath, userDir))) {
                 Manifest manifest = jarFile.getManifest();
