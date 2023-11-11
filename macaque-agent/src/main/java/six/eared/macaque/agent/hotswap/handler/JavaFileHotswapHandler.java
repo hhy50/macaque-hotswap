@@ -21,15 +21,13 @@ public class JavaFileHotswapHandler implements HotSwapHandler {
 
     private ClassHotSwapHandler classHotSwapHandler;
 
-    private final JavaSourceCompiler compiler = new JavaSourceCompiler();
-
     public JavaFileHotswapHandler(ClassHotSwapHandler classHotSwapHandler) {
         this.classHotSwapHandler = classHotSwapHandler;
     }
 
     @Override
     public RmiResult handlerRequest(HotSwapRmiData request) {
-        if (!compiler.isPrepared()) {
+        if (!JavaSourceCompiler.getInstance().isPrepared()) {
             throw new HotswapException("current JDK env not support memory compile");
         }
 
@@ -44,7 +42,7 @@ public class JavaFileHotswapHandler implements HotSwapHandler {
             Map<String, byte[]> sources = new HashMap<>();
             sources.put(request.getFileName(), request.getFileData());
 
-            List<byte[]> compiled = compiler.compile(sources);
+            List<byte[]> compiled = JavaSourceCompiler.getInstance().compile(sources);
             if (CollectionUtil.isNotEmpty(compiled)) {
                 request.setFileData(mergeClassData(compiled));
                 request.setFileType(FileType.Class.getType());

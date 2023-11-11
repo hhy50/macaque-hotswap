@@ -1,5 +1,9 @@
 package six.eared.macaque.agent.env;
 
+import six.eared.macaque.common.util.FileUtil;
+
+import java.io.File;
+import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 
 /**
@@ -45,10 +49,18 @@ public class Environment {
         INIT_FLAG = true;
     }
 
+    /**
+     *
+     * @return
+     */
     public static boolean isDebug() {
         return DEBUG;
     }
 
+    /**
+     *
+     * @return
+     */
     public static Instrumentation getInst() {
         return INST;
     }
@@ -65,5 +77,18 @@ public class Environment {
         String jdkversion = System.getProperty("java.specification.version");
         jdkversion = jdkversion.contains(".") ? jdkversion.substring(jdkversion.lastIndexOf('.') + 1) : jdkversion;
         return Integer.parseInt(jdkversion);
+    }
+    /**
+     *
+     * @return
+     */
+    public static String getAndInitTmpClasspath() throws IOException {
+        File tmpFile = new File(String.format("%s/classpath/", FileUtil.getProcessTmpPath()));
+        if (!tmpFile.exists()) {
+            tmpFile.mkdirs();
+            return tmpFile.getPath();
+        }
+        FileUtil.deleteFile(tmpFile);
+        return tmpFile.getPath();
     }
 }

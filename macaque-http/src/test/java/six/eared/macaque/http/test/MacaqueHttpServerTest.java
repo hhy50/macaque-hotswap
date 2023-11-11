@@ -21,7 +21,6 @@ public class MacaqueHttpServerTest {
         this.config.setRootPath("/test");
     }
 
-
     @Test(timeout = 5000)
     public void testServerStart() throws InterruptedException {
         new MacaqueHttpServer(this.config, Arrays.asList(new RequestHandler()))

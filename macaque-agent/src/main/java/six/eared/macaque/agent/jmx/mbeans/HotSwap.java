@@ -31,7 +31,7 @@ public class HotSwap implements HotSwapMBean {
             if (request.getFileData() == null || request.getFileData().length == 0) {
                 return RmiResult.error("filData is not be null");
             }
-            if (StringUtil.isNotEmpty(request.getFileType())) {
+            if (StringUtil.isEmpty(request.getFileType())) {
                 return RmiResult.error("fileType is not be null");
             }
 
@@ -40,11 +40,11 @@ public class HotSwap implements HotSwapMBean {
                 throw new HotswapException("Not supported file type: " + request.getFileType());
             }
             return handler.handlerRequest(request);
-        } catch (HotswapException e) {
+        } catch (Throwable e) {
             if (Environment.isDebug()) {
                 e.printStackTrace();
             }
-            errMsg = e.getDetails();
+            errMsg = e.getMessage();
         }
         return RmiResult.error(errMsg);
     }

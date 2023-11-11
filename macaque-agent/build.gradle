@@ -10,6 +10,7 @@ repositories {
 }
 
 dependencies {
+    implementation files("${System.getenv('JAVA_HOME')}/lib/tools.jar")
     implementation project(':macaque-mbean')
     implementation project(':macaque-common')
     implementation project(':macaque-asm')
@@ -22,6 +23,10 @@ dependencies {
 
 
 shadowJar {
+    dependencies {
+        exclude 'tools.jar'
+    }
+
     archiveBaseName = "$project.name"
     archiveVersion = ""
     archiveClassifier = null

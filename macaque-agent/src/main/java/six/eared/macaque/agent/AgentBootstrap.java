@@ -3,18 +3,48 @@ package six.eared.macaque.agent;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.jmx.JmxMBeanManager;
 import six.eared.macaque.agent.spi.LibrarySpiLoader;
+import six.eared.macaque.common.util.FileUtil;
 
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.rmi.registry.LocateRegistry;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AgentBootstrap {
+
+    static {
+        try {
+            String javaHome = System.getProperty("java.home");
+            String toolsJarURL = "file:" + javaHome + "/../lib/tools.jar";
+
+            // Make addURL public
+            Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+            method.setAccessible(true);
+
+            URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+            if (sysloader.getResourceAsStream("/com/sun/tools/attach/VirtualMachine.class") == null) {
+                method.invoke(sysloader, (Object) new URL(toolsJarURL));
+                Thread.currentThread().getContextClassLoader().loadClass("com.sun.tools.attach.VirtualMachine");
+                Thread.currentThread().getContextClassLoader().loadClass("com.sun.tools.attach.AttachNotSupportedException");
+            }
+
+        } catch (Exception e) {
+            if (Environment.isDebug()) {
+                System.out.println("Java home points to " + System.getProperty("java.home") + " make sure it is not a JRE path");
+                System.out.print("Failed to add tools.jar to classpath: ");
+                e.printStackTrace();
+            }
+        }
+    }
 
     private static final AtomicBoolean START_FLAG = new AtomicBoolean(false);
 
@@ -48,6 +78,13 @@ public class AgentBootstrap {
 
                 JMX_MBEAN_MANAGER.registerAllMBean();
 
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    @Override
+                    public void run() {
+                        // 清理临时目录
+                        FileUtil.deleteFile(new File(FileUtil.getProcessTmpPath()));
+                    }
+                });
                 System.out.printf("attach success, jmx port=%d\n", jmxPort);
                 return true;
             } catch (Exception e) {
