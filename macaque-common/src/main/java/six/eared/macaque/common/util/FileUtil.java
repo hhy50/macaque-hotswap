@@ -142,7 +142,7 @@ public class FileUtil {
             if (StringUtil.isEmpty(tmpdir)) {
                 tmpdir = System.getProperty("user.home") + separator + "tmp" + separator;
             }
-            tmpdir += "macaque" + separator;
+            tmpdir += separator + "macaque" + separator;
             TMP_DIR = tmpdir;
         }
         return String.format("%s/%s", TMP_DIR, PID.getCurrentPid());

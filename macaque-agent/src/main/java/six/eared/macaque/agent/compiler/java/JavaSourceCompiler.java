@@ -156,7 +156,7 @@ public class JavaSourceCompiler implements Compiler {
         DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
 
         JavaCompiler.CompilationTask task = this.compiler.getTask(null, fileManager, collector,
-                Collections.singleton("-Xlint:unchecked"), null, javaFileObjects);
+                Arrays.asList("-Xlint:unchecked"), null, javaFileObjects);
 
         boolean result = task.call();
         Map<String, List<Diagnostic<? extends JavaFileObject>>> errors = collector.getDiagnostics().stream()
@@ -166,6 +166,14 @@ public class JavaSourceCompiler implements Compiler {
             throw new MemoryCompileException(formatCompileErrorText(errors));
         }
         return fileManager.getByteCodes();
+    }
+
+    private String findAnnotationProcessor() {
+        Set<String> processor = new HashSet<>();
+        processor.add("lombok.launch.AnnotationProcessorHider$AnnotationProcessor");
+        processor.add("lombok.launch.AnnotationProcessorHider$ClaimingProcessor");
+
+        return String.join(",", processor);
     }
 
     private String formatCompileErrorText(Map<String, List<Diagnostic<? extends JavaFileObject>>> errors) {

@@ -32,17 +32,16 @@ public class AgentBootstrap {
 
             URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
             if (sysloader.getResourceAsStream("/com/sun/tools/attach/VirtualMachine.class") == null) {
-                method.invoke(sysloader, (Object) new URL(toolsJarURL));
+                URL url = new URL(toolsJarURL);
+                method.invoke(sysloader, (Object) url);
                 Thread.currentThread().getContextClassLoader().loadClass("com.sun.tools.attach.VirtualMachine");
                 Thread.currentThread().getContextClassLoader().loadClass("com.sun.tools.attach.AttachNotSupportedException");
+                System.out.println("load tools.jar, path=" + url.getPath());
             }
-
         } catch (Exception e) {
-            if (Environment.isDebug()) {
-                System.out.println("Java home points to " + System.getProperty("java.home") + " make sure it is not a JRE path");
-                System.out.print("Failed to add tools.jar to classpath: ");
-                e.printStackTrace();
-            }
+            System.out.println("Java home points to " + System.getProperty("java.home") + " make sure it is not a JRE path");
+            System.out.print("Failed to add tools.jar to classpath: ");
+            e.printStackTrace();
         }
     }
 
