@@ -7,6 +7,8 @@ import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,6 +20,11 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
     public DynamicJavaFileManager(JavaFileManager fileManager, Set<String> classRootPath) {
         super(fileManager);
         this.classRootPath = classRootPath != null ? classRootPath : new HashSet<>();
+    }
+
+    @Override
+    public ClassLoader getClassLoader(Location location) {
+        return new URLClassLoader(new URL[0], this.fileManager.getClass().getClassLoader());
     }
 
     @Override
