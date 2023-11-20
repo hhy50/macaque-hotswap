@@ -28,9 +28,11 @@ public class AgentBootstrap {
 
     private static final String JAVA_HOME = System.getProperty("java.home");
 
+    private static final String SCHEME = "file:";
+
     static {
         try {
-            String toolsJarURL = findToolsPath();
+            String toolsJarURL = SCHEME + findToolsPath();
 
             // Make addURL public
             Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
