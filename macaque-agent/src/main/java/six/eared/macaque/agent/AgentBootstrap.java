@@ -4,7 +4,6 @@ import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.jmx.JmxMBeanManager;
 import six.eared.macaque.agent.spi.LibrarySpiLoader;
 import six.eared.macaque.common.util.FileUtil;
-import six.eared.macaque.common.util.Pair;
 
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
