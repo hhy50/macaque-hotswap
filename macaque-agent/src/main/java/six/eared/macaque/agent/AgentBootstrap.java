@@ -16,15 +16,22 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.rmi.registry.LocateRegistry;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AgentBootstrap {
 
+    private static final List<String> SUN_TOOLS = Arrays.asList("lib/tools.jar", "../lib/tools.jar", "../../lib/tools.jar");
+
+    private static final String JAVA_HOME = System.getProperty("java.home");
+
+    private static final String SCHEME = "file:";
+
     static {
         try {
-            String javaHome = System.getProperty("java.home");
-            String toolsJarURL = "file:" + javaHome + "/../lib/tools.jar";
+            String toolsJarURL = SCHEME + findToolsPath();
 
             // Make addURL public
             Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
@@ -129,6 +136,21 @@ public class AgentBootstrap {
             }
         }
         return new Properties();
+    }
+
+    /**
+     * @return sun.tools jar的绝对路径
+     */
+    private static String findToolsPath() {
+        for (String child : SUN_TOOLS) {
+            File file = new File(JAVA_HOME, child);
+
+            if (file.exists()) {
+                return file.getPath();
+            }
+        }
+
+        throw new RuntimeException("tools.jar not find");
     }
 
 }
