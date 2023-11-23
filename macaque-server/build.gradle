@@ -39,7 +39,7 @@ task release(type: Tar, group: build) {
     from(jar) {
         into('bin/')
     }
-    from(project(":macaque-agent").shadowJar) {
+    from(project(":macaque-agent").release) {
         into('bin/')
     }
     from("${rootDir}/bin") {
