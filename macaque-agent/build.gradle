@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation files("${System.getenv('JAVA_HOME')}/lib/tools.jar")
+    implementation files("${System.getProperty('java.home')}/../lib/tools.jar")
     implementation project(':macaque-mbean')
     implementation project(':macaque-common')
     implementation project(':macaque-asm')

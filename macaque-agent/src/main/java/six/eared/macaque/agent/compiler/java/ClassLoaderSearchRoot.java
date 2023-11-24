@@ -3,13 +3,11 @@ package six.eared.macaque.agent.compiler.java;
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
-import java.net.JarURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLDecoder;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 public class ClassLoaderSearchRoot implements SearchRoot {
@@ -126,31 +124,43 @@ public class ClassLoaderSearchRoot implements SearchRoot {
         }
 
         private void loadIndex() throws IOException {
-            JarURLConnection jarConn = (JarURLConnection) uri.toURL().openConnection();
-            String rootEntryName = jarConn.getEntryName() == null ? "" : jarConn.getEntryName();
-            Enumeration<JarEntry> entryEnum = jarConn.getJarFile().entries();
-            while (entryEnum.hasMoreElements()) {
-                JarEntry jarEntry = entryEnum.nextElement();
-                String entryName = jarEntry.getName();
-                if (entryName.startsWith(rootEntryName) && entryName.endsWith(CLASS_FILE_EXTENSION)) {
-                    String className = entryName
-                            .substring(0, entryName.length() - CLASS_FILE_EXTENSION.length())
-                            .replace(rootEntryName, "")
-                            .replace("/", ".");
-                    if (className.startsWith(".")) className = className.substring(1);
-                    if (className.equals("package-info")
-                            || className.equals("module-info")
-                            || className.lastIndexOf(".") == -1) {
-                        continue;
+            URLConnection jarConn = uri.toURL().openConnection();
+
+            String rootEntryName = "";
+            JarFile jarFile = null;
+            if (jarConn instanceof JarURLConnection) {
+                rootEntryName = Optional.ofNullable(((JarURLConnection) jarConn).getEntryName()).orElse("");
+                jarFile = ((JarURLConnection) jarConn).getJarFile();
+            } else {
+                jarFile = new JarFile(new File(uri));
+            }
+            try {
+                Enumeration<JarEntry> entriesIt = jarFile.entries();
+                while (entriesIt.hasMoreElements()) {
+                    JarEntry jarEntry = entriesIt.nextElement();
+                    String entryName = jarEntry.getName();
+                    if (entryName.startsWith(rootEntryName) && entryName.endsWith(CLASS_FILE_EXTENSION)) {
+                        String className = entryName
+                                .substring(0, entryName.length() - CLASS_FILE_EXTENSION.length())
+                                .replace(rootEntryName, "")
+                                .replace("/", ".");
+                        if (className.startsWith(".")) className = className.substring(1);
+                        if (className.equals("package-info")
+                                || className.equals("module-info")
+                                || className.lastIndexOf(".") == -1) {
+                            continue;
+                        }
+                        String packageName = className.substring(0, className.lastIndexOf("."));
+                        List<ClassUriWrapper> classes = packages.get(packageName);
+                        if (classes == null) {
+                            classes = new ArrayList<>();
+                            packages.put(packageName, classes);
+                        }
+                        classes.add(new ClassUriWrapper(className, URI.create(jarUri + "!/" + entryName)));
                     }
-                    String packageName = className.substring(0, className.lastIndexOf("."));
-                    List<ClassUriWrapper> classes = packages.get(packageName);
-                    if (classes == null) {
-                        classes = new ArrayList<>();
-                        packages.put(packageName, classes);
-                    }
-                    classes.add(new ClassUriWrapper(className, URI.create(jarUri + "!/" + entryName)));
                 }
+            } finally {
+                if (jarFile != null) jarFile.close();
             }
         }
 
