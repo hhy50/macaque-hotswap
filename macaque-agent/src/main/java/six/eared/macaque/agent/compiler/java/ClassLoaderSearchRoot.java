@@ -133,6 +133,7 @@ public class ClassLoaderSearchRoot implements SearchRoot {
                 jarFile = ((JarURLConnection) jarConn).getJarFile();
             } else {
                 jarFile = new JarFile(new File(uri));
+                this.jarUri = "jar:" + this.jarUri;
             }
             try {
                 Enumeration<JarEntry> entriesIt = jarFile.entries();
