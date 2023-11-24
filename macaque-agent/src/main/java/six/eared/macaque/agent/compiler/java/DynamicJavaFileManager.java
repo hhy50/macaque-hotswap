@@ -1,24 +1,15 @@
 package six.eared.macaque.agent.compiler.java;
 
+import six.eared.macaque.agent.exceptions.CompileException;
 import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.FileUtil;
 
-import javax.tools.FileObject;
-import javax.tools.ForwardingJavaFileManager;
-import javax.tools.JavaFileManager;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardLocation;
+import javax.tools.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> {
@@ -37,9 +28,10 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
 
     public DynamicJavaFileManager(JavaFileManager fileManager, Set<SearchRoot> classRootPath) {
         super(fileManager);
-        this.classRootPath = classRootPath != null ? classRootPath : new HashSet<>();
+        this.classRootPath = classRootPath != null ? new HashSet<>(classRootPath) : new HashSet<>();
         this.processorPaths = new HashSet<>();
-        this.processorPaths.add(DynamicJavaFileManager.class.getProtectionDomain().getCodeSource().getLocation());
+
+        addProcessorPath(DynamicJavaFileManager.class.getProtectionDomain().getCodeSource().getLocation());
     }
 
     @Override
@@ -120,7 +112,15 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
     }
 
     public void addProcessorPath(URL processorPath) {
-        this.processorPaths.add(processorPath);
+        File file = new File(processorPath.getPath());
+        if (file.exists()) {
+            this.processorPaths.add(processorPath);
+            try {
+                this.classRootPath.add(new ClassLoaderSearchRoot.JarFileIndex(processorPath.getPath(), processorPath.toURI()));
+            } catch (Exception e) {
+                throw new CompileException(e);
+            }
+        }
     }
 
     public List<String> findAnnotationProcessor() throws IOException {

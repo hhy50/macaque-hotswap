@@ -5,26 +5,12 @@ import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.MemoryCompileException;
 import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.FileUtil;
+import six.eared.macaque.common.util.InstrumentationUtil;
 
-import javax.tools.Diagnostic;
-import javax.tools.DiagnosticCollector;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.StandardLocation;
-import javax.tools.ToolProvider;
+import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -80,10 +66,14 @@ public class JavaSourceCompiler implements Compiler {
                     }
 
                     // springboot的jar
-                    String bootClasses = manifest.getMainAttributes().getValue(new Attributes.Name("Spring-Boot-Classes"));
-                    String bootLibs = manifest.getMainAttributes().getValue(new Attributes.Name("Spring-Boot-Lib"));
-                    if (Objects.nonNull(bootClasses) && Objects.nonNull(bootLibs)) {
-                        PackageNameSearchRoot.loadBootJar(jarFile, bootClasses, bootLibs, this.classPathRoots);
+                    String startClass = manifest.getMainAttributes().getValue(new Attributes.Name("Start-Class"));
+                    if (Objects.nonNull(startClass)) {
+                        Set<Class<?>> loadedClass = InstrumentationUtil.findLoadedClass(Environment.getInst(), startClass);
+                        if (CollectionUtil.isNotEmpty(loadedClass)) {
+                            for (Class<?> mainClass : loadedClass) {
+                                this.classPathRoots.add(new ClassLoaderSearchRoot(mainClass.getClassLoader()));
+                            }
+                        }
                     }
                 }
             }
