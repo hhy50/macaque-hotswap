@@ -10,15 +10,15 @@ repositories {
 }
 
 dependencies {
-    implementation files("${System.getenv('JAVA_HOME')}/lib/tools.jar")
+    implementation files("${System.getProperty('java.home')}/../lib/tools.jar")
     implementation project(':macaque-mbean')
     implementation project(':macaque-common')
     implementation project(':macaque-asm')
     implementation project(':library:macaque-library')
     implementation project(':library:macaque-mybatis')
     implementation project(':library:macaque-spring')
+    runtimeOnly 'org.projectlombok:lombok:1.18.24'
     testImplementation 'junit:junit:4.13.1'
-    testImplementation files("${System.getenv('JAVA_HOME')}/lib/tools.jar")
 }
 
 
@@ -27,16 +27,34 @@ shadowJar {
         exclude 'tools.jar'
     }
 
+    archiveBaseName = 'agent'
+    archiveVersion = ''
+    archiveClassifier = null
+}
+
+task release(type: Jar) {
+    from(shadowJar) {
+        into('lib/')
+    }
+
+    from('build/classes/java/main/six/eared/macaque/agent/loader/') {
+        into('six/eared/macaque/agent/loader')
+    }
+
     archiveBaseName = "$project.name"
-    archiveVersion = ""
+    archiveVersion = ''
     archiveClassifier = null
     manifest {
         attributes(
-                'Agent-Class': 'six.eared.macaque.agent.AgentMain',
+                'Agent-Class': 'six.eared.macaque.agent.loader.AgentMain',
                 'Can-Redefine-Classes': 'true',
                 'Can-Retransform-Classes': 'true',
                 'Manifest-Version': "${projectVersion}"
         )
+    }
+
+    doLast {
+        delete file("${project.buildDir}/libs/agent.jar")
     }
 }
 
