@@ -12,48 +12,10 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.rmi.registry.LocateRegistry;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AgentBootstrap {
-
-    private static final List<String> SUN_TOOLS = Arrays.asList("lib/tools.jar", "../lib/tools.jar", "../../lib/tools.jar");
-
-    private static final String JAVA_HOME = System.getProperty("java.home");
-
-    private static final String SCHEME = "file:";
-
-    static {
-        try {
-            String toolsJarURL = SCHEME + findToolsPath();
-
-            // Make addURL public
-            Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            method.setAccessible(true);
-
-            URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-            if (sysloader.getResourceAsStream("/com/sun/tools/attach/VirtualMachine.class") == null) {
-                method.invoke(sysloader, (Object) new URL(toolsJarURL));
-                Thread.currentThread().getContextClassLoader().loadClass("com.sun.tools.attach.VirtualMachine");
-                Thread.currentThread().getContextClassLoader().loadClass("com.sun.tools.attach.AttachNotSupportedException");
-            }
-
-        } catch (Exception e) {
-            if (Environment.isDebug()) {
-                System.out.println("Java home points to " + System.getProperty("java.home") + " make sure it is not a JRE path");
-                System.out.print("Failed to add tools.jar to classpath: ");
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static final AtomicBoolean START_FLAG = new AtomicBoolean(false);
 
     /**
      * JMX MBean 管理器
@@ -61,44 +23,42 @@ public class AgentBootstrap {
     public static JmxMBeanManager JMX_MBEAN_MANAGER;
 
     /**
-     * 反射调用 {@link six.eared.macaque.agent.AgentMain#loadBootstrap}
+     * 反射调用 {@link six.eared.macaque.agent.loader.AgentMain#loadBootstrap(String, Instrumentation)}
      *
      * @param args 启动参数
      * @param inst 插桩对象
      * @return 启动结果
      */
     public static Boolean start(String args, Instrumentation inst) {
-        if (START_FLAG.compareAndSet(false, true)) {
-            Properties properties = parseArgs(args);
-            try {
-                boolean debug = Boolean.parseBoolean(properties.getProperty("debug", "false"));
-                int jmxPort = Integer.parseInt(properties.getProperty("port", "3030"));
+        Properties properties = parseArgs(args);
+        try {
+            boolean debug = Boolean.parseBoolean(properties.getProperty("debug", "false"));
+            int jmxPort = Integer.parseInt(properties.getProperty("port", "3030"));
 
-                // init env
-                Environment.initEnv(debug, inst);
+            // init env
+            Environment.initEnv(debug, inst);
 
-                // init jmx, mbeans
-                JMX_MBEAN_MANAGER = initJmxService(jmxPort);
+            // init jmx, mbeans
+            JMX_MBEAN_MANAGER = initJmxService(jmxPort);
 
-                // init Library
-                LibrarySpiLoader.initLibrary();
+            // init Library
+            LibrarySpiLoader.initLibrary();
 
-                JMX_MBEAN_MANAGER.registerAllMBean();
+            JMX_MBEAN_MANAGER.registerAllMBean();
 
-                Runtime.getRuntime().addShutdownHook(new Thread() {
-                    @Override
-                    public void run() {
-                        // 清理临时目录
-                        FileUtil.deleteFile(new File(FileUtil.getProcessTmpPath()));
-                    }
-                });
-                System.out.printf("attach success, jmx port=%d\n", jmxPort);
-                return true;
-            } catch (Exception e) {
-                if (Environment.isDebug()) {
-                    System.out.println("start error");
-                    e.printStackTrace();
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    // 清理临时目录
+                    FileUtil.deleteFile(new File(FileUtil.getProcessTmpPath()));
                 }
+            });
+            System.out.printf("attach success, jmx port=%d\n", jmxPort);
+            return true;
+        } catch (Exception e) {
+            if (Environment.isDebug()) {
+                System.out.println("start error");
+                e.printStackTrace();
             }
         }
         return false;
@@ -138,20 +98,4 @@ public class AgentBootstrap {
         }
         return new Properties();
     }
-
-    /**
-     * @return sun.tools jar的绝对路径
-     */
-    private static String findToolsPath() {
-        for (String child : SUN_TOOLS) {
-            File file = new File(JAVA_HOME, child);
-
-            if (file.exists()) {
-                return file.getPath();
-            }
-        }
-
-        throw new RuntimeException("tools.jar not find");
-    }
-
 }

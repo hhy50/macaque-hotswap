@@ -1,29 +1,48 @@
 package six.eared.macaque.agent.compiler.java;
 
-import com.sun.tools.javac.util.BaseFileManager;
-import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.agent.exceptions.CompileException;
+import six.eared.macaque.common.util.CollectionUtil;
+import six.eared.macaque.common.util.FileUtil;
 
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> {
 
     private final Map<String, JavaFileObject> byteCodes = new HashMap<>();
-    private final Set<String> classRootPath;
 
-    public DynamicJavaFileManager(JavaFileManager fileManager, Set<String> classRootPath) {
+    /**
+     * classpath
+     */
+    private final Set<SearchRoot> classRootPath;
+
+    /**
+     * 注解处理器的搜索路径
+     */
+    private final Set<URL> processorPaths;
+
+    public DynamicJavaFileManager(JavaFileManager fileManager, Set<SearchRoot> classRootPath) {
         super(fileManager);
-        this.classRootPath = classRootPath != null ? classRootPath : new HashSet<>();
+        this.classRootPath = classRootPath != null ? new HashSet<>(classRootPath) : new HashSet<>();
+        this.processorPaths = new HashSet<>();
+
+        addProcessorPath(DynamicJavaFileManager.class.getProtectionDomain().getCodeSource().getLocation());
+    }
+
+    @Override
+    public ClassLoader getClassLoader(Location location) {
+        return new AnnotationProcessorClassloader(processorPaths.toArray(new URL[0]), this.fileManager.getClass().getClassLoader());
     }
 
     @Override
     public String inferBinaryName(Location location, JavaFileObject file) {
         if (file instanceof JavaSourceFileObject) {
-            return ((JavaSourceFileObject) file).getClassName();
+            return ((JavaSourceFileObject) file).getName();
         }
         return super.inferBinaryName(location, file);
     }
@@ -66,17 +85,8 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
 
         List<JavaFileObject> result = new ArrayList<>();
         if (location == StandardLocation.CLASS_PATH) {
-            for (String root : classRootPath) {
-                File packageFile = new File(root, ClassUtil.simpleClassName2path(packageName));
-                if (packageFile.exists() && packageFile.isDirectory()) {
-                    File[] files = packageFile.listFiles(item ->
-                            !item.isDirectory()
-                                    && kinds.contains(BaseFileManager.getKind(item.getName())
-                            ));
-                    for (File classFile : files) {
-                        result.add(new JavaSourceFileObject(classFile));
-                    }
-                }
+            for (SearchRoot searchRoot : classRootPath) {
+                result.addAll(searchRoot.search(packageName, kinds));
             }
         }
         for (JavaFileObject javaFileObject : super.list(location, packageName, kinds, recurse)) {
@@ -85,17 +95,47 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         return result;
     }
 
-    private static List<String> getPathEntries(String classPath) {
-        List<String> entries = new ArrayList<>();
-        int start = 0;
-        while (start <= classPath.length()) {
-            int sep = classPath.indexOf(File.pathSeparatorChar, start);
-            if (sep == -1)
-                sep = classPath.length();
-            if (start < sep)
-                entries.add(classPath.substring(start, sep));
-            start = sep + 1;
+    @Override
+    public void close() throws IOException {
+        super.close();
+        this.classRootPath.forEach(SearchRoot::close);
+    }
+
+    public static JavaFileObject.Kind getKind(String var0) {
+        if (var0.endsWith(JavaFileObject.Kind.CLASS.extension)) {
+            return JavaFileObject.Kind.CLASS;
+        } else if (var0.endsWith(JavaFileObject.Kind.SOURCE.extension)) {
+            return JavaFileObject.Kind.SOURCE;
+        } else {
+            return var0.endsWith(JavaFileObject.Kind.HTML.extension) ? JavaFileObject.Kind.HTML : JavaFileObject.Kind.OTHER;
         }
-        return entries;
+    }
+
+    public void addProcessorPath(URL processorPath) {
+        File file = new File(processorPath.getPath());
+        if (file.exists()) {
+            this.processorPaths.add(processorPath);
+            try {
+                this.classRootPath.add(new ClassLoaderSearchRoot.JarFileIndex(processorPath.toExternalForm(), processorPath.toURI()));
+            } catch (Exception e) {
+                throw new CompileException(e);
+            }
+        }
+    }
+
+    public List<String> findAnnotationProcessor() throws IOException {
+        List<String> processors = new ArrayList<>();
+
+        if (CollectionUtil.isNotEmpty(this.processorPaths)) {
+            AnnotationProcessorClassloader apClassloader
+                    = new AnnotationProcessorClassloader(this.processorPaths.toArray(new URL[0]), ClassLoader.getSystemClassLoader());
+            Enumeration<URL> resources = apClassloader.getResources("META-INF/services/javax.annotation.processing.Processor");
+            while (resources.hasMoreElements()) {
+                try (InputStream in = resources.nextElement().openStream()) {
+                    processors.addAll(Arrays.asList(new String(FileUtil.is2bytes(in)).split("\n")));
+                }
+            }
+        }
+        return processors;
     }
 }
