@@ -1,6 +1,5 @@
 package six.eared.macaque.agent.compiler.java;
 
-import com.sun.tools.javac.util.BaseFileManager;
 
 import javax.tools.JavaFileObject;
 import java.io.File;
@@ -24,7 +23,7 @@ public class ClasspathSearchRoot implements SearchRoot {
         if (packageFile.exists() && packageFile.isDirectory()) {
             File[] files = packageFile.listFiles(item ->
                     !item.isDirectory()
-                            && kinds.contains(BaseFileManager.getKind(item.getName())
+                            && kinds.contains(DynamicJavaFileManager.getKind(item.getName())
                     ));
             if (files != null) {
                 return Arrays.stream(files).map((item) -> {

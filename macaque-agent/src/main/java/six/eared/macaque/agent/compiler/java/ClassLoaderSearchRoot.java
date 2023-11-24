@@ -92,7 +92,7 @@ public class ClassLoaderSearchRoot implements SearchRoot {
 
     private List<JavaFileObject> processDir(String packageName, File directory) {
         File[] files = directory.listFiles(item ->
-                item.isFile() && getKind(item.getName()) == JavaFileObject.Kind.CLASS);
+                item.isFile() && DynamicJavaFileManager.getKind(item.getName()) == JavaFileObject.Kind.CLASS);
         if (files != null) {
             return Arrays.stream(files).map(item -> {
                 String className = packageName + "." + item.getName()
@@ -111,17 +111,6 @@ public class ClassLoaderSearchRoot implements SearchRoot {
         }
 
         return filePath;
-    }
-
-    public static JavaFileObject.Kind getKind(String name) {
-        if (name.endsWith(JavaFileObject.Kind.CLASS.extension))
-            return JavaFileObject.Kind.CLASS;
-        else if (name.endsWith(JavaFileObject.Kind.SOURCE.extension))
-            return JavaFileObject.Kind.SOURCE;
-        else if (name.endsWith(JavaFileObject.Kind.HTML.extension))
-            return JavaFileObject.Kind.HTML;
-        else
-            return JavaFileObject.Kind.OTHER;
     }
 
     public static class JarFileIndex implements SearchRoot {
