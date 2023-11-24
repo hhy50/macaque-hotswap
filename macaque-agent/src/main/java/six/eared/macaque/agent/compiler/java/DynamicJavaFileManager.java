@@ -116,7 +116,7 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         if (file.exists()) {
             this.processorPaths.add(processorPath);
             try {
-                this.classRootPath.add(new ClassLoaderSearchRoot.JarFileIndex(processorPath.getPath(), processorPath.toURI()));
+                this.classRootPath.add(new ClassLoaderSearchRoot.JarFileIndex(processorPath.toExternalForm(), processorPath.toURI()));
             } catch (Exception e) {
                 throw new CompileException(e);
             }
