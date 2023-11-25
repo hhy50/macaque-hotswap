@@ -127,8 +127,8 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         }
     }
 
-    public List<String> findAnnotationProcessor() throws IOException {
-        List<String> processors = new ArrayList<>();
+    public Set<String> findAnnotationProcessor() throws IOException {
+        Set<String> processors = new HashSet<>();
 
         if (CollectionUtil.isNotEmpty(this.processorPaths)) {
             ClassLoader apClassloader = getClassLoader(StandardLocation.ANNOTATION_PROCESSOR_PATH);
