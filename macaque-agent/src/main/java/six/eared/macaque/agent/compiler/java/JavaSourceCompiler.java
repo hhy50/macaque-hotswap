@@ -47,7 +47,11 @@ public class JavaSourceCompiler implements Compiler {
                 this.classPathRoots.add(new ClasspathSearchRoot(classSearchPath));
                 continue;
             }
-            try (PathJarFile jarFile = new PathJarFile(getJarAbsolutePath(classSearchPath, userDir))) {
+            File jarAbsolutePath = getJarAbsolutePath(classSearchPath, userDir);
+            if (jarAbsolutePath == null) continue;
+            try (PathJarFile jarFile = new PathJarFile(jarAbsolutePath)) {
+                jarSearchPathSet.add(jarAbsolutePath);
+
                 Manifest manifest = jarFile.getManifest();
                 if (manifest != null) {
                     String classpath = manifest.getMainAttributes().getValue(new Attributes.Name("Class-Path"));
