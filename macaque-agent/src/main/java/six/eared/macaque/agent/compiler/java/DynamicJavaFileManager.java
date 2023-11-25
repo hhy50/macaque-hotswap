@@ -36,7 +36,11 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
 
     @Override
     public ClassLoader getClassLoader(Location location) {
-        return new AnnotationProcessorClassloader(processorPaths.toArray(new URL[0]), this.fileManager.getClass().getClassLoader());
+        if (location == StandardLocation.ANNOTATION_PROCESSOR_PATH) {
+            return new AnnotationProcessorClassloader(processorPaths.toArray(new URL[0]),
+                    this.fileManager.getClass().getClassLoader());
+        }
+        return ClassLoader.getSystemClassLoader();
     }
 
     @Override
@@ -127,8 +131,7 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         List<String> processors = new ArrayList<>();
 
         if (CollectionUtil.isNotEmpty(this.processorPaths)) {
-            AnnotationProcessorClassloader apClassloader
-                    = new AnnotationProcessorClassloader(this.processorPaths.toArray(new URL[0]), ClassLoader.getSystemClassLoader());
+            ClassLoader apClassloader = getClassLoader(StandardLocation.ANNOTATION_PROCESSOR_PATH);
             Enumeration<URL> resources = apClassloader.getResources("META-INF/services/javax.annotation.processing.Processor");
             while (resources.hasMoreElements()) {
                 try (InputStream in = resources.nextElement().openStream()) {
