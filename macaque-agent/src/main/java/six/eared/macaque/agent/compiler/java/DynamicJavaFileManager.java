@@ -36,7 +36,11 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
 
     @Override
     public ClassLoader getClassLoader(Location location) {
-        return new AnnotationProcessorClassloader(processorPaths.toArray(new URL[0]), this.fileManager.getClass().getClassLoader());
+        if (location == StandardLocation.ANNOTATION_PROCESSOR_PATH) {
+            return new AnnotationProcessorClassloader(processorPaths.toArray(new URL[0]),
+                    this.fileManager.getClass().getClassLoader());
+        }
+        return ClassLoader.getSystemClassLoader();
     }
 
     @Override
@@ -116,19 +120,22 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         if (file.exists()) {
             this.processorPaths.add(processorPath);
             try {
-                this.classRootPath.add(new ClassLoaderSearchRoot.JarFileIndex(processorPath.toExternalForm(), processorPath.toURI()));
+                if (file.isDirectory()) {
+                    this.classRootPath.add(new ClasspathSearchRoot(file.getPath()));
+                } else {
+                    this.classRootPath.add(new ClassLoaderSearchRoot.JarFileIndex(processorPath.toExternalForm(), processorPath.toURI()));
+                }
             } catch (Exception e) {
                 throw new CompileException(e);
             }
         }
     }
 
-    public List<String> findAnnotationProcessor() throws IOException {
-        List<String> processors = new ArrayList<>();
+    public Set<String> findAnnotationProcessor() throws IOException {
+        Set<String> processors = new HashSet<>();
 
         if (CollectionUtil.isNotEmpty(this.processorPaths)) {
-            AnnotationProcessorClassloader apClassloader
-                    = new AnnotationProcessorClassloader(this.processorPaths.toArray(new URL[0]), ClassLoader.getSystemClassLoader());
+            ClassLoader apClassloader = getClassLoader(StandardLocation.ANNOTATION_PROCESSOR_PATH);
             Enumeration<URL> resources = apClassloader.getResources("META-INF/services/javax.annotation.processing.Processor");
             while (resources.hasMoreElements()) {
                 try (InputStream in = resources.nextElement().openStream()) {

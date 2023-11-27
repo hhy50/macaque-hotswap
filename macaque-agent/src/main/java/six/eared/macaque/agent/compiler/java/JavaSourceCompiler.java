@@ -165,7 +165,7 @@ public class JavaSourceCompiler implements Compiler {
         List<String> options = new ArrayList<>();
         options.add("-Xlint:unchecked");
         options.add("-g");
-        List<String> annotationProcessor = null;
+        Set<String> annotationProcessor = null;
         try {
             annotationProcessor = fileManager.findAnnotationProcessor();
         } catch (IOException ignored) {}
