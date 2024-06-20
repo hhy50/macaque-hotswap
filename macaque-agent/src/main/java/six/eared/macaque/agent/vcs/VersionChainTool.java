@@ -62,14 +62,14 @@ public class VersionChainTool {
     public static boolean inActiveVersionView() {
         VersionView versionView = CURRENT_EPOCH.get();
         return versionView != null
-                && versionView.getStatus() == VersionViewStatus.ACTIVE.getStatus();
+                && versionView.getStatus() == VersionViewStatus.ACTIVE;
     }
 
     public static void stopActiveVersionView(boolean discard) {
         VersionView versionView = CURRENT_EPOCH.get();
         CURRENT_EPOCH.compareAndSet(versionView, null);
         if (!discard) {
-            versionView.setStatus(VersionViewStatus.HISTORY.getStatus());
+            versionView.setStatus(VersionViewStatus.HISTORY);
             putLastVersion(versionView);
         }
     }
@@ -82,7 +82,7 @@ public class VersionChainTool {
 
     public static VersionView getActiveVersionView() {
         VersionView versionView = CURRENT_EPOCH.get();
-        if (versionView != null && versionView.getStatus() == VersionViewStatus.ACTIVE.getStatus()) {
+        if (versionView != null && versionView.getStatus() == VersionViewStatus.ACTIVE) {
             return versionView;
         }
         throw new VcsException("No active version view");

@@ -30,13 +30,9 @@ public class JavaFileHotswapHandler implements HotSwapHandler {
         if (!JavaSourceCompiler.getInstance().isPrepared()) {
             throw new HotswapException("current JDK env not support memory compile");
         }
-
         if (StringUtil.isEmpty(request.getFileName())) {
             throw new HotswapException("file type is 'java', fileName must not be null");
         }
-
-        VersionChainTool.getActiveVersionView()
-                .addDefinition(new FileDefinition());
 
         try {
             Map<String, byte[]> sources = new HashMap<>();

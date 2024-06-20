@@ -40,16 +40,12 @@ public class JmxClient {
     }
 
     public void disconnect() throws IOException {
-        try {
-            if (this.connector != null) {
-                this.connector.close();
-                this.connector = null;
-            }
-            if (this.hearbeatMBean != null) {
-                this.hearbeatMBean = null;
-            }
-        } catch (IOException e) {
-            throw e;
+        if (this.connector != null) {
+            this.connector.close();
+            this.connector = null;
+        }
+        if (this.hearbeatMBean != null) {
+            this.hearbeatMBean = null;
         }
     }
 

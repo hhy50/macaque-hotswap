@@ -12,14 +12,14 @@ import java.util.List;
  */
 public class VersionView {
 
-    private int status;
+    private VersionViewStatus status;
 
     private VersionDescriptor version;
 
     private List<Definition> definitions;
 
     VersionView() {
-        this.status = VersionViewStatus.ACTIVE.getStatus();
+        this.status = VersionViewStatus.ACTIVE;
     }
 
     public VersionDescriptor getVersion() {
@@ -47,11 +47,11 @@ public class VersionView {
         }
     }
 
-    public int getStatus() {
+    public VersionViewStatus getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(VersionViewStatus status) {
         this.status = status;
     }
 }
