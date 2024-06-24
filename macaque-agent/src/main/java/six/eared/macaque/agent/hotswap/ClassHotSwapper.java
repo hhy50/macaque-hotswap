@@ -6,32 +6,32 @@ import six.eared.macaque.agent.env.Environment;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ClassHotSwapper {
 
     public static int redefine(ClazzDefinition clazzDefinition) throws UnmodifiableClassException, ClassNotFoundException {
-        String className = clazzDefinition.getClassName();
-        byte[] newClassData = clazzDefinition.getByteCode();
-
-        Instrumentation inst = Environment.getInst();
-        List<ClassDefinition> needRedefineClass = new ArrayList<>();
-        for (Class<?> clazz : inst.getAllLoadedClasses()) {
-            if (clazz.getName().equals(className)) {
-                needRedefineClass.add(new ClassDefinition(clazz, newClassData));
-            }
-        }
-        if (Environment.isDebug()) {
-            System.out.printf("[ClassHotSwap.process] className:[%s], find class instance count: [%d]%n", className, needRedefineClass.size());
-        }
-        ClassDefinition[] array = needRedefineClass.toArray(new ClassDefinition[0]);
-        inst.redefineClasses(array);
-        return array.length;
+        return redefines(Arrays.asList(clazzDefinition));
     }
 
-    public static Map<String, Integer> redefine(List<ClazzDefinition> definitions) {
-        return null;
+    public static int redefines(List<ClazzDefinition> definitions) throws UnmodifiableClassException, ClassNotFoundException {
+        if (Environment.isDebug()) {
+            System.out.printf("[ClassHotSwap.process] redefines class count: [%d]%n", definitions.size());
+        }
+
+        Instrumentation inst = Environment.getInst();
+
+        Map<String, ClazzDefinition> definitionMap = definitions.stream()
+                .collect(Collectors.toMap(ClazzDefinition::getClassName, Function.identity()));
+        ClassDefinition[] classDefinitions = Arrays.stream(inst.getAllLoadedClasses())
+                .filter(item -> definitionMap.containsKey(item.getName()))
+                .map(clazz -> new ClassDefinition(clazz, definitionMap.get(clazz.getName()).getByteArray()))
+                .toArray(ClassDefinition[]::new);
+        inst.redefineClasses(classDefinitions);
+        return classDefinitions.length;
     }
 }

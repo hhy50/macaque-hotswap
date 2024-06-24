@@ -2,9 +2,7 @@ package six.eared.macaque.agent.hotswap.handler;
 
 import six.eared.macaque.agent.annotation.HotSwapFileType;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
-import six.eared.macaque.agent.definition.FileDefinition;
 import six.eared.macaque.agent.exceptions.HotswapException;
-import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.common.type.FileType;
 import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.StringUtil;

@@ -9,8 +9,4 @@ public class EarlyClass extends AbsEarlyClass {
         System.out.println("test2");
         return "test2";
     }
-    public String test3() {
-        System.out.println("test3");
-        return test4();
-    }
 }

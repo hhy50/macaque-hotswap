@@ -11,6 +11,7 @@ import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.agent.vcs.VersionView;
 import six.eared.macaque.common.ExtPropertyName;
 import six.eared.macaque.common.type.FileType;
+import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 import six.eared.macaque.mbean.rmi.RmiResult;
 
@@ -38,7 +39,7 @@ public class ClassHotSwapHandler extends FileHookHandler {
             CompatibilityModeByteCodeEnhancer.enhance(definitions);
         }
         return RmiResult.success().data(ClassHotSwapper
-                .redefine(flatClassDefinition(definitions)));
+                .redefines(flatClassDefinition(definitions)));
     }
 
     private List<ClazzDefinition> flatClassDefinition(List<ClazzDefinition> definitions) {
@@ -47,9 +48,10 @@ public class ClassHotSwapHandler extends FileHookHandler {
         List<ClazzDefinition> result = new ArrayList<>();
         for (ClazzDefinition definition : definitions) {
             result.add(definition);
-            result.addAll(definition.getCorrelationClasses().stream().map(CorrelationClazzDefinition::getClazzDefinition)
-                    .collect(Collectors.toList()));
-
+            if (CollectionUtil.isNotEmpty(definition.getCorrelationClasses())) {
+                result.addAll(definition.getCorrelationClasses().stream().map(CorrelationClazzDefinition::getClazzDefinition)
+                        .collect(Collectors.toList()));
+            }
             versionView.addDefinition(definition);
         }
         return result;

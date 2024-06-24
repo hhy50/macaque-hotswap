@@ -29,7 +29,7 @@ public class CompatibilityModeTest extends Env {
                 .getResourceAsStream("AddNewSimpleMethod.java"))).get(0);
         ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-        Assert.assertEquals(earlyClass.test3(), "test4");
+        Assert.assertEquals(earlyClass.test2(), "after test2");
     }
 
     @Test

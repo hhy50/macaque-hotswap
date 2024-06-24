@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static six.eared.macaque.agent.asm2.AsmUtil.areturn;
+
 public class CompatibilityModeAccessorUtil {
 
     /**
@@ -49,7 +51,6 @@ public class CompatibilityModeAccessorUtil {
 
             collectAccessibleMethods(outClazzDefinition, classBuilder, superAccessor, classNameGenerator);
             collectAccessibleFields(outClazzDefinition, classBuilder, superAccessor);
-
             CompatibilityModeClassLoader.loadClass(classBuilder.getClassName(), classBuilder.toByteArray());
             return AsmUtil.readClass(classBuilder.toByteArray());
         } catch (Exception e) {
@@ -89,7 +90,7 @@ public class CompatibilityModeAccessorUtil {
                     }
                     visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,
                             containSupper ? ClassUtil.simpleClassName2path(superAccessorName) : "java/lang/Object", "<init>",
-                            containSupper ? AsmUtil.methodType("V", AsmUtil.toTypeDesc(definition.getSuperClassName())) : "()V", false);
+                            containSupper ? AsmUtil.methodDesc("V", AsmUtil.toTypeDesc(definition.getSuperClassName())) : "()V", false);
 
                     visitor.visitInsn(Opcodes.RETURN);
                     visitor.visitEnd();
@@ -390,15 +391,6 @@ public class CompatibilityModeAccessorUtil {
             visitor.visitVarInsn(argumentType.getOpcode(Opcodes.ILOAD), i + 1);
             if (argumentType.getSort() == Type.DOUBLE || argumentType.getSort() == Type.LONG) i++;
             i++;
-        }
-    }
-
-
-    private static void areturn(MethodVisitor writer, Type rType) {
-        if (rType.getReturnType().getSort() == Type.VOID) {
-            writer.visitInsn(Opcodes.RETURN);
-        } else {
-            writer.visitInsn(rType.getOpcode(Opcodes.IRETURN));
         }
     }
 

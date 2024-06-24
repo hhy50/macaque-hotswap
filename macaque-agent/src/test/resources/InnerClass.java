@@ -1,6 +1,10 @@
 package six.eared.macaque.agent.test;
 
 public class EarlyClass extends AbsEarlyClass {
+
+    public String returnNull() {
+        return null;
+    }
     public String test1() {
         System.out.println("test1");
         int a = 19;
