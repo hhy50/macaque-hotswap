@@ -213,8 +213,8 @@ public class CompatibilityModeAccessorUtil {
                     if (superMethod.isPrivate()) {
                         continue;
                     }
-                    if (!accessibleSuperMethods.containsKey(superMethod.getMethodName() + "|" + superMethod.getDesc())) {
-                        accessibleSuperMethods.put(superMethod.getMethodName() + "|" + superMethod.getDesc(), superMethod);
+                    if (!accessibleSuperMethods.containsKey(superMethod.getUniqueDesc())) {
+                        accessibleSuperMethods.put(superMethod.getUniqueDesc(), superMethod);
                     }
                 }
                 if (superAccessor != null) {

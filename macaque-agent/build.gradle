@@ -17,8 +17,10 @@ dependencies {
     implementation project(':library:macaque-library')
     implementation project(':library:macaque-mybatis')
     implementation project(':library:macaque-spring')
-    runtimeOnly 'org.projectlombok:lombok:1.18.24'
+    implementation 'org.projectlombok:lombok:1.18.24'
     testImplementation 'junit:junit:4.13.1'
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
 }
 
 

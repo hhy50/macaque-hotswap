@@ -1,5 +1,9 @@
 package six.eared.macaque.agent.asm2;
 
+
+import lombok.Data;
+
+@Data
 public class AsmField {
 
     private int modifier;
@@ -11,46 +15,6 @@ public class AsmField {
     private String fieldSign;
 
     private Object value;
-
-    public int getModifier() {
-        return modifier;
-    }
-
-    public void setModifier(int modifier) {
-        this.modifier = modifier;
-    }
-
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    public void setFieldName(String fieldName) {
-        this.fieldName = fieldName;
-    }
-
-    public String getFieldDesc() {
-        return fieldDesc;
-    }
-
-    public void setFieldDesc(String fieldDesc) {
-        this.fieldDesc = fieldDesc;
-    }
-
-    public String getFieldSign() {
-        return fieldSign;
-    }
-
-    public void setFieldSign(String fieldSign) {
-        this.fieldSign = fieldSign;
-    }
-
-    public Object getValue() {
-        return value;
-    }
-
-    public void setValue(Object value) {
-        this.value = value;
-    }
 
     public static final class AsmFieldBuilder {
         private int modifier;

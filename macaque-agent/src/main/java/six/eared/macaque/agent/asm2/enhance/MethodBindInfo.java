@@ -1,28 +1,21 @@
 package six.eared.macaque.agent.asm2.enhance;
 
+import lombok.Data;
+import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
+
 import java.util.Objects;
 
+
+@Data
 public class MethodBindInfo implements Cloneable {
 
     private String bindClass;
 
     private String bindMethod;
 
-    public String getBindClass() {
-        return bindClass;
-    }
+    private String accessorClass;
 
-    public String getBindMethod() {
-        return bindMethod;
-    }
-
-    public void setBindClass(String bindClass) {
-        this.bindClass = bindClass;
-    }
-
-    public void setBindMethod(String bindMethod) {
-        this.bindMethod = bindMethod;
-    }
+    private AsmMethodVisitorCaller visitorCaller;
 
     @Override
     public boolean equals(Object o) {
