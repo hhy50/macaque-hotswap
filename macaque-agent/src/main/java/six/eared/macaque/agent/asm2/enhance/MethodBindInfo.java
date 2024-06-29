@@ -13,6 +13,8 @@ public class MethodBindInfo implements Cloneable {
 
     private String bindMethod;
 
+    private String bindMethodDesc;
+
     private String accessorClass;
 
     private AsmMethodVisitorCaller visitorCaller;

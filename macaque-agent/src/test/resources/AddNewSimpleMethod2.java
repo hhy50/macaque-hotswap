@@ -10,10 +10,11 @@ public class EarlyClass extends AbsEarlyClass2 {
 
     public String test2() {
         System.out.println("test2");
-        return _newMethod();
+        return _newMethod(123, "456", "6789");
     }
 
-    public String _newMethod() {
+    public String _newMethod(int a, String b, String c) {
+        System.out.println(b+c+a);;
         return "_newMethod";
     }
 }

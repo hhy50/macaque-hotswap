@@ -1,6 +1,5 @@
 package six.eared.macaque.agent.asm2;
 
-import six.eared.macaque.agent.asm2.enhance.CompatibilityModeClassLoader;
 import six.eared.macaque.asm.ClassWriter;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
@@ -76,9 +75,5 @@ public class ClassBuilder {
 
     public void setSuperClassName(String superClassName) {
         this.superClassName = superClassName;
-    }
-
-    public void load() {
-        CompatibilityModeClassLoader.loadClass(this.className, this.toByteArray());
     }
 }
