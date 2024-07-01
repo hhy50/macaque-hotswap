@@ -25,6 +25,8 @@ import static six.eared.macaque.agent.asm2.AsmUtil.areturn;
 
 public class CompatibilityModeAccessorUtil {
 
+    private static final Map<String, ClazzDefinition> LOADED = new HashMap<>();
+
     /**
      * @param className          外部类类名
      * @param classNameGenerator 类名生成器
@@ -32,10 +34,11 @@ public class CompatibilityModeAccessorUtil {
      * @return
      */
     public static ClazzDefinition createAccessor(String className, ClassNameGenerator classNameGenerator, int deepth) {
-        String innerAccessorName = classNameGenerator.generateInnerAccessorName(className);
-        if (CompatibilityModeClassLoader.isLoaded(innerAccessorName)) {
-            return null;
+        if (LOADED.containsKey(className)) {
+            return LOADED.get(className);
         }
+
+        String innerAccessorName = classNameGenerator.generateInnerAccessorName(className);
         try {
             ClazzDefinition outClazzDefinition = AsmUtil.readOriginClass(className);
             String superClassName = outClazzDefinition.getSuperClassName();
@@ -52,7 +55,10 @@ public class CompatibilityModeAccessorUtil {
             collectAccessibleMethods(outClazzDefinition, classBuilder, superAccessor, classNameGenerator);
             collectAccessibleFields(outClazzDefinition, classBuilder, superAccessor);
             CompatibilityModeClassLoader.loadClass(classBuilder.getClassName(), classBuilder.toByteArray());
-            return AsmUtil.readClass(classBuilder.toByteArray());
+
+            ClazzDefinition accessorDefinition = AsmUtil.readClass(classBuilder.toByteArray());
+            LOADED.put(className, accessorDefinition);
+            return accessorDefinition;
         } catch (Exception e) {
             throw new AccessorCreateException(e);
         }
@@ -157,7 +163,7 @@ public class CompatibilityModeAccessorUtil {
      */
     private static String tryGetAccessorClassName(String className, ClassNameGenerator classNameGenerator) {
         String accessorName = classNameGenerator.generateInnerAccessorName(className);
-        if (CompatibilityModeClassLoader.isLoaded(accessorName)) {
+        if (LOADED.containsKey(accessorName)) {
             return accessorName;
         }
         return null;
