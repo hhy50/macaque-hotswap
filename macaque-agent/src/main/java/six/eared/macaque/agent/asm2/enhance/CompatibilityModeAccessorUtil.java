@@ -38,7 +38,7 @@ public class CompatibilityModeAccessorUtil {
             return LOADED.get(className);
         }
 
-        String innerAccessorName = classNameGenerator.generateInnerAccessorName(className);
+        String accessorName = classNameGenerator.generateInnerAccessorName(className);
         try {
             ClazzDefinition outClazzDefinition = AsmUtil.readOriginClass(className);
             String superClassName = outClazzDefinition.getSuperClassName();
@@ -50,7 +50,7 @@ public class CompatibilityModeAccessorUtil {
                 }
             }
             String superAccessorName = tryGetAccessorClassName(superClassName, classNameGenerator);
-            ClassBuilder classBuilder = generateAccessorClass(innerAccessorName, outClazzDefinition, superAccessorName);
+            ClassBuilder classBuilder = generateAccessorClass(accessorName, outClazzDefinition, superAccessorName);
 
             collectAccessibleMethods(outClazzDefinition, classBuilder, superAccessor, classNameGenerator);
             collectAccessibleFields(outClazzDefinition, classBuilder, superAccessor);
@@ -66,17 +66,17 @@ public class CompatibilityModeAccessorUtil {
 
 
     /**
-     * @param innerAccessorName
+     * @param accessorName
      * @param definition
      * @param superAccessorName
      * @return
      */
-    private static ClassBuilder generateAccessorClass(String innerAccessorName, ClazzDefinition definition,
+    private static ClassBuilder generateAccessorClass(String accessorName, ClazzDefinition definition,
                                                       String superAccessorName) {
         String outClassDesc = "L" + ClassUtil.simpleClassName2path(definition.getClassName()) + ";";
-        String innerAccessorDesc = ClassUtil.simpleClassName2path(innerAccessorName);
+        String accessorDesc = ClassUtil.simpleClassName2path(accessorName);
         ClassBuilder classBuilder = AsmUtil
-                .defineClass(Opcodes.ACC_PUBLIC, innerAccessorName, superAccessorName, null, null)
+                .defineClass(Opcodes.ACC_PUBLIC, accessorName, superAccessorName, null, null)
                 .defineConstruct(Opcodes.ACC_PUBLIC, new String[]{definition.getClassName()}, null, null)
                 .accept(visitor -> {
                     visitor.visitMaxs(2, 2);
@@ -86,7 +86,7 @@ public class CompatibilityModeAccessorUtil {
                         // this$0 = {outClassObj}
                         visitor.visitVarInsn(Opcodes.ALOAD, 0);
                         visitor.visitVarInsn(Opcodes.ALOAD, 1);
-                        visitor.visitFieldInsn(Opcodes.PUTFIELD, innerAccessorDesc, "this$0", "Ljava/lang/Object;");
+                        visitor.visitFieldInsn(Opcodes.PUTFIELD, accessorDesc, "this$0", "Ljava/lang/Object;");
                     }
 
                     // super({outClassObj}.this)
@@ -150,7 +150,7 @@ public class CompatibilityModeAccessorUtil {
                     visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/reflect/Constructor", "newInstance",
                             "([Ljava/lang/Object;)Ljava/lang/Object;", false);
                     visitor.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/invoke/MethodHandles$Lookup");
-                    visitor.visitFieldInsn(Opcodes.PUTSTATIC, innerAccessorDesc, "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
+                    visitor.visitFieldInsn(Opcodes.PUTSTATIC, accessorDesc, "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
                     visitor.visitInsn(Opcodes.RETURN);
                 });
         return classBuilder;
@@ -162,9 +162,8 @@ public class CompatibilityModeAccessorUtil {
      * @return
      */
     private static String tryGetAccessorClassName(String className, ClassNameGenerator classNameGenerator) {
-        String accessorName = classNameGenerator.generateInnerAccessorName(className);
-        if (LOADED.containsKey(accessorName)) {
-            return accessorName;
+        if (LOADED.containsKey(className)) {
+            return LOADED.get(className).getClassName();
         }
         return null;
     }
