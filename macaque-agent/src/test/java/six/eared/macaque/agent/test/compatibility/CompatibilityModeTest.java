@@ -34,6 +34,15 @@ public class CompatibilityModeTest extends Env {
         Assert.assertEquals(earlyClass.test2(), "_newMethod");
     }
 
+    @Test(expected = NoSuchMethodError.class)
+    public void testDeleteMethod() {
+        byte[] bytes = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
+                .getResourceAsStream("DeleteMethod.java"))).get(0);
+        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        earlyClass.test2();
+    }
+
     @Test
     public void testAddNewSimpleMethod2() throws IOException {
         byte[] bytes = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()

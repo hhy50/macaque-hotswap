@@ -8,10 +8,13 @@ import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.FileUtil;
+import six.eared.macaque.common.util.Pair;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -65,6 +68,13 @@ public class CompatibilityModeByteCodeEnhancer {
             methodBindInfo.setVisitorCaller(new AsmMethodVisitorCaller());
             asmMethod.setMethodBindInfo(methodBindInfo);
         }
+
+        for (AsmMethod asmMethod : lastClassVersion.getAsmMethods()) {
+            // 删除的方法
+            if (!definition.hasMethod(asmMethod.getMethodName(), asmMethod.getDesc())) {
+                definition.addDeletedMethod(asmMethod.getMethodName(), asmMethod.getDesc());
+            }
+        }
     }
 
     private static ClazzDefinition bytecodeConvert(ClazzDefinition definition) {
@@ -72,13 +82,14 @@ public class CompatibilityModeByteCodeEnhancer {
                 .filter(item -> item.getMethodBindInfo() != null)
                 .peek(item -> {
                     item.getMethodBindInfo()
-                            .setBindMethodDesc(AsmUtil.addArgsDesc(item.getDesc(), item.getMethodBindInfo().getAccessorClass(), false));;
+                            .setBindMethodDesc(AsmUtil.addArgsDesc(item.getDesc(), item.getMethodBindInfo().getAccessorClass(), false));
+                    ;
                 })
                 .collect(Collectors.toMap(AsmMethod::getUniqueDesc, AsmMethod::getMethodBindInfo));
+        byte[] newByteCode = generateNewByteCode(definition.getByteCode(), bindMethods, definition.getDeletedMethod());
 
         // 生成bind class和bind method
         if (bindMethods.size() > 0) {
-            byte[] newByteCode = generateNewByteCode(definition.getByteCode(), bindMethods);
             for (Map.Entry<String, MethodBindInfo> entry : bindMethods.entrySet()) {
                 MethodBindInfo bindInfo = entry.getValue();
                 AsmMethod asmMethod = definition.getMethod(entry.getKey());
@@ -94,18 +105,19 @@ public class CompatibilityModeByteCodeEnhancer {
                 CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), classBuilder.toByteArray());
             }
             FileUtil.writeBytes(
-                    new File( FileUtil.getProcessTmpPath() + File.separator + ClassUtil.toSimpleName(definition.getClassName()) + ".class"),
+                    new File(FileUtil.getProcessTmpPath() + File.separator + ClassUtil.toSimpleName(definition.getClassName()) + ".class"),
                     newByteCode);
-            definition.setByteCode(newByteCode);
         }
-
+        definition.setByteCode(newByteCode);
         return definition;
     }
 
     /**
      * 生成新的字节码
      */
-    private static byte[] generateNewByteCode(byte[] bytecode, Map<String, MethodBindInfo> bindMethods) {
+    private static byte[] generateNewByteCode(byte[] bytecode, Map<String, MethodBindInfo> bindMethods, List<Pair<String, String>> deletedMethod) {
+        deletedMethod = deletedMethod == null ? Collections.emptyList() : deletedMethod;
+
         ClazzDefinition definition = AsmUtil.readClass(bytecode, new ClazzDefinitionVisitor() {
             private String classDesc;
 
@@ -147,7 +159,6 @@ public class CompatibilityModeByteCodeEnhancer {
 
     /**
      * 改变调用指令的字节码转换器
-     *
      */
     static class InvokeCodeConvertor extends MethodDynamicStackVisitor {
         private final String classDesc;
@@ -161,7 +172,7 @@ public class CompatibilityModeByteCodeEnhancer {
 
         @Override
         public void visitMaxs(int maxStack, int maxLocals) {
-            super.visitMaxs(maxStack+1, maxLocals);
+            super.visitMaxs(maxStack + 1, maxLocals);
         }
 
         @Override
@@ -177,7 +188,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 super.visitTypeInsn(Opcodes.NEW, accessorDesc);
                 super.visitInsn(Opcodes.DUP);
                 super.visitVarInsn(Opcodes.ALOAD, 0);
-                super.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(L"+classDesc+";)V", false);
+                super.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(L" + classDesc + ";)V", false);
                 super.visitMethodInsn(Opcodes.INVOKESTATIC, ClassUtil.simpleClassName2path(bindInfo.getBindClass()), bindInfo.getBindMethod(),
                         bindInfo.getBindMethodDesc(), itf);
                 return;

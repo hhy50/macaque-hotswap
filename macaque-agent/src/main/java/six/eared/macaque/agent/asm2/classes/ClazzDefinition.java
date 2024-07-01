@@ -6,7 +6,7 @@ import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.definition.Definition;
 import six.eared.macaque.asm.ClassVisitor;
-
+import six.eared.macaque.common.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,12 +29,21 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     private final List<AsmField> asmFields = new ArrayList<>();
 
+    private List<Pair<String, String>> deletedMethod;
+
     public void addAsmMethod(AsmMethod method) {
         this.asmMethods.add(method);
     }
 
+    public void addDeletedMethod(String methodName, String desc) {
+        if (this.deletedMethod == null) {
+            this.deletedMethod = new ArrayList<>();
+        }
+        this.deletedMethod.add(Pair.of(methodName, desc));
+    }
+
     public void addAsmField(AsmField asmField) {
-        asmFields.add(asmField);
+        this.asmFields.add(asmField);
     }
 
     @Override
@@ -44,14 +53,6 @@ public class ClazzDefinition implements Cloneable, Definition {
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public byte[] getOriginData() {
-        return originData;
-    }
-
-    public void setOriginData(byte[] originData) {
-        this.originData = originData;
     }
 
     public boolean hasMethod(String name, String desc) {
@@ -82,22 +83,6 @@ public class ClazzDefinition implements Cloneable, Definition {
     @Override
     public byte[] getByteArray() {
         return byteCode;
-    }
-
-    public void setSuperClassName(String superName) {
-        this.superClassName = superName;
-    }
-
-    public String getSuperClassName() {
-        return superClassName;
-    }
-
-    public void setInterfaces(String[] interfaces) {
-        this.interfaces = interfaces;
-    }
-
-    public String[] getInterfaces() {
-        return interfaces;
     }
 
     public void revisit(ClassVisitor classVisitor) {
