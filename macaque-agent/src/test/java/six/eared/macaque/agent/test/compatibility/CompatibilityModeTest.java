@@ -7,7 +7,6 @@ import six.eared.macaque.agent.test.EarlyClass;
 import six.eared.macaque.agent.test.Env;
 import six.eared.macaque.agent.test.asm.AsmMethodPrinter;
 import six.eared.macaque.agent.test.asm.BinaryClassPrint;
-import six.eared.macaque.asm.ClassReader;
 import six.eared.macaque.asm.ClassVisitor;
 import six.eared.macaque.common.ExtPropertyName;
 import six.eared.macaque.common.util.FileUtil;

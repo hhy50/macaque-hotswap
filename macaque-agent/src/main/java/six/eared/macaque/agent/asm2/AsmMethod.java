@@ -32,6 +32,10 @@ public class AsmMethod {
         return (this.modifier & Opcodes.ACC_PRIVATE) > 0;
     }
 
+    public boolean isStatic() {
+        return (this.modifier & Opcodes.ACC_STATIC) > 0;
+    }
+
     public boolean isConstructor() {
         return this.methodName.equals("<init>");
     }

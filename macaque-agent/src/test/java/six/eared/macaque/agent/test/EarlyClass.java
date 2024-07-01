@@ -9,7 +9,6 @@ public class EarlyClass extends AbsEarlyClass2 {
     }
 
     public String test2() {
-        System.out.println("test2");
-        return "test2";
+        throw new NoSuchMethodError("aaa");
     }
 }

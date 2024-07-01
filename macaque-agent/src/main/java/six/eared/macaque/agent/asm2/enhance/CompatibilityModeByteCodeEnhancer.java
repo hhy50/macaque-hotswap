@@ -4,17 +4,17 @@ import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.*;
+import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.vcs.VersionChainTool;
+import six.eared.macaque.asm.ClassWriter;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
+import six.eared.macaque.asm.Type;
 import six.eared.macaque.common.util.ClassUtil;
-import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.FileUtil;
-import six.eared.macaque.common.util.Pair;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -64,6 +64,7 @@ public class CompatibilityModeByteCodeEnhancer {
             MethodBindInfo methodBindInfo = new MethodBindInfo();
             methodBindInfo.setBindClass(bindClassName);
             methodBindInfo.setBindMethod(bindMethodName);
+            methodBindInfo.setBindMethodDesc(AsmUtil.addArgsDesc(asmMethod.getDesc(), accessor.getClassName(), false));
             methodBindInfo.setAccessorClass(accessor.getClassName());
             methodBindInfo.setVisitorCaller(new AsmMethodVisitorCaller());
             asmMethod.setMethodBindInfo(methodBindInfo);
@@ -72,38 +73,29 @@ public class CompatibilityModeByteCodeEnhancer {
         for (AsmMethod asmMethod : lastClassVersion.getAsmMethods()) {
             // 删除的方法
             if (!definition.hasMethod(asmMethod.getMethodName(), asmMethod.getDesc())) {
-                definition.addDeletedMethod(asmMethod.getMethodName(), asmMethod.getDesc());
+                definition.addDeletedMethod(asmMethod);
             }
         }
     }
 
     private static ClazzDefinition bytecodeConvert(ClazzDefinition definition) {
-        Map<String, MethodBindInfo> bindMethods = definition.getAsmMethods().stream()
-                .filter(item -> item.getMethodBindInfo() != null)
-                .peek(item -> {
-                    item.getMethodBindInfo()
-                            .setBindMethodDesc(AsmUtil.addArgsDesc(item.getDesc(), item.getMethodBindInfo().getAccessorClass(), false));
-                    ;
-                })
-                .collect(Collectors.toMap(AsmMethod::getUniqueDesc, AsmMethod::getMethodBindInfo));
-        byte[] newByteCode = generateNewByteCode(definition.getByteCode(), bindMethods, definition.getDeletedMethod());
+        byte[] newByteCode = generateNewByteCode(definition);
 
-        // 生成bind class和bind method
-        if (bindMethods.size() > 0) {
-            for (Map.Entry<String, MethodBindInfo> entry : bindMethods.entrySet()) {
-                MethodBindInfo bindInfo = entry.getValue();
-                AsmMethod asmMethod = definition.getMethod(entry.getKey());
-                ClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
-                        .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-                                bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
-                                asmMethod.getExceptions(), asmMethod.getMethodSign())
-                        .accept(method -> {
+        for (AsmMethod method : definition.getAsmMethods()) {
+            if (method.getMethodBindInfo() == null) continue;
+            MethodBindInfo bindInfo = method.getMethodBindInfo();
+            ClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
+                    .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+                            bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
+                            method.getExceptions(), method.getMethodSign())
+                    .accept(methodWriter -> {
 //                            Type methodType = Type.getMethodType(asmMethod.getDesc());
-                            bindInfo.getVisitorCaller().accept(method);
-                        })
-                        .end();
-                CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), classBuilder.toByteArray());
-            }
+                        bindInfo.getVisitorCaller().accept(methodWriter);
+                    })
+                    .end();
+            CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), classBuilder.toByteArray());
+        }
+        if (Environment.isDebug()) {
             FileUtil.writeBytes(
                     new File(FileUtil.getProcessTmpPath() + File.separator + ClassUtil.toSimpleName(definition.getClassName()) + ".class"),
                     newByteCode);
@@ -115,34 +107,42 @@ public class CompatibilityModeByteCodeEnhancer {
     /**
      * 生成新的字节码
      */
-    private static byte[] generateNewByteCode(byte[] bytecode, Map<String, MethodBindInfo> bindMethods, List<Pair<String, String>> deletedMethod) {
-        deletedMethod = deletedMethod == null ? Collections.emptyList() : deletedMethod;
+    private static byte[] generateNewByteCode(ClazzDefinition definition) {
+        Map<String, MethodBindInfo> bindMethods = definition.getAsmMethods().stream()
+                .filter(item -> item.getMethodBindInfo() != null)
+                .collect(Collectors.toMap(AsmMethod::getUniqueDesc, AsmMethod::getMethodBindInfo));
 
-        ClazzDefinition definition = AsmUtil.readClass(bytecode, new ClazzDefinitionVisitor() {
-            private String classDesc;
+        ClassWriter classWriter = new ClassWriter(0);
+        definition.revisit(new ClassVisitorDelegation(classWriter) {
+            String classPath;
 
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 super.visit(version, access, name, signature, superName, interfaces);
-                this.classDesc = name;
+                this.classPath = name;
             }
 
             @Override
             public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                String uniqueDesc = name + "#" + desc;
-
-                MethodBindInfo bindInfo = bindMethods.get(uniqueDesc);
-                // 如果是不是新方法， 只需要改变对新方法的调用就行
+                AsmMethod method = definition.getMethod(name, desc);
+                MethodBindInfo bindInfo = method.getMethodBindInfo();
                 if (bindInfo == null) {
                     MethodVisitor writer = super.visitMethod(access, name, desc, signature, exceptions);
-                    return new InvokeCodeConvertor(classDesc, writer, bindMethods);
+                    return new InvokeCodeConvertor(classPath, writer, bindMethods);
                 }
-
-                MethodVisitor methodVisitor = bindInfo.getVisitorCaller().createProxyObj();
-                return methodVisitor;
+                return bindInfo.getVisitorCaller().createProxyObj();
             }
         });
-        return definition.getByteArray();
+        if (definition.getDeletedMethod() != null) {
+            for (AsmMethod deletedMethod : definition.getDeletedMethod()) {
+                MethodVisitor methodWrite = classWriter.visitMethod(deletedMethod.getModifier(), deletedMethod.getMethodName(), deletedMethod.getDesc(),
+                        deletedMethod.getMethodSign(), deletedMethod.getExceptions());
+                int lvblen = AsmUtil.calculateLvbOffset(deletedMethod.isStatic(), Type.getArgumentTypes(deletedMethod.getDesc()));
+                methodWrite.visitMaxs(lvblen+2, lvblen);
+                AsmUtil.throwNoSuchMethod(methodWrite, deletedMethod.getMethodName());
+            }
+        }
+        return classWriter.toByteArray();
     }
 
     /**
@@ -161,12 +161,12 @@ public class CompatibilityModeByteCodeEnhancer {
      * 改变调用指令的字节码转换器
      */
     static class InvokeCodeConvertor extends MethodDynamicStackVisitor {
-        private final String classDesc;
+        private final String classPath;
         private final Map<String, MethodBindInfo> newMethods;
 
-        public InvokeCodeConvertor(String classDesc, MethodVisitor write, Map<String, MethodBindInfo> bindMethods) {
+        public InvokeCodeConvertor(String classPath, MethodVisitor write, Map<String, MethodBindInfo> bindMethods) {
             super(write);
-            this.classDesc = classDesc;
+            this.classPath = classPath;
             this.newMethods = bindMethods;
         }
 
@@ -188,7 +188,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 super.visitTypeInsn(Opcodes.NEW, accessorDesc);
                 super.visitInsn(Opcodes.DUP);
                 super.visitVarInsn(Opcodes.ALOAD, 0);
-                super.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(L" + classDesc + ";)V", false);
+                super.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(L" + classPath + ";)V", false);
                 super.visitMethodInsn(Opcodes.INVOKESTATIC, ClassUtil.simpleClassName2path(bindInfo.getBindClass()), bindInfo.getBindMethod(),
                         bindInfo.getBindMethodDesc(), itf);
                 return;

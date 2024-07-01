@@ -29,17 +29,17 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     private final List<AsmField> asmFields = new ArrayList<>();
 
-    private List<Pair<String, String>> deletedMethod;
+    private List<AsmMethod> deletedMethod;
 
     public void addAsmMethod(AsmMethod method) {
         this.asmMethods.add(method);
     }
 
-    public void addDeletedMethod(String methodName, String desc) {
+    public void addDeletedMethod(AsmMethod method) {
         if (this.deletedMethod == null) {
             this.deletedMethod = new ArrayList<>();
         }
-        this.deletedMethod.add(Pair.of(methodName, desc));
+        this.deletedMethod.add(method);
     }
 
     public void addAsmField(AsmField asmField) {

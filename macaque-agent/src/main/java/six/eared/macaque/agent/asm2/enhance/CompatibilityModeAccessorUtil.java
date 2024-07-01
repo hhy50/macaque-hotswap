@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static six.eared.macaque.agent.asm2.AsmUtil.areturn;
+import static six.eared.macaque.agent.asm2.AsmUtil.calculateLvbOffset;
 
 public class CompatibilityModeAccessorUtil {
 
@@ -197,11 +198,8 @@ public class CompatibilityModeAccessorUtil {
                 accessorClassBuilder
                         .defineMethod(Opcodes.ACC_PUBLIC, method.getMethodName(), method.getDesc(), method.getExceptions(), method.getMethodSign())
                         .accept(visitor -> {
-                            Type methodType = Type.getType(method.getDesc());
                             // invokerVirtual
-                            invokerVirtual(visitor, accessorClassBuilder.getClassName(), this0holder, definition.getClassName(), method.getMethodName(), methodType);
-                            // areturn
-                            areturn(visitor, methodType.getReturnType());
+                            invokerVirtual(visitor, accessorClassBuilder.getClassName(), this0holder, definition.getClassName(), method);
                         });
             }
 
@@ -244,12 +242,9 @@ public class CompatibilityModeAccessorUtil {
                     accessorClassBuilder
                             .defineMethod(Opcodes.ACC_PUBLIC, privateMethod.getMethodName(), privateMethod.getDesc(), privateMethod.getExceptions(), privateMethod.getMethodSign())
                             .accept(visitor -> {
-                                Type methodType = Type.getMethodType(privateMethod.getDesc());
                                 // invokeSpecial
                                 invokeSpecial(visitor, accessorClassBuilder.getClassName(), this0holder, definition.getClassName(),
-                                        privateMethod.getClassName(), privateMethod.getMethodName(), methodType);
-                                // return;
-                                areturn(visitor, methodType.getReturnType());
+                                        privateMethod);
                             });
                 }
             }
@@ -261,14 +256,9 @@ public class CompatibilityModeAccessorUtil {
                             .defineMethod(Opcodes.ACC_PUBLIC, "super_" + superMethod.getMethodName(), superMethod.getDesc(), superMethod.getExceptions(), superMethod.getMethodSign())
                             .accept(visitor -> {
                                 // TODO 多态调用
-                                Type methodType = Type.getMethodType(superMethod.getDesc());
-
                                 // invokeSpecial
-                                invokeSpecial(visitor, accessorClassBuilder.getClassName(), this0holder, definition.getClassName(),
-                                        superMethod.getClassName(), superMethod.getMethodName(), methodType);
-
-                                // return;
-                                areturn(visitor, methodType.getReturnType());
+                                invokeSpecial(visitor, accessorClassBuilder.getClassName(),
+                                        this0holder, definition.getClassName(), superMethod);
                             });
                 }
             }
@@ -282,10 +272,11 @@ public class CompatibilityModeAccessorUtil {
      *
      * </p>
      */
-    private static void invokerVirtual(MethodVisitor visitor, String className, String this0holder,
-                                       String ouClassName, String methodName, Type methodType) {
+    private static void invokerVirtual(MethodVisitor visitor, String className, String this0holder, String ouClassName,
+                                       AsmMethod asmMethod) {
+        Type methodType = Type.getMethodType(asmMethod.getDesc());
         Type[] argumentTypes = methodType.getArgumentTypes();
-        int lvbOffset = calculateLvbOffset(argumentTypes);
+        int lvbOffset = calculateLvbOffset(false, argumentTypes);
         visitor.visitMaxs(lvbOffset + 2, lvbOffset);
 
         visitor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -293,7 +284,10 @@ public class CompatibilityModeAccessorUtil {
         visitor.visitTypeInsn(Opcodes.CHECKCAST, ClassUtil.simpleClassName2path(ouClassName));
 
         loadArgs(visitor, argumentTypes);
-        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, ClassUtil.simpleClassName2path(ouClassName), methodName, methodType.getDescriptor(), false);
+        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, ClassUtil.simpleClassName2path(ouClassName), asmMethod.getMethodName(), methodType.getDescriptor(), false);
+
+        // areturn
+        areturn(visitor, methodType.getReturnType());
     }
 
     /**
@@ -313,14 +307,16 @@ public class CompatibilityModeAccessorUtil {
      * @param beInvokedMethod     被调用的方法
      * @param beInvokedMethodType 方法类型
      */
-    private static void invokeSpecial(MethodVisitor visitor, String accessorClassName, String this0holder,
-                                      String outClassName, String beInvokedClass, String beInvokedMethod, Type beInvokedMethodType) {
-        Type[] argumentTypes = beInvokedMethodType.getArgumentTypes();
+    private static void invokeSpecial(MethodVisitor visitor, String accessorClassName, String this0holder, String outClassName,
+                                      AsmMethod asmMethod) {
+        Type methodType = Type.getMethodType(asmMethod.getDesc());
+        Type[] argumentTypes = methodType.getArgumentTypes();
+
         // locals = this(1) + args + type + mh
-        int lvbOffset = calculateLvbOffset(argumentTypes);
+        int lvbOffset = calculateLvbOffset(asmMethod.isStatic(), argumentTypes);
         visitor.visitMaxs(lvbOffset + 4, lvbOffset + 2);
 
-        adaptType(visitor, beInvokedMethodType.getReturnType());
+        adaptType(visitor, methodType.getReturnType());
         for (int i = 0; i < argumentTypes.length; i++) {
             if (i == 0) {
                 adaptType(visitor, argumentTypes[i]);
@@ -350,8 +346,8 @@ public class CompatibilityModeAccessorUtil {
 
         // MethodHandle mh = {@param accessorClassName}.LOOKUP.findSpecial({super_outClass}.class, "{@param methodName}", type, {@param superClassName}.class)
         visitor.visitFieldInsn(Opcodes.GETSTATIC, ClassUtil.simpleClassName2path(accessorClassName), "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
-        visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(beInvokedClass)));
-        visitor.visitLdcInsn(beInvokedMethod);
+        visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(asmMethod.getClassName())));
+        visitor.visitLdcInsn(asmMethod.getMethodName());
         visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 0); // slot_0 = type
         visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(outClassName)));
         visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandles$Lookup", "findSpecial", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;", false);
@@ -366,23 +362,12 @@ public class CompatibilityModeAccessorUtil {
         visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 1); // slot_1 = mh
 
         loadArgs(visitor, argumentTypes);
-        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", beInvokedMethodType.getDescriptor(), false);
+        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", methodType.getDescriptor(), false);
+
+        // return;
+        areturn(visitor, methodType.getReturnType());
     }
 
-    /**
-     * 计算本地变量表长度
-     *
-     * @param argumentTypes
-     * @return
-     */
-    private static int calculateLvbOffset(Type[] argumentTypes) {
-        int lvbLen = 1; // this
-        for (Type argumentType : argumentTypes) {
-            int setup = argumentType.getSort() == Type.DOUBLE || argumentType.getSort() == Type.LONG ? 2 : 1;
-            lvbLen += setup;
-        }
-        return lvbLen;
-    }
 
     /**
      * 加载方法参数

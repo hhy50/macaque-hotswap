@@ -125,4 +125,27 @@ public class AsmUtil {
         }
         return "(" + desc + ")" + rDesc;
     }
+
+    public static void throwNoSuchMethod(MethodVisitor write, String methodName) {
+        write.visitTypeInsn(Opcodes.NEW, "java/lang/NoSuchMethodError");
+        write.visitInsn(Opcodes.DUP);
+        write.visitLdcInsn(methodName);
+        write.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/NoSuchMethodError", "<init>", "(Ljava/lang/String;)V", false);
+        write.visitInsn(Opcodes.ATHROW);
+    }
+
+    /**
+     * 计算本地变量表长度
+     *
+     * @param argumentTypes
+     * @return
+     */
+    public static int calculateLvbOffset(boolean isStatic, Type[] argumentTypes) {
+        int lvbLen = isStatic ? 0 : 1; // this
+        for (Type argumentType : argumentTypes) {
+            int setup = argumentType.getSort() == Type.DOUBLE || argumentType.getSort() == Type.LONG ? 2 : 1;
+            lvbLen += setup;
+        }
+        return lvbLen;
+    }
 }
