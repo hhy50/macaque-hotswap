@@ -28,6 +28,8 @@ public class AsmMethod {
 
     private MethodBindInfo methodBindInfo;
 
+    private boolean deleted;
+
     public boolean isPrivate() {
         return (this.modifier & Opcodes.ACC_PRIVATE) > 0;
     }

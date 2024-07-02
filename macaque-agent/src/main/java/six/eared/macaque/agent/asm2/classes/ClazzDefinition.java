@@ -7,7 +7,7 @@ import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.definition.Definition;
 import six.eared.macaque.agent.enums.CorrelationEnum;
 import six.eared.macaque.asm.ClassVisitor;
-import six.eared.macaque.common.util.Pair;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,17 +30,8 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     private final List<AsmField> asmFields = new ArrayList<>();
 
-    private List<AsmMethod> deletedMethod;
-
     public void addAsmMethod(AsmMethod method) {
         this.asmMethods.add(method);
-    }
-
-    public void addDeletedMethod(AsmMethod method) {
-        if (this.deletedMethod == null) {
-            this.deletedMethod = new ArrayList<>();
-        }
-        this.deletedMethod.add(method);
     }
 
     public void addAsmField(AsmField asmField) {

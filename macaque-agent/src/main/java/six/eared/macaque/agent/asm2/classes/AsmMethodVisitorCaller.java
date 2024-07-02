@@ -39,7 +39,7 @@ public class AsmMethodVisitorCaller implements InvocationHandler {
     public MethodVisitor createProxyObj() {
         IMethodVisitor visitor = (IMethodVisitor) Proxy.newProxyInstance(AsmMethodVisitorCaller.class.getClassLoader(),
                 new Class[]{IMethodVisitor.class}, this);
-         return new MethodVisitorProxy(visitor);
+         return new MethodVisitorDelegation(visitor);
     }
 
     protected void visitStart() {
@@ -48,5 +48,9 @@ public class AsmMethodVisitorCaller implements InvocationHandler {
 
     protected void visitEnd() {
 
+    }
+
+    public boolean isEmpty() {
+        return this.calls == null || this.calls.isEmpty();
     }
 }

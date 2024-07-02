@@ -5,6 +5,7 @@ import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.*;
 import six.eared.macaque.agent.env.Environment;
+import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.asm.ClassWriter;
 import six.eared.macaque.asm.MethodVisitor;
@@ -72,7 +73,8 @@ public class CompatibilityModeByteCodeEnhancer {
         for (AsmMethod asmMethod : lastClassVersion.getAsmMethods()) {
             // 删除的方法
             if (!definition.hasMethod(asmMethod.getMethodName(), asmMethod.getDesc())) {
-                definition.addDeletedMethod(asmMethod);
+                asmMethod.setDeleted(true);
+                definition.addAsmMethod(asmMethod);
             }
         }
     }
@@ -84,15 +86,29 @@ public class CompatibilityModeByteCodeEnhancer {
             if (method.getMethodBindInfo() == null) continue;
             MethodBindInfo bindInfo = method.getMethodBindInfo();
             if (bindInfo.isLoaded()) {
+                // 对新方法做了更新
+
 //                definition.addCorrelationClasses();
             } else {
+                AsmMethodVisitorCaller visitorCaller = bindInfo.getVisitorCaller();
+                if (visitorCaller == null || visitorCaller.isEmpty()) {
+                    throw new EnhanceException("read new method error");
+                }
                 ClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
                         .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
                                 bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
                                 method.getExceptions(), method.getMethodSign())
                         .accept(methodWriter -> {
-//                            Type methodType = Type.getMethodType(asmMethod.getDesc());
-                            bindInfo.getVisitorCaller().accept(methodWriter);
+                            visitorCaller.accept(new MethodVisitorDelegation(methodWriter) {
+                                @Override
+                                public void visitMaxs(int maxStack, int maxLocals) {
+                                    if (method.isStatic()) {
+                                        maxStack += 1;
+                                        maxLocals += 1;
+                                    }
+                                    super.visitMaxs(maxStack, maxLocals);
+                                }
+                            });
                         })
                         .end();
                 CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), classBuilder.toByteArray());
@@ -136,16 +152,21 @@ public class CompatibilityModeByteCodeEnhancer {
                 }
                 return bindInfo.getVisitorCaller().createProxyObj();
             }
-        });
-        if (definition.getDeletedMethod() != null) {
-            for (AsmMethod deletedMethod : definition.getDeletedMethod()) {
-                MethodVisitor methodWrite = classWriter.visitMethod(deletedMethod.getModifier(), deletedMethod.getMethodName(), deletedMethod.getDesc(),
-                        deletedMethod.getMethodSign(), deletedMethod.getExceptions());
-                int lvblen = AsmUtil.calculateLvbOffset(deletedMethod.isStatic(), Type.getArgumentTypes(deletedMethod.getDesc()));
-                methodWrite.visitMaxs(lvblen + 2, lvblen);
-                AsmUtil.throwNoSuchMethod(methodWrite, deletedMethod.getMethodName());
+
+            @Override
+            public void visitEnd() {
+                for (AsmMethod method : definition.getAsmMethods()) {
+                    // 将类上面需要删除的方法， 删掉
+                    if (!method.isDeleted() || method.getMethodBindInfo() != null) continue;
+                    MethodVisitor methodWrite = super.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(),
+                            method.getMethodSign(), method.getExceptions());
+                    int lvblen = AsmUtil.calculateLvbOffset(method.isStatic(), Type.getArgumentTypes(method.getDesc()));
+                    methodWrite.visitMaxs(lvblen + 3, lvblen);
+                    AsmUtil.throwNoSuchMethod(methodWrite, method.getMethodName());
+                }
+                super.visitEnd();
             }
-        }
+        });
         return classWriter.toByteArray();
     }
 
