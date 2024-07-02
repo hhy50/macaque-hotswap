@@ -5,6 +5,7 @@ import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.definition.Definition;
+import six.eared.macaque.agent.enums.CorrelationEnum;
 import six.eared.macaque.asm.ClassVisitor;
 import six.eared.macaque.common.util.Pair;
 import java.util.ArrayList;
@@ -44,6 +45,13 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     public void addAsmField(AsmField asmField) {
         this.asmFields.add(asmField);
+    }
+
+    public void addCorrelationClasses(CorrelationEnum correlation, ClazzDefinition definition) {
+        if (this.correlationClasses == null) {
+            this.correlationClasses = new ArrayList<>();
+        }
+        this.correlationClasses.add(CorrelationClazzDefinition.of(correlation, definition));
     }
 
     @Override

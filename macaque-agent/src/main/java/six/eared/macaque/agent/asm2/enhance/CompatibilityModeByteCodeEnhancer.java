@@ -50,11 +50,10 @@ public class CompatibilityModeByteCodeEnhancer {
                 // 跳过构造函数和clinit
                 if (method.isConstructor() || method.isClinit()) continue;
                 // 跳过非私有方法
-                if (!method.isPrivate()) continue;
                 if (method.getMethodBindInfo() != null) {
                     asmMethod.setMethodBindInfo(method.getMethodBindInfo().clone());
-                    continue;
                 }
+                continue;
             }
 
             // 私有方法或者新方法。需要建立绑定关系
@@ -84,16 +83,21 @@ public class CompatibilityModeByteCodeEnhancer {
         for (AsmMethod method : definition.getAsmMethods()) {
             if (method.getMethodBindInfo() == null) continue;
             MethodBindInfo bindInfo = method.getMethodBindInfo();
-            ClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
-                    .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-                            bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
-                            method.getExceptions(), method.getMethodSign())
-                    .accept(methodWriter -> {
+            if (bindInfo.isLoaded()) {
+//                definition.addCorrelationClasses();
+            } else {
+                ClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
+                        .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+                                bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
+                                method.getExceptions(), method.getMethodSign())
+                        .accept(methodWriter -> {
 //                            Type methodType = Type.getMethodType(asmMethod.getDesc());
-                        bindInfo.getVisitorCaller().accept(methodWriter);
-                    })
-                    .end();
-            CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), classBuilder.toByteArray());
+                            bindInfo.getVisitorCaller().accept(methodWriter);
+                        })
+                        .end();
+                CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), classBuilder.toByteArray());
+                bindInfo.setLoaded(true);
+            }
         }
         if (Environment.isDebug()) {
             FileUtil.writeBytes(
@@ -138,7 +142,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 MethodVisitor methodWrite = classWriter.visitMethod(deletedMethod.getModifier(), deletedMethod.getMethodName(), deletedMethod.getDesc(),
                         deletedMethod.getMethodSign(), deletedMethod.getExceptions());
                 int lvblen = AsmUtil.calculateLvbOffset(deletedMethod.isStatic(), Type.getArgumentTypes(deletedMethod.getDesc()));
-                methodWrite.visitMaxs(lvblen+2, lvblen);
+                methodWrite.visitMaxs(lvblen + 2, lvblen);
                 AsmUtil.throwNoSuchMethod(methodWrite, deletedMethod.getMethodName());
             }
         }

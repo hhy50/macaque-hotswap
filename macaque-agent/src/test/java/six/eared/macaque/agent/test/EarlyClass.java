@@ -9,6 +9,6 @@ public class EarlyClass extends AbsEarlyClass2 {
     }
 
     public String test2() {
-        throw new NoSuchMethodError("aaa");
+        return "test2";
     }
 }
