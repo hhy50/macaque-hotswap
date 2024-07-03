@@ -20,4 +20,8 @@ public class CompatibilityModeClassLoader {
         ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
         Class<?> clazz = (Class<?>) ReflectUtil.invokeMethod(systemClassLoader, "defineClass", className, bytes, 0, bytes.length);
     }
+
+    public static ClassLoader getClassLoader() {
+        return ClassLoader.getSystemClassLoader();
+    }
 }

@@ -410,7 +410,7 @@ public class CompatibilityModeAccessorUtil {
             return superAccessor.getClassName();
         }
 
-        Class<?> clazz = Class.forName(superAccessor.getClassName());
+        Class<?> clazz = Class.forName(superAccessor.getClassName(), false, CompatibilityModeClassLoader.getClassLoader());
         Field this$0 = clazz.getField("this$0");
         return this$0.getDeclaringClass().getName();
     }
