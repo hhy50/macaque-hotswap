@@ -1,9 +1,15 @@
 package six.eared.macaque.agent.asm2.enhance;
 
+import javassist.CannotCompileException;
+import javassist.Modifier;
+import javassist.NotFoundException;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
-import six.eared.macaque.agent.asm2.classes.*;
+import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
+import six.eared.macaque.agent.asm2.classes.ClassVisitorDelegation;
+import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
+import six.eared.macaque.agent.asm2.classes.MethodVisitorDelegation;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.agent.vcs.VersionChainTool;
@@ -25,7 +31,8 @@ public class CompatibilityModeByteCodeEnhancer {
 
     private static final ClassNameGenerator CLASS_NAME_GENERATOR = new SimpleClassNameGenerator();
 
-    public static void enhance(List<ClazzDefinition> definitions) throws IOException, ClassNotFoundException {
+    public static void enhance(List<ClazzDefinition> definitions) throws IOException, ClassNotFoundException,
+            NotFoundException, CannotCompileException {
         for (ClazzDefinition definition : definitions) {
             // 准备
             prepare(definition);
@@ -79,7 +86,7 @@ public class CompatibilityModeByteCodeEnhancer {
         }
     }
 
-    private static ClazzDefinition bytecodeConvert(ClazzDefinition definition) {
+    private static ClazzDefinition bytecodeConvert(ClazzDefinition definition) throws NotFoundException, CannotCompileException {
         byte[] newByteCode = generateNewByteCode(definition);
 
         for (AsmMethod method : definition.getAsmMethods()) {
@@ -94,7 +101,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 if (visitorCaller == null || visitorCaller.isEmpty()) {
                     throw new EnhanceException("read new method error");
                 }
-                ClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
+                ClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null)
                         .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
                                 bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
                                 method.getExceptions(), method.getMethodSign())

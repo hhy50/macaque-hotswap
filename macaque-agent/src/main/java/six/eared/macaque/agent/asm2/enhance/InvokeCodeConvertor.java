@@ -4,7 +4,6 @@ import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.MethodDynamicStackVisitor;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
-import six.eared.macaque.asm.Type;
 import six.eared.macaque.common.util.ClassUtil;
 
 import java.util.Map;

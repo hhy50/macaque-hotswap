@@ -1,5 +1,7 @@
 package six.eared.macaque.agent.asm2;
 
+import javassist.CannotCompileException;
+import javassist.NotFoundException;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitor;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
@@ -94,9 +96,9 @@ public class AsmUtil {
         return sb.toString();
     }
 
-    public static ClassBuilder defineClass(int access, String className, String superName, String[] interfaces, String sign) {
-        return new ClassBuilder()
-                .defineClass(access, className, superName, interfaces, sign);
+    public static ClassBuilder defineClass(int access, String className, String superName, String[] interfaces)
+            throws NotFoundException, CannotCompileException {
+        return new ClassBuilder(access, className, superName, interfaces);
     }
 
     public static void areturn(MethodVisitor writer, Type rType) {

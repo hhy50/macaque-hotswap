@@ -1,5 +1,9 @@
 package six.eared.macaque.agent.asm2.enhance;
 
+import javassist.CannotCompileException;
+import javassist.Modifier;
+import javassist.NotFoundException;
+import javassist.bytecode.AccessFlag;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
@@ -7,6 +11,7 @@ import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
+import six.eared.macaque.agent.javassist.JavaSsistUtil;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.asm.Type;
@@ -16,10 +21,8 @@ import six.eared.macaque.common.util.StringUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.IntStream;
 
 import static six.eared.macaque.agent.asm2.AsmUtil.areturn;
 import static six.eared.macaque.agent.asm2.AsmUtil.calculateLvbOffset;
@@ -73,56 +76,16 @@ public class CompatibilityModeAccessorUtil {
      * @return
      */
     private static ClassBuilder generateAccessorClass(String accessorName, ClazzDefinition definition,
-                                                      String superAccessorName) {
-        String outClassDesc = "L" + ClassUtil.simpleClassName2path(definition.getClassName()) + ";";
-        String accessorDesc = ClassUtil.simpleClassName2path(accessorName);
-        ClassBuilder classBuilder = AsmUtil
-                .defineClass(Opcodes.ACC_PUBLIC, accessorName, superAccessorName, null, null)
-                .defineConstruct(Opcodes.ACC_PUBLIC, new String[]{definition.getClassName()}, null, null)
-                .accept(visitor -> {
-                    visitor.visitMaxs(2, 2);
-                    boolean containSupper = superAccessorName != null;
-
-                    if (!containSupper) {
-                        // this$0 = {outClassObj}
-                        visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                        visitor.visitVarInsn(Opcodes.ALOAD, 1);
-                        visitor.visitFieldInsn(Opcodes.PUTFIELD, accessorDesc, "this$0", "Ljava/lang/Object;");
-                    }
-
-                    // super({outClassObj}.this)
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    if (containSupper) {
-                        visitor.visitVarInsn(Opcodes.ALOAD, 1);
-                    }
-                    visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,
-                            containSupper ? ClassUtil.simpleClassName2path(superAccessorName) : "java/lang/Object", "<init>",
-                            containSupper ? AsmUtil.methodDesc("V", AsmUtil.toTypeDesc(definition.getSuperClassName())) : "()V", false);
-
-                    visitor.visitInsn(Opcodes.RETURN);
-                    visitor.visitEnd();
-                });
-
-        /**
-         * public {Accessor_Class} this$0;
-         */
-        if (superAccessorName == null) {
-            classBuilder.defineField(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC, "this$0", "Ljava/lang/Object;", null, null);
+                                                      String superAccessorName) throws NotFoundException, CannotCompileException {
+        boolean containSupper = superAccessorName != null;
+        ClassBuilder classBuilder
+                = JavaSsistUtil.defineClass(Modifier.PUBLIC, accessorName, superAccessorName, null);
+        classBuilder.defineField("public static final MethodHandles$Lookup LOOKUP = MethodHandles.lookup();");
+        if (!containSupper) {
+            classBuilder.defineField(Modifier.PUBLIC | AccessFlag.SYNTHETIC, "this$0", "java.lang.Object");
         }
-
-        /**
-         * public static MethodHandles.Lookup LOOKUP;
-         */
-        classBuilder.defineField(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;",
-                null, null);
-
-        classBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V", null, null)
-                .accept(visitor -> {
-                    visitor.visitMaxs(1, 0);
-                    visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", false);
-                    visitor.visitFieldInsn(Opcodes.PUTSTATIC, accessorDesc, "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
-                    visitor.visitInsn(Opcodes.RETURN);
-                });
+        classBuilder.defineConstructor(String.format("public %s(Object this$0) { %s }",
+                ClassUtil.toSimpleName(accessorName), containSupper ? "super(this$0);" : "this.this$0=this$0;"));
         return classBuilder;
     }
 
@@ -138,10 +101,10 @@ public class CompatibilityModeAccessorUtil {
         return null;
     }
 
-    private static void collectAccessibleMethods(ClazzDefinition definition, ClassBuilder accessorClassBuilder, ClazzDefinition superAccessor,
+    private static void collectAccessibleMethods(ClazzDefinition definition, ClassBuilder accessorBuilder, ClazzDefinition superAccessor,
                                                  ClassNameGenerator classNameGenerator) {
         try {
-            String this0holder = findThis0Holder(accessorClassBuilder.getClassName(), superAccessor);
+            String this0holder = findThis0Holder(accessorBuilder.getClassName(), superAccessor);
             Set<AsmMethod> privateMethods = new HashSet<>();
             Map<String, AsmMethod> accessibleSuperMethods = new HashMap<>();
 
@@ -164,12 +127,7 @@ public class CompatibilityModeAccessorUtil {
                 }
 
                 // 不是继承而来的 或者 继承来的但是没有父accessor, 就生成方法调用
-                accessorClassBuilder
-                        .defineMethod(Opcodes.ACC_PUBLIC, method.getMethodName(), method.getDesc(), method.getExceptions(), method.getMethodSign())
-                        .accept(visitor -> {
-                            // invokerVirtual
-                            invokerVirtual(visitor, accessorClassBuilder.getClassName(), this0holder, definition.getClassName(), method);
-                        });
+                invokerVirtual(accessorBuilder, definition.getClassName(), method);
             }
 
             // non private method in super class
@@ -208,11 +166,11 @@ public class CompatibilityModeAccessorUtil {
             // 2. 将字节码绑定到新的类（性能好）
             if (CollectionUtil.isNotEmpty(privateMethods)) {
                 for (AsmMethod privateMethod : privateMethods) {
-                    accessorClassBuilder
+                    accessorBuilder
                             .defineMethod(Opcodes.ACC_PUBLIC, privateMethod.getMethodName(), privateMethod.getDesc(), privateMethod.getExceptions(), privateMethod.getMethodSign())
                             .accept(visitor -> {
                                 // invokeSpecial
-                                invokeSpecial(visitor, accessorClassBuilder.getClassName(), this0holder, definition.getClassName(),
+                                invokeSpecial(visitor, accessorBuilder.getClassName(), this0holder, definition.getClassName(),
                                         privateMethod);
                             });
                 }
@@ -221,12 +179,12 @@ public class CompatibilityModeAccessorUtil {
             if (accessibleSuperMethods.size() > 0) {
                 for (Map.Entry<String, AsmMethod> methodEntry : accessibleSuperMethods.entrySet()) {
                     AsmMethod superMethod = methodEntry.getValue();
-                    accessorClassBuilder
+                    accessorBuilder
                             .defineMethod(Opcodes.ACC_PUBLIC, "super_" + superMethod.getMethodName(), superMethod.getDesc(), superMethod.getExceptions(), superMethod.getMethodSign())
                             .accept(visitor -> {
                                 // TODO 多态调用
                                 // invokeSpecial
-                                invokeSpecial(visitor, accessorClassBuilder.getClassName(),
+                                invokeSpecial(visitor, accessorBuilder.getClassName(),
                                         this0holder, definition.getClassName(), superMethod);
                             });
                 }
@@ -241,22 +199,22 @@ public class CompatibilityModeAccessorUtil {
      *
      * </p>
      */
-    private static void invokerVirtual(MethodVisitor visitor, String className, String this0holder, String ouClassName,
-                                       AsmMethod asmMethod) {
-        Type methodType = Type.getMethodType(asmMethod.getDesc());
-        Type[] argumentTypes = methodType.getArgumentTypes();
-        int lvbOffset = calculateLvbOffset(false, argumentTypes);
-        visitor.visitMaxs(lvbOffset + 2, lvbOffset);
+    private static void invokerVirtual(ClassBuilder classBuilder, String this0ClassName,
+                                         AsmMethod method) {
+        Type methodType = Type.getMethodType(method.getDesc());
+        String methodName = method.getMethodName();
+        String rType = methodType.getReturnType().getClassName();
+        Type[] args = methodType.getArgumentTypes();
+        String[] argVars = IntStream.range(0, args.length).mapToObj(i -> "var_" + i).toArray(String[]::new);
+        String[] argsType = Arrays.stream(args).map(Type::getClassName).toArray(String[]::new);
 
-        visitor.visitVarInsn(Opcodes.ALOAD, 0);
-        visitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.simpleClassName2path(this0holder), "this$0", "Ljava/lang/Object;");
-        visitor.visitTypeInsn(Opcodes.CHECKCAST, ClassUtil.simpleClassName2path(ouClassName));
-
-        loadArgs(visitor, argumentTypes);
-        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, ClassUtil.simpleClassName2path(ouClassName), asmMethod.getMethodName(), methodType.getDescriptor(), false);
-
-        // areturn
-        areturn(visitor, methodType.getReturnType());
+        String methodBody = (rType.equals("void") ? "" : "return (" + rType + ")")
+                + " ((" + method.getClassName() + ") this$0)." + methodName + "(" + String.join(",", argVars) + ");";
+        classBuilder.defineMethod(
+                Modifier.PUBLIC, rType, methodName,
+                argsType,
+                methodBody
+        );
     }
 
     /**
@@ -268,10 +226,10 @@ public class CompatibilityModeAccessorUtil {
      * </p>
      */
     /**
-     * @param visitor             方法字节码的visitor
-     * @param accessorClassName   访问器的类名
-     * @param this0holder         持有this$0对象的类
-     * @param outClassName        调用类的类名
+     * @param visitor           方法字节码的visitor
+     * @param accessorClassName 访问器的类名
+     * @param this0holder       持有this$0对象的类
+     * @param outClassName      调用类的类名
      */
     private static void invokeSpecial(MethodVisitor visitor, String accessorClassName, String this0holder, String outClassName,
                                       AsmMethod asmMethod) {
