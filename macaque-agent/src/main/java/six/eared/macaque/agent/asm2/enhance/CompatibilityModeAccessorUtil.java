@@ -116,41 +116,10 @@ public class CompatibilityModeAccessorUtil {
         classBuilder.defineField(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;",
                 null, null);
 
-        /**
-         *         static {
-         *             Constructor<?> constructor = MethodHandles.Lookup.class.getDeclaredConstructors()[0];
-         *             constructor.setAccessible(true);
-         *             LOOKUP = (MethodHandles.Lookup) constructor.newInstance(EarlyClass.class);
-         *         }
-         */
         classBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V", null, null)
                 .accept(visitor -> {
-                    visitor.visitMaxs(5, 2);
-
-                    // Constructor<?> constructor = MethodHandles.Lookup.class.getDeclaredConstructors()[0];
-                    visitor.visitLdcInsn(Type.getType("Ljava/lang/invoke/MethodHandles$Lookup;"));
-                    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Class", "getDeclaredConstructors",
-                            "()[Ljava/lang/reflect/Constructor;", false);
-                    visitor.visitInsn(Opcodes.ICONST_0);
-                    visitor.visitInsn(Opcodes.AALOAD);
-                    visitor.visitVarInsn(Opcodes.ASTORE, 0);
-
-                    // constructor.setAccessible(true);
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    visitor.visitInsn(Opcodes.ICONST_1);
-                    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/reflect/Constructor", "setAccessible", "(Z)V", false);
-
-                    // LOOKUP = (MethodHandles.Lookup) constructor.newInstance(EarlyClass.class);
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    visitor.visitInsn(Opcodes.ICONST_1);
-                    visitor.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
-                    visitor.visitInsn(Opcodes.DUP);
-                    visitor.visitInsn(Opcodes.ICONST_0);
-                    visitor.visitLdcInsn(Type.getType(outClassDesc));
-                    visitor.visitInsn(Opcodes.AASTORE);
-                    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/reflect/Constructor", "newInstance",
-                            "([Ljava/lang/Object;)Ljava/lang/Object;", false);
-                    visitor.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/invoke/MethodHandles$Lookup");
+                    visitor.visitMaxs(1, 0);
+                    visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", false);
                     visitor.visitFieldInsn(Opcodes.PUTSTATIC, accessorDesc, "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
                     visitor.visitInsn(Opcodes.RETURN);
                 });
@@ -303,9 +272,6 @@ public class CompatibilityModeAccessorUtil {
      * @param accessorClassName   访问器的类名
      * @param this0holder         持有this$0对象的类
      * @param outClassName        调用类的类名
-     * @param beInvokedClass      被调用的类名
-     * @param beInvokedMethod     被调用的方法
-     * @param beInvokedMethodType 方法类型
      */
     private static void invokeSpecial(MethodVisitor visitor, String accessorClassName, String this0holder, String outClassName,
                                       AsmMethod asmMethod) {

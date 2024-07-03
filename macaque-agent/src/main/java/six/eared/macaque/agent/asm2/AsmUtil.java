@@ -148,4 +148,14 @@ public class AsmUtil {
         }
         return lvbLen;
     }
+
+    /**
+     * 访问器入栈
+     */
+    public static void accessorStore(MethodVisitor writer, String accessorDesc, String _this) {
+        writer.visitTypeInsn(Opcodes.NEW, accessorDesc);
+        writer.visitInsn(Opcodes.DUP);
+        writer.visitVarInsn(Opcodes.ALOAD, 0);
+        writer.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(L" + _this + ";)V", false);
+    }
 }

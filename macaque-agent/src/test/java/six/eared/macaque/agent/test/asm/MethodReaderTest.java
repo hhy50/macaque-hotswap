@@ -19,4 +19,10 @@ public class MethodReaderTest {
         ClassReader classReader = new ClassReader("six.eared.macaque.agent.test.StaticEarlyClass");
         classReader.accept(new BinaryClassPrint(new AsmMethodPrinter()), 0);
     }
+
+    @Test
+    public void test3() throws IOException {
+        ClassReader classReader = new ClassReader("six.eared.macaque.agent.test.EarlyClass2");
+        classReader.accept(new BinaryClassPrint(new AsmMethodPrinter()), 0);
+    }
 }

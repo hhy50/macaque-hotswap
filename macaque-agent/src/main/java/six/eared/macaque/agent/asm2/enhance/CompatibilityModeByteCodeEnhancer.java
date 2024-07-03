@@ -64,7 +64,7 @@ public class CompatibilityModeByteCodeEnhancer {
             MethodBindInfo methodBindInfo = new MethodBindInfo();
             methodBindInfo.setBindClass(bindClassName);
             methodBindInfo.setBindMethod(bindMethodName);
-            methodBindInfo.setBindMethodDesc(AsmUtil.addArgsDesc(asmMethod.getDesc(), accessor.getClassName(), false));
+            methodBindInfo.setBindMethodDesc(AsmUtil.addArgsDesc(asmMethod.getDesc(), accessor.getClassName(), !asmMethod.isStatic()));
             methodBindInfo.setAccessorClass(accessor.getClassName());
             methodBindInfo.setVisitorCaller(new AsmMethodVisitorCaller());
             asmMethod.setMethodBindInfo(methodBindInfo);
@@ -177,48 +177,8 @@ public class CompatibilityModeByteCodeEnhancer {
      */
     private static ClazzDefinition createAccessor(ClazzDefinition definition) {
         // 计算深度
-        int depth = 3;
-        ClazzDefinition accessor = CompatibilityModeAccessorUtil.createAccessor(definition.getClassName(), CLASS_NAME_GENERATOR, depth);
+        int deepth = 0;
+        ClazzDefinition accessor = CompatibilityModeAccessorUtil.createAccessor(definition.getClassName(), CLASS_NAME_GENERATOR, deepth);
         return accessor;
-    }
-
-    /**
-     * 改变调用指令的字节码转换器
-     */
-    static class InvokeCodeConvertor extends MethodDynamicStackVisitor {
-        private final String classPath;
-        private final Map<String, MethodBindInfo> newMethods;
-
-        public InvokeCodeConvertor(String classPath, MethodVisitor write, Map<String, MethodBindInfo> bindMethods) {
-            super(write);
-            this.classPath = classPath;
-            this.newMethods = bindMethods;
-        }
-
-        @Override
-        public void visitMaxs(int maxStack, int maxLocals) {
-            super.visitMaxs(maxStack + 1, maxLocals);
-        }
-
-        @Override
-        public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-            String uniqueDesc = name + "#" + desc;
-            if (newMethods.containsKey(uniqueDesc)) {
-                if (opcode != Opcodes.INVOKESTATIC) {
-                    // 需要将this弹出
-                    super.visitVarInsn(Opcodes.ASTORE, 0);
-                }
-                MethodBindInfo bindInfo = newMethods.get(uniqueDesc);
-                String accessorDesc = ClassUtil.simpleClassName2path(bindInfo.getAccessorClass());
-                super.visitTypeInsn(Opcodes.NEW, accessorDesc);
-                super.visitInsn(Opcodes.DUP);
-                super.visitVarInsn(Opcodes.ALOAD, 0);
-                super.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(L" + classPath + ";)V", false);
-                super.visitMethodInsn(Opcodes.INVOKESTATIC, ClassUtil.simpleClassName2path(bindInfo.getBindClass()), bindInfo.getBindMethod(),
-                        bindInfo.getBindMethodDesc(), itf);
-                return;
-            }
-            super.visitMethodInsn(opcode, owner, name, desc, itf);
-        }
     }
 }

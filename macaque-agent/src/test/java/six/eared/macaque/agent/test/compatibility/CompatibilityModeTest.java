@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import six.eared.macaque.agent.hotswap.handler.ClassHotSwapHandler;
 import six.eared.macaque.agent.test.EarlyClass;
+import six.eared.macaque.agent.test.EarlyClass2;
 import six.eared.macaque.agent.test.Env;
 import six.eared.macaque.agent.test.StaticEarlyClass;
 import six.eared.macaque.agent.test.asm.AsmMethodPrinter;
@@ -23,6 +24,8 @@ public class CompatibilityModeTest extends Env {
     private ClassVisitor printer = new BinaryClassPrint(new AsmMethodPrinter());
 
     private EarlyClass earlyClass = new EarlyClass();
+
+    private EarlyClass2 earlyClass2 = new EarlyClass2();
 
     private StaticEarlyClass staticEarlyClass = new StaticEarlyClass();
 
@@ -61,6 +64,26 @@ public class CompatibilityModeTest extends Env {
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         StaticEarlyClass.staticMethod1();
     }
+
+    @Test
+    public void testAddNewStaticMethodWithParams() {
+        byte[] bytes = compileToClass("EarlyClass2.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
+                .getResourceAsStream("AddNewStaticMethodWithParams.java"))).get(0);
+        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        Assert.assertEquals(earlyClass2.test1("haiyang"), "arg1=haiyang,arg2=1111");
+    }
+
+//    @Test
+//    public void testAddNewMethodWithParams() {
+//        byte[] bytes = compileToClass("EarlyClass2.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
+//                .getResourceAsStream("AddNewMethodWithParams.java"))).get(0);
+//        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
+//        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+//        Assert.assertEquals(earlyClass.test2(), "_newMethod");
+//    }
+
+
 //
 //
 //    @Test
