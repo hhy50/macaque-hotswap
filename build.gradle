@@ -6,7 +6,7 @@ plugins {
 group = 'six.eared.macaque'
 
 ext {
-    projectVersion = '1.0.3-SNAPSHOT'
+    projectVersion = '1.1.0-SNAPSHOT'
     logbackVersion = '1.2.3'
     fastjsonVersion = '2.0.6'
     projectUrl = 'https://github.com/haiyanghan/macaque-hotswap'

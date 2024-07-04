@@ -78,14 +78,6 @@ public class ClassBuilder {
         return this;
     }
 
-    public ClassBuilder defineMethod(int modifier, String rType, String methodName, String[] params)
-            throws NotFoundException, CannotCompileException {
-        CtMethod ctMethod = new CtMethod(POOL.get(rType), methodName, getTypes(params), this.ctClass);
-        ctMethod.setModifiers(modifier);
-        this.ctClass.addMethod(ctMethod);
-        return this;
-    }
-
     public MethodBuilder defineMethod(int access, String methodName, String methodDesc, String[] exceptions, String methodSign) {
         MethodVisitor methodVisitor = this.classWriter.visitMethod(access, methodName, methodDesc, methodSign, exceptions);
         return new MethodBuilder(this, methodVisitor);

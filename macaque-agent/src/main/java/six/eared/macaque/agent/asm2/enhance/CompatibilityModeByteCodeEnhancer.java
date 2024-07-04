@@ -94,7 +94,6 @@ public class CompatibilityModeByteCodeEnhancer {
             MethodBindInfo bindInfo = method.getMethodBindInfo();
             if (bindInfo.isLoaded()) {
                 // 对新方法做了更新
-
 //                definition.addCorrelationClasses();
             } else {
                 AsmMethodVisitorCaller visitorCaller = bindInfo.getVisitorCaller();
