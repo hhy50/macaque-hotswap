@@ -6,16 +6,16 @@ import java.util.function.Consumer;
 
 public class MethodBuilder {
 
-    private ClassBuilder classBuilder;
+    private AsmClassBuilder classBuilder;
 
     private MethodVisitor methodVisitor;
 
-    public MethodBuilder(ClassBuilder classBuilder, MethodVisitor methodVisitor) {
+    public MethodBuilder(AsmClassBuilder classBuilder, MethodVisitor methodVisitor) {
         this.classBuilder = classBuilder;
         this.methodVisitor = methodVisitor;
     }
 
-    public ClassBuilder accept(Consumer<MethodVisitor> consumer) {
+    public AsmClassBuilder accept(Consumer<MethodVisitor> consumer) {
         consumer.accept(this.methodVisitor);
         return this.classBuilder;
     }

@@ -1,4 +1,4 @@
-package six.eared.macaque.agent.asm2.enhance;
+package six.eared.macaque.agent.accessor;
 
 import javassist.CannotCompileException;
 import javassist.Modifier;
@@ -9,18 +9,17 @@ import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
+import six.eared.macaque.agent.asm2.enhance.ClassNameGenerator;
+import six.eared.macaque.agent.asm2.enhance.CompatibilityModeClassLoader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
 import six.eared.macaque.agent.javassist.JavaSsistUtil;
-import six.eared.macaque.asm.MethodVisitor;
-import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.asm.Type;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.StringUtil;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -180,41 +179,39 @@ public class CompatibilityModeAccessorUtil {
     }
 
     /**
-     * <p>
-     *      MethodType type = MethodType.methodType({arg0...n});
-     *      MethodHandle mh = LOOKUP.findSpecial({@param this0Class}.class, "{@param method.name}", type, {@param superClassName}.class)
-     *                              .bindTo(this$0);
-     *      return mh.invoke({arg0...n});
-     * </p>
-     */
-    /**
      * @param this0Class   this0Class
      * @param method       生成的方法
      * @param classBuilder 构造器
      */
     private static void invokeSpecial(String this0Class, AsmMethod method, ClassBuilder classBuilder) throws CannotCompileException {
         String methodName = method.getMethodName();
+        String methodClass = method.getClassName();
         Type methodType = Type.getMethodType(method.getDesc());
         String rType = methodType.getReturnType().getClassName();
+
         Type[] args = methodType.getArgumentTypes();
         String[] argVars = IntStream.range(0, args.length).mapToObj(i -> "var_" + i).toArray(String[]::new);
+        String argsClassDeclare = Arrays.stream(args).map(type -> type.getClassName() + ".class").collect(Collectors.joining(","));
+        String argsDeclare = IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName() + " " + argVars[i])
+                .collect(Collectors.joining(","));
+        String[] packingArgs = Arrays.stream(argVars).map(a -> "Util.packing("+a+")").toArray(String[]::new);
+        String unpacking = getUnpacking(methodType.getReturnType());
 
-        String declare = String.format("public %s %s(%s)",
-                rType, "super_" + methodName, IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName() + " " + argVars[i]).collect(Collectors.joining(",")));
-        String body = "MethodType type = MethodType.methodType(" + rType + ".class, " + Arrays.stream(args).map(type -> type.getClassName() + ".class").collect(Collectors.joining(", ")) + ");" +
-                "MethodHandle mh = LOOKUP.findSpecial(" + this0Class + ".class, \"" + methodName + "\", type, " + method.getClassName() + ".class).bindTo(this$0);" +
-                (rType.equals("void") ? "" : "return (" + rType + ") ") +
-                "mh.invoke(new Object[] {" + String.join(", ", argVars) + "});";
-
-        classBuilder.defineMethod(declare + "{" + body + "}");
+        StringBuilder methodSrc = new StringBuilder("public "+rType+" super_"+methodName+"("+argsDeclare+") {").append("\n")
+                .append("MethodType type = MethodType.methodType("+rType+".class,new Class[]{"+argsClassDeclare+"});").append("\n")
+                .append("MethodHandle mh = LOOKUP.findSpecial("+this0Class+".class,\""+methodName+"\",type,"+methodClass+".class).bindTo(this$0);").append("\n")
+                .append(rType.equals("void") ? "" : "return (" + rType + ")")
+                .append((!rType.equals("void")) && unpacking != null ? "Util."+unpacking+"(" :"(")
+                .append("mh.invoke(new Object[] {" + String.join(",", packingArgs) + "}));").append("\n")
+                .append("}");
+        classBuilder.defineMethod(methodSrc.toString());
     }
+
 
     private static void collectAccessibleFields(ClazzDefinition definition, ClassBuilder containSuper, ClazzDefinition classBuilder) {
         // my all field
         for (AsmField asmField : definition.getAsmFields()) {
-            if ((asmField.getModifier() & Opcodes.ACC_PRIVATE) > 0) {
 
-            }
         }
         // non private field in super class
 
@@ -251,5 +248,29 @@ public class CompatibilityModeAccessorUtil {
             return true;
         }
         return false;
+    }
+
+    public static String getUnpacking(Type type) {
+        switch (type.getSort()) {
+            case Type.BOOLEAN:
+                return "unpack_boolean";
+            case Type.CHAR:
+                return "unpack_char";
+            case Type.BYTE:
+                return "unpack_byte";
+            case Type.SHORT:
+                return "unpack_short";
+            case Type.INT:
+                return "unpack_int";
+            case Type.FLOAT:
+                return "unpack_float";
+            case Type.LONG:
+                return "unpack_long";
+            case Type.DOUBLE:
+                return "unpack_double";
+            case Type.VOID:
+            default:
+                return null;
+        }
     }
 }

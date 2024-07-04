@@ -101,6 +101,11 @@ public class AsmUtil {
         return new ClassBuilder(access, className, superName, interfaces);
     }
 
+    public static AsmClassBuilder defineClass(int access, String className, String superName, String[] interfaces, String sign) {
+        return new AsmClassBuilder()
+                .defineClass(access, className, superName, interfaces, sign);
+    }
+
     public static void areturn(MethodVisitor writer, Type rType) {
         if (rType.getReturnType().getSort() == Type.VOID) {
             writer.visitInsn(Opcodes.RETURN);
@@ -154,10 +159,10 @@ public class AsmUtil {
     /**
      * 访问器入栈
      */
-    public static void accessorStore(MethodVisitor writer, String accessorDesc, String _this) {
+    public static void accessorStore(MethodVisitor writer, String accessorDesc) {
         writer.visitTypeInsn(Opcodes.NEW, accessorDesc);
         writer.visitInsn(Opcodes.DUP);
         writer.visitVarInsn(Opcodes.ALOAD, 0);
-        writer.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(L" + _this + ";)V", false);
+        writer.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(Ljava/lang/Object;)V", false);
     }
 }

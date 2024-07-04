@@ -12,6 +12,7 @@ public class JavaSsistUtil {
 
     static {
         POOL.importPackage("java.lang.invoke");
+        POOL.importPackage("six.eared.macaque.agent.accessor.util");
     }
 
     public static ClassBuilder defineClass(int modifier, String className, String superClass, String[] interfaces)

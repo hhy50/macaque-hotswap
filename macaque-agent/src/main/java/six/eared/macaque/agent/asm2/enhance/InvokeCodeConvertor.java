@@ -39,10 +39,10 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
                 super.visitVarInsn(Opcodes.ASTORE, 0);
 
                 // TODO 需要访问器提前入栈
-                AsmUtil.accessorStore(this, accessorClassPath, classPath);
+                AsmUtil.accessorStore(this, accessorClassPath);
             } else {
                 // 只需要访问器入栈
-                AsmUtil.accessorStore(this, accessorClassPath, classPath);
+                AsmUtil.accessorStore(this, accessorClassPath);
             }
             super.visitMethodInsn(Opcodes.INVOKESTATIC, ClassUtil.simpleClassName2path(bindInfo.getBindClass()), bindInfo.getBindMethod(),
                     bindInfo.getBindMethodDesc(), itf);

@@ -1,8 +1,9 @@
 package six.eared.macaque.agent.asm2.enhance;
 
 import javassist.CannotCompileException;
-import javassist.Modifier;
 import javassist.NotFoundException;
+import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtil;
+import six.eared.macaque.agent.asm2.AsmClassBuilder;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
@@ -100,7 +101,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 if (visitorCaller == null || visitorCaller.isEmpty()) {
                     throw new EnhanceException("read new method error");
                 }
-                ClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null)
+                AsmClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
                         .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
                                 bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
                                 method.getExceptions(), method.getMethodSign())
@@ -183,7 +184,7 @@ public class CompatibilityModeByteCodeEnhancer {
      */
     private static ClazzDefinition createAccessor(ClazzDefinition definition) {
         // 计算深度
-        int deepth = 0;
+        int deepth = 5;
         ClazzDefinition accessor = CompatibilityModeAccessorUtil.createAccessor(definition.getClassName(), CLASS_NAME_GENERATOR, deepth);
         return accessor;
     }
