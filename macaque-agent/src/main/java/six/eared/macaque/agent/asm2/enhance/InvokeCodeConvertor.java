@@ -13,12 +13,10 @@ import java.util.Map;
  */
 
 public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
-    private final String classPath;
     private final Map<String, MethodBindInfo> newMethods;
 
-    public InvokeCodeConvertor(String classPath, MethodVisitor write, Map<String, MethodBindInfo> bindMethods) {
+    public InvokeCodeConvertor(MethodVisitor write, Map<String, MethodBindInfo> bindMethods) {
         super(write);
-        this.classPath = classPath;
         this.newMethods = bindMethods;
     }
 

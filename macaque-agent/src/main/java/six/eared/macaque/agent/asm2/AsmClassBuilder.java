@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.asm2;
 
+import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.asm.ClassWriter;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
@@ -58,8 +59,8 @@ public class AsmClassBuilder {
         return this;
     }
 
-    public byte[] toByteArray() {
-        return this.classWriter.toByteArray();
+    public ClazzDefinition toDefinition() {
+        return AsmUtil.readClass(this.classWriter.toByteArray());
     }
 
     public String getClassName() {

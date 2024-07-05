@@ -6,11 +6,10 @@ import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtil;
 import six.eared.macaque.agent.asm2.AsmClassBuilder;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
-import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 import six.eared.macaque.agent.asm2.classes.ClassVisitorDelegation;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
-import six.eared.macaque.agent.asm2.classes.MethodVisitorDelegation;
+import six.eared.macaque.agent.enums.CorrelationEnum;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.agent.vcs.VersionChainTool;
@@ -87,15 +86,20 @@ public class CompatibilityModeByteCodeEnhancer {
         }
     }
 
-    private static ClazzDefinition bytecodeConvert(ClazzDefinition definition) throws NotFoundException, CannotCompileException {
+    private static ClazzDefinition bytecodeConvert(ClazzDefinition definition) {
         byte[] newByteCode = generateNewByteCode(definition);
 
         for (AsmMethod method : definition.getAsmMethods()) {
             if (method.getMethodBindInfo() == null) continue;
             MethodBindInfo bindInfo = method.getMethodBindInfo();
-            if (bindInfo.isLoaded()) {
+            BindClassWriter bindClassWriter = new BindClassWriter(method, bindInfo);
+
+            if (bindInfo.isLoaded() && bindInfo.getClazzDefinition() != null) {
+                ClazzDefinition bindClazzDefinition = bindInfo.getClazzDefinition();
                 // 对新方法做了更新
-//                definition.addCorrelationClasses();
+                bindClazzDefinition.revisit(bindClassWriter);
+                bindClazzDefinition.setByteCode(bindClassWriter.getBytecode());
+                definition.addCorrelationClasses(CorrelationEnum.METHOD_BIND, bindClazzDefinition);
             } else {
                 AsmMethodVisitorCaller visitorCaller = bindInfo.getVisitorCaller();
                 if (visitorCaller == null || visitorCaller.isEmpty()) {
@@ -105,21 +109,14 @@ public class CompatibilityModeByteCodeEnhancer {
                         .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
                                 bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
                                 method.getExceptions(), method.getMethodSign())
-                        .accept(methodWriter -> {
-                            visitorCaller.accept(new MethodVisitorDelegation(methodWriter) {
-                                @Override
-                                public void visitMaxs(int maxStack, int maxLocals) {
-                                    if (method.isStatic()) {
-                                        maxStack += 1;
-                                        maxLocals += 1;
-                                    }
-                                    super.visitMaxs(maxStack, maxLocals);
-                                }
-                            });
-                        })
+                        .accept(a -> AsmUtil.throwNoSuchMethod(a, method.getMethodName()))
                         .end();
-                CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), classBuilder.toByteArray());
+                ClazzDefinition bindClassDefinition = classBuilder.toDefinition();
+                bindClassDefinition.revisit(bindClassWriter);
+
+                CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), bindClassDefinition.getByteArray());
                 bindInfo.setLoaded(true);
+                bindInfo.setClazzDefinition(bindClassDefinition);
             }
         }
         if (Environment.isDebug()) {
@@ -141,12 +138,10 @@ public class CompatibilityModeByteCodeEnhancer {
 
         ClassWriter classWriter = new ClassWriter(0);
         definition.revisit(new ClassVisitorDelegation(classWriter) {
-            String classPath;
 
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 super.visit(version, access, name, signature, superName, interfaces);
-                this.classPath = name;
             }
 
             @Override
@@ -155,7 +150,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 MethodBindInfo bindInfo = method.getMethodBindInfo();
                 if (bindInfo == null) {
                     MethodVisitor writer = super.visitMethod(access, name, desc, signature, exceptions);
-                    return new InvokeCodeConvertor(classPath, writer, bindMethods);
+                    return new InvokeCodeConvertor(writer, bindMethods);
                 }
                 return bindInfo.getVisitorCaller().createProxyObj();
             }

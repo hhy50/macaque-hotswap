@@ -2,6 +2,7 @@ package six.eared.macaque.agent.asm2.enhance;
 
 import lombok.Data;
 import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
+import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 
 import java.util.Objects;
 
@@ -35,6 +36,11 @@ public class MethodBindInfo implements Cloneable {
      * 是否加载
      */
     private boolean loaded;
+
+    /**
+     *
+     */
+    private ClazzDefinition clazzDefinition;
 
     @Override
     public boolean equals(Object o) {

@@ -201,7 +201,7 @@ public class CompatibilityModeAccessorUtil {
                 .append("MethodType type = MethodType.methodType("+rType+".class,new Class[]{"+argsClassDeclare+"});").append("\n")
                 .append("MethodHandle mh = LOOKUP.findSpecial("+this0Class+".class,\""+methodName+"\",type,"+methodClass+".class).bindTo(this$0);").append("\n")
                 .append(rType.equals("void") ? "" : "return (" + rType + ")")
-                .append((!rType.equals("void")) && unpacking != null ? "Util."+unpacking+"(" :"(")
+                .append((!rType.equals("void")) && unpacking != null ? "Util."+unpacking+"(" : "(")
                 .append("mh.invoke(new Object[] {" + String.join(",", packingArgs) + "}));").append("\n")
                 .append("}");
         classBuilder.defineMethod(methodSrc.toString());
