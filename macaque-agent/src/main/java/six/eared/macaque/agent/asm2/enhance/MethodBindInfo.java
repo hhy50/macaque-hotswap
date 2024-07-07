@@ -37,11 +37,6 @@ public class MethodBindInfo implements Cloneable {
      */
     private boolean loaded;
 
-    /**
-     *
-     */
-    private ClazzDefinition clazzDefinition;
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

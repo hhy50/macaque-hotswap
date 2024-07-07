@@ -29,11 +29,15 @@ public class CompatibilityModeTest extends Env {
 
     private StaticEarlyClass staticEarlyClass = new StaticEarlyClass();
 
+    private ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
+
     @Test
     public void testAddNewSimpleMethod() {
         byte[] bytes = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
                 .getResourceAsStream("AddNewSimpleMethod.java"))).get(0);
-        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        Assert.assertEquals(earlyClass.test2(), "_newMethod");
+
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         Assert.assertEquals(earlyClass.test2(), "_newMethod");
     }
@@ -42,7 +46,9 @@ public class CompatibilityModeTest extends Env {
     public void testAddStaticMethod() {
         byte[] bytes = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
                 .getResourceAsStream("AddNewStaticMethod.java"))).get(0);
-        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        Assert.assertEquals(earlyClass.test2(), "_newStaticMethod");
+
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         Assert.assertEquals(earlyClass.test2(), "_newStaticMethod");
     }
@@ -51,7 +57,6 @@ public class CompatibilityModeTest extends Env {
     public void testDeleteMethod() {
         byte[] bytes = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
                 .getResourceAsStream("DeleteMethod.java"))).get(0);
-        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         earlyClass.test2();
     }
@@ -60,7 +65,6 @@ public class CompatibilityModeTest extends Env {
     public void testDeleteStaticMethod() {
         byte[] bytes = compileToClass("StaticEarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
                 .getResourceAsStream("DeleteStaticMethod.java"))).get(0);
-        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         StaticEarlyClass.staticMethod1();
     }
@@ -69,9 +73,20 @@ public class CompatibilityModeTest extends Env {
     public void testAddNewStaticMethodWithParams() {
         byte[] bytes = compileToClass("EarlyClass2.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
                 .getResourceAsStream("AddNewStaticMethodWithParams.java"))).get(0);
-        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         Assert.assertEquals(earlyClass2.test1("haiyang"), "arg1=haiyang,arg2=1111");
+
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        Assert.assertEquals(earlyClass2.test1("haiyang"), "arg1=haiyang,arg2=1111");
+    }
+
+    @Test
+    public void testInstanceMethodCovertStatic() {
+        byte[] bytes = compileToClass("EarlyClass2.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
+                .getResourceAsStream("InstanceMethodCovertStatic.java"))).get(0);
+
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        Assert.assertEquals(earlyClass2.test2(), "testAAA");
     }
 
 //    @Test

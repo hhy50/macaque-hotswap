@@ -51,35 +51,31 @@ public class CompatibilityModeByteCodeEnhancer {
             lastClassVersion = AsmUtil.readOriginClass(definition.getClassName());
         }
         assert lastClassVersion != null;
+
         for (AsmMethod asmMethod : definition.getAsmMethods()) {
             // 已存在的方法
             if (lastClassVersion.hasMethod(asmMethod.getMethodName(), asmMethod.getDesc())) {
                 AsmMethod method = lastClassVersion.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
                 // 跳过构造函数和clinit
                 if (method.isConstructor() || method.isClinit()) continue;
-                // 跳过非私有方法
                 if (method.getMethodBindInfo() != null) {
                     asmMethod.setMethodBindInfo(method.getMethodBindInfo().clone());
                 }
-                continue;
+                // 如果添加/删除了 static修饰
+                if (asmMethod.isStatic() ^ method.isStatic()) {
+                    // to bind
+                } else continue;
             }
-
-            // 私有方法或者新方法。需要建立绑定关系
-            String bindMethodName = asmMethod.getMethodName();
-            String bindClassName = CLASS_NAME_GENERATOR.generate(definition.getClassName(), bindMethodName);
-
-            MethodBindInfo methodBindInfo = new MethodBindInfo();
-            methodBindInfo.setBindClass(bindClassName);
-            methodBindInfo.setBindMethod(bindMethodName);
-            methodBindInfo.setBindMethodDesc(AsmUtil.addArgsDesc(asmMethod.getDesc(), accessor.getClassName(), !asmMethod.isStatic()));
-            methodBindInfo.setAccessorClass(accessor.getClassName());
-            methodBindInfo.setVisitorCaller(new AsmMethodVisitorCaller());
-            asmMethod.setMethodBindInfo(methodBindInfo);
+            asmMethod.setMethodBindInfo(buildBindInfo(definition.getClassName(), asmMethod, accessor.getClassName()));
         }
 
         for (AsmMethod asmMethod : lastClassVersion.getAsmMethods()) {
+            AsmMethod method = definition.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
             // 删除的方法
-            if (!definition.hasMethod(asmMethod.getMethodName(), asmMethod.getDesc())) {
+            if (method == null) {
+                asmMethod.setDeleted(true);
+                definition.addAsmMethod(asmMethod);
+            } else if (asmMethod.isStatic() ^ method.isStatic()) {
                 asmMethod.setDeleted(true);
                 definition.addAsmMethod(asmMethod);
             }
@@ -92,31 +88,23 @@ public class CompatibilityModeByteCodeEnhancer {
         for (AsmMethod method : definition.getAsmMethods()) {
             if (method.getMethodBindInfo() == null) continue;
             MethodBindInfo bindInfo = method.getMethodBindInfo();
-            BindClassWriter bindClassWriter = new BindClassWriter(method, bindInfo);
+            AsmMethodVisitorCaller visitorCaller = bindInfo.getVisitorCaller();
+            if (visitorCaller == null || visitorCaller.isEmpty()) {
+                throw new EnhanceException("read new method error");
+            }
 
-            if (bindInfo.isLoaded() && bindInfo.getClazzDefinition() != null) {
-                ClazzDefinition bindClazzDefinition = bindInfo.getClazzDefinition();
-                // 对新方法做了更新
-                bindClazzDefinition.revisit(bindClassWriter);
-                bindClazzDefinition.setByteCode(bindClassWriter.getBytecode());
+            AsmClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
+                    .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+                            bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
+                            method.getExceptions(), method.getMethodSign())
+                    .accept(writer -> visitorCaller.accept(new BindMethodWriter(writer, method, bindInfo)))
+                    .end();
+            ClazzDefinition bindClazzDefinition = classBuilder.toDefinition();
+            if (bindInfo.isLoaded()) {
                 definition.addCorrelationClasses(CorrelationEnum.METHOD_BIND, bindClazzDefinition);
             } else {
-                AsmMethodVisitorCaller visitorCaller = bindInfo.getVisitorCaller();
-                if (visitorCaller == null || visitorCaller.isEmpty()) {
-                    throw new EnhanceException("read new method error");
-                }
-                AsmClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
-                        .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-                                bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
-                                method.getExceptions(), method.getMethodSign())
-                        .accept(a -> AsmUtil.throwNoSuchMethod(a, method.getMethodName()))
-                        .end();
-                ClazzDefinition bindClassDefinition = classBuilder.toDefinition();
-                bindClassDefinition.revisit(bindClassWriter);
-
-                CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), bindClassDefinition.getByteArray());
+                CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), bindClazzDefinition.getByteArray());
                 bindInfo.setLoaded(true);
-                bindInfo.setClazzDefinition(bindClassDefinition);
             }
         }
         if (Environment.isDebug()) {
@@ -138,7 +126,6 @@ public class CompatibilityModeByteCodeEnhancer {
 
         ClassWriter classWriter = new ClassWriter(0);
         definition.revisit(new ClassVisitorDelegation(classWriter) {
-
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 super.visit(version, access, name, signature, superName, interfaces);
@@ -182,5 +169,18 @@ public class CompatibilityModeByteCodeEnhancer {
         int deepth = 5;
         ClazzDefinition accessor = CompatibilityModeAccessorUtil.createAccessor(definition.getClassName(), CLASS_NAME_GENERATOR, deepth);
         return accessor;
+    }
+
+    public static MethodBindInfo buildBindInfo(String clazzName, AsmMethod method, String accessorName) {
+        String bindMethodName = method.getMethodName();
+        String bindClassName = CLASS_NAME_GENERATOR.generate(clazzName, bindMethodName);
+
+        MethodBindInfo methodBindInfo = new MethodBindInfo();
+        methodBindInfo.setBindClass(bindClassName);
+        methodBindInfo.setBindMethod(bindMethodName);
+        methodBindInfo.setBindMethodDesc(AsmUtil.addArgsDesc(method.getDesc(), accessorName, !method.isStatic()));
+        methodBindInfo.setAccessorClass(accessorName);
+        methodBindInfo.setVisitorCaller(new AsmMethodVisitorCaller());
+        return methodBindInfo;
     }
 }

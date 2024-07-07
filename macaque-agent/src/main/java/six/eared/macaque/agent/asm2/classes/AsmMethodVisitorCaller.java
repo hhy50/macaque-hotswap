@@ -37,6 +37,8 @@ public class AsmMethodVisitorCaller implements InvocationHandler {
     }
 
     public MethodVisitor createProxyObj() {
+        if (this.calls != null) this.calls = null;
+
         IMethodVisitor visitor = (IMethodVisitor) Proxy.newProxyInstance(AsmMethodVisitorCaller.class.getClassLoader(),
                 new Class[]{IMethodVisitor.class}, this);
          return new MethodVisitorDelegation(visitor);

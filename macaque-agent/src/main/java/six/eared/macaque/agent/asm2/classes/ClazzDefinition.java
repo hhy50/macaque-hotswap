@@ -56,7 +56,7 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     public boolean hasMethod(String name, String desc) {
         return asmMethods.stream()
-                .anyMatch(item -> item.getMethodName().equals(name) && item.getDesc().equals(desc));
+                .anyMatch(item -> (!item.isDeleted()) && item.getMethodName().equals(name) && item.getDesc().equals(desc));
     }
 
     public AsmMethod getMethod(String name, String desc) {
@@ -86,10 +86,6 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     public void revisit(ClassVisitor classVisitor) {
         AsmUtil.visitClass(this.byteCode, classVisitor);
-    }
-
-    public List<CorrelationClazzDefinition> getCorrelationClasses() {
-        return correlationClasses;
     }
 
     public void putCorrelationClass(CorrelationClazzDefinition correlationClass) {

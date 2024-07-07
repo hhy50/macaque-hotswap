@@ -11,4 +11,8 @@ public class EarlyClass2 extends AbsEarlyClass2 {
     public String test2() {
         return "test2";
     }
+
+    public String testAAA() {
+        return "testAAA";
+    }
 }
