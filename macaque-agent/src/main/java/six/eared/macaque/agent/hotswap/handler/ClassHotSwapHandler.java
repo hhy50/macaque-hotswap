@@ -5,7 +5,7 @@ import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
 import six.eared.macaque.agent.asm2.classes.CorrelationClazzDefinition;
-import six.eared.macaque.agent.asm2.enhance.CompatibilityModeByteCodeEnhancer;
+import six.eared.macaque.agent.enhance.CompatibilityModeByteCodeEnhancer;
 import six.eared.macaque.agent.hotswap.ClassHotSwapper;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.agent.vcs.VersionView;
@@ -16,6 +16,7 @@ import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 import six.eared.macaque.mbean.rmi.RmiResult;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,24 +37,22 @@ public class ClassHotSwapHandler extends FileHookHandler {
                 .equalsIgnoreCase(extProperties.get(ExtPropertyName.COMPATIBILITY_MODE));
 
         if (compatibilityMode) {
-            CompatibilityModeByteCodeEnhancer.enhance(definitions);
+            Map<String, byte[]> classs = CompatibilityModeByteCodeEnhancer.enhance(definitions);
+            return RmiResult.success().data(ClassHotSwapper.redefines(classs));
+        } else {
+            return RmiResult.success().data(ClassHotSwapper
+                    .redefines(flatClassDefinition(definitions)));
         }
-        return RmiResult.success().data(ClassHotSwapper
-                .redefines(flatClassDefinition(definitions)));
     }
 
-    private List<ClazzDefinition> flatClassDefinition(List<ClazzDefinition> definitions) {
+    private Map<String, byte[]> flatClassDefinition(List<ClazzDefinition> definitions) {
         VersionView versionView = VersionChainTool.getActiveVersionView();
 
-        List<ClazzDefinition> result = new ArrayList<>();
+        Map<String, byte[]> flatMap = new HashMap<>();
         for (ClazzDefinition definition : definitions) {
-            result.add(definition);
-            if (CollectionUtil.isNotEmpty(definition.getCorrelationClasses())) {
-                result.addAll(definition.getCorrelationClasses().stream().map(CorrelationClazzDefinition::getClazzDefinition)
-                        .collect(Collectors.toList()));
-            }
+            flatMap.put(definition.getClassName(), definition.getByteArray());
             versionView.addDefinition(definition);
         }
-        return result;
+        return flatMap;
     }
 }

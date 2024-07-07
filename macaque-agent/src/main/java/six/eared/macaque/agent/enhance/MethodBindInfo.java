@@ -1,8 +1,7 @@
-package six.eared.macaque.agent.asm2.enhance;
+package six.eared.macaque.agent.enhance;
 
 import lombok.Data;
 import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
-import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 
 import java.util.Objects;
 

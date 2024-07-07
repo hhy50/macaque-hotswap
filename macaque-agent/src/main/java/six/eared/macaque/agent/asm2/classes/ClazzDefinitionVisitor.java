@@ -101,7 +101,7 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
 
     @Override
     public void visitBytes(byte[] bytes) {
-        this.definition.setOriginData(bytes);
+        this.definition.setByteCode(bytes);
     }
 
     public void visitEnd() {

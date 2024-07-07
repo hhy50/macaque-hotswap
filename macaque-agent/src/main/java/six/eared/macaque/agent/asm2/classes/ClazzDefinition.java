@@ -5,7 +5,6 @@ import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.definition.Definition;
-import six.eared.macaque.agent.enums.CorrelationEnum;
 import six.eared.macaque.asm.ClassVisitor;
 
 import java.util.ArrayList;
@@ -20,11 +19,7 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     private String[] interfaces;
 
-    private byte[] originData;
-
     private byte[] byteCode;
-
-    private List<CorrelationClazzDefinition> correlationClasses;
 
     private final List<AsmMethod> asmMethods = new ArrayList<>();
 
@@ -38,13 +33,6 @@ public class ClazzDefinition implements Cloneable, Definition {
         this.asmFields.add(asmField);
     }
 
-    public void addCorrelationClasses(CorrelationEnum correlation, ClazzDefinition definition) {
-        if (this.correlationClasses == null) {
-            this.correlationClasses = new ArrayList<>();
-        }
-        this.correlationClasses.add(CorrelationClazzDefinition.of(correlation, definition));
-    }
-
     @Override
     public ClazzDefinition clone() {
         try {
@@ -56,16 +44,12 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     public boolean hasMethod(String name, String desc) {
         return asmMethods.stream()
-                .anyMatch(item -> (!item.isDeleted()) && item.getMethodName().equals(name) && item.getDesc().equals(desc));
+                .anyMatch(item -> item.getMethodName().equals(name) && item.getDesc().equals(desc));
     }
 
     public AsmMethod getMethod(String name, String desc) {
-        return getMethod(name+"#"+desc);
-    }
-
-    public AsmMethod getMethod(String uniqueDesc) {
         return asmMethods.stream()
-                .filter(item -> item.getUniqueDesc().equals(uniqueDesc))
+                .filter(item -> item.getMethodName().equals(name) && item.getDesc().equals(desc))
                 .findAny().get();
     }
 
@@ -86,12 +70,5 @@ public class ClazzDefinition implements Cloneable, Definition {
 
     public void revisit(ClassVisitor classVisitor) {
         AsmUtil.visitClass(this.byteCode, classVisitor);
-    }
-
-    public void putCorrelationClass(CorrelationClazzDefinition correlationClass) {
-        if (this.correlationClasses == null) {
-            this.correlationClasses = new ArrayList<>();
-        }
-        this.correlationClasses.add(correlationClass);
     }
 }

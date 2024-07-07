@@ -1,4 +1,4 @@
-package six.eared.macaque.agent.asm2.enhance;
+package six.eared.macaque.agent.enhance;
 
 public interface ClassNameGenerator {
 
@@ -10,5 +10,5 @@ public interface ClassNameGenerator {
      */
     public String generate(String className, String methodName);
 
-    public String generateInnerAccessorName(String className);
+    public String generateAccessorName(String className);
 }

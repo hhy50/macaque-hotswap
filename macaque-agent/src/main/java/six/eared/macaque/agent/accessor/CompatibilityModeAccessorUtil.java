@@ -9,8 +9,8 @@ import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
-import six.eared.macaque.agent.asm2.enhance.ClassNameGenerator;
-import six.eared.macaque.agent.asm2.enhance.CompatibilityModeClassLoader;
+import six.eared.macaque.agent.enhance.ClassNameGenerator;
+import six.eared.macaque.agent.enhance.CompatibilityModeClassLoader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
 import six.eared.macaque.agent.javassist.JavaSsistUtil;
@@ -39,11 +39,10 @@ public class CompatibilityModeAccessorUtil {
         if (LOADED.containsKey(className)) {
             return LOADED.get(className);
         }
-
-        String accessorName = classNameGenerator.generateInnerAccessorName(className);
+        String accessorName = classNameGenerator.generateAccessorName(className);
         try {
-            ClazzDefinition outClazzDefinition = AsmUtil.readOriginClass(className);
-            String superClassName = outClazzDefinition.getSuperClassName();
+            ClazzDefinition clazzDefinition = AsmUtil.readOriginClass(className);
+            String superClassName = clazzDefinition.getSuperClassName();
             ClazzDefinition superAccessor = null;
             if (deepth > 0) {
                 if (StringUtil.isNotEmpty(superClassName)
@@ -52,10 +51,10 @@ public class CompatibilityModeAccessorUtil {
                 }
             }
             String superAccessorName = tryGetAccessorClassName(superClassName, classNameGenerator);
-            ClassBuilder classBuilder = generateAccessorClass(accessorName, outClazzDefinition, superAccessorName);
+            ClassBuilder classBuilder = generateAccessorClass(accessorName, superAccessorName);
 
-            collectAccessibleMethods(outClazzDefinition, classBuilder, superAccessor, classNameGenerator);
-            collectAccessibleFields(outClazzDefinition, classBuilder, superAccessor);
+            collectAccessibleMethods(clazzDefinition, classBuilder, superAccessor, classNameGenerator);
+            collectAccessibleFields(clazzDefinition, classBuilder, superAccessor);
             CompatibilityModeClassLoader.loadClass(classBuilder.getClassName(), classBuilder.toByteArray());
 
             ClazzDefinition accessorDefinition = AsmUtil.readClass(classBuilder.toByteArray());
@@ -69,12 +68,10 @@ public class CompatibilityModeAccessorUtil {
 
     /**
      * @param accessorName
-     * @param definition
      * @param superAccessorName
      * @return
      */
-    private static ClassBuilder generateAccessorClass(String accessorName, ClazzDefinition definition,
-                                                      String superAccessorName) throws NotFoundException, CannotCompileException {
+    private static ClassBuilder generateAccessorClass(String accessorName, String superAccessorName) throws NotFoundException, CannotCompileException {
         boolean containSupper = superAccessorName != null;
         ClassBuilder classBuilder
                 = JavaSsistUtil.defineClass(Modifier.PUBLIC, accessorName, superAccessorName, null);
@@ -194,14 +191,14 @@ public class CompatibilityModeAccessorUtil {
         String argsClassDeclare = Arrays.stream(args).map(type -> type.getClassName() + ".class").collect(Collectors.joining(","));
         String argsDeclare = IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName() + " " + argVars[i])
                 .collect(Collectors.joining(","));
-        String[] packingArgs = Arrays.stream(argVars).map(a -> "Util.packing("+a+")").toArray(String[]::new);
+        String[] packingArgs = Arrays.stream(argVars).map(a -> "Util.packing(" + a + ")").toArray(String[]::new);
         String unpacking = getUnpacking(methodType.getReturnType());
 
-        StringBuilder methodSrc = new StringBuilder("public "+rType+" super_"+methodName+"("+argsDeclare+") {").append("\n")
-                .append("MethodType type = MethodType.methodType("+rType+".class,new Class[]{"+argsClassDeclare+"});").append("\n")
-                .append("MethodHandle mh = LOOKUP.findSpecial("+this0Class+".class,\""+methodName+"\",type,"+methodClass+".class).bindTo(this$0);").append("\n")
+        StringBuilder methodSrc = new StringBuilder("public " + rType + " super_" + methodName + "(" + argsDeclare + ") {").append("\n")
+                .append("MethodType type = MethodType.methodType(" + rType + ".class,new Class[]{" + argsClassDeclare + "});").append("\n")
+                .append("MethodHandle mh = LOOKUP.findSpecial(" + this0Class + ".class,\"" + methodName + "\",type," + methodClass + ".class).bindTo(this$0);").append("\n")
                 .append(rType.equals("void") ? "" : "return (" + rType + ")")
-                .append((!rType.equals("void")) && unpacking != null ? "Util."+unpacking+"(" : "(")
+                .append((!rType.equals("void")) && unpacking != null ? "Util." + unpacking + "(" : "(")
                 .append("mh.invoke(new Object[] {" + String.join(",", packingArgs) + "}));").append("\n")
                 .append("}");
         classBuilder.defineMethod(methodSrc.toString());

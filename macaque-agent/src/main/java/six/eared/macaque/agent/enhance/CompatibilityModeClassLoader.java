@@ -1,4 +1,4 @@
-package six.eared.macaque.agent.asm2.enhance;
+package six.eared.macaque.agent.enhance;
 
 
 import six.eared.macaque.agent.env.Environment;

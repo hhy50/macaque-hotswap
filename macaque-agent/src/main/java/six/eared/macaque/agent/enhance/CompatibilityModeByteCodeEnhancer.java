@@ -1,4 +1,4 @@
-package six.eared.macaque.agent.asm2.enhance;
+package six.eared.macaque.agent.enhance;
 
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
@@ -6,6 +6,7 @@ import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtil;
 import six.eared.macaque.agent.asm2.AsmClassBuilder;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
+import six.eared.macaque.agent.asm2.ClassIncrementUpdate;
 import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 import six.eared.macaque.agent.asm2.classes.ClassVisitorDelegation;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
@@ -22,6 +23,7 @@ import six.eared.macaque.common.util.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,33 +33,44 @@ public class CompatibilityModeByteCodeEnhancer {
 
     private static final ClassNameGenerator CLASS_NAME_GENERATOR = new SimpleClassNameGenerator();
 
-    public static void enhance(List<ClazzDefinition> definitions) throws IOException, ClassNotFoundException,
+    public static Map<String, byte[]> enhance(List<ClazzDefinition> definitions) throws IOException, ClassNotFoundException,
             NotFoundException, CannotCompileException {
+
+        List<ClassIncrementUpdate> classIncrementUpdates = new ArrayList<>();
         for (ClazzDefinition definition : definitions) {
             // 准备
-            prepare(definition);
+            ClassIncrementUpdate incrementUpdate = prepare(definition);
+            if (incrementUpdate != null)
+                classIncrementUpdates.add(incrementUpdate);
         }
-        for (ClazzDefinition definition : definitions) {
+        for (ClassIncrementUpdate updateInfo : classIncrementUpdates) {
             // 转换
-            bytecodeConvert(definition);
+            bytecodeConvert(updateInfo);
         }
     }
 
-    private static void prepare(ClazzDefinition definition) throws IOException, ClassNotFoundException {
-        ClazzDefinition accessor = createAccessor(AsmUtil.readOriginClass(definition.getClassName()));
+    private static ClassIncrementUpdate prepare(ClazzDefinition definition) throws IOException, ClassNotFoundException {
+        ClazzDefinition accessor = createAccessor(definition.getClassName());
 
-        ClazzDefinition lastClassVersion = VersionChainTool.findLastClassVersion(definition.getClassName(), false);
-        if (lastClassVersion == null) {
-            lastClassVersion = AsmUtil.readOriginClass(definition.getClassName());
+        ClazzDefinition originClass = AsmUtil.readOriginClass(definition.getClassName());
+        ClazzDefinition lastVersionClass = VersionChainTool.findLastClassVersion(definition.getClassName(), false);
+        if (lastVersionClass == null) {
+            lastVersionClass = originClass;
         }
-        assert lastClassVersion != null;
 
+        ClassIncrementUpdate incrementUpdate = new ClassIncrementUpdate(definition);
+        for (AsmMethod asmMethod : originClass.getAsmMethods()) {
+            if (asmMethod.isConstructor() || asmMethod.isClinit()) continue;
+            AsmMethod method = definition.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
+            if (method == null || method.isStatic() ^ asmMethod.isStatic()) {
+                incrementUpdate.addDeleted(asmMethod);
+            }
+        }
         for (AsmMethod asmMethod : definition.getAsmMethods()) {
-            // 已存在的方法
-            if (lastClassVersion.hasMethod(asmMethod.getMethodName(), asmMethod.getDesc())) {
-                AsmMethod method = lastClassVersion.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
+            if (asmMethod.isConstructor() || asmMethod.isClinit()) continue;
+            AsmMethod method = lastVersionClass.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
+            if (method == null || method.isStatic() ^ asmMethod.isStatic()) {
                 // 跳过构造函数和clinit
-                if (method.isConstructor() || method.isClinit()) continue;
                 if (method.getMethodBindInfo() != null) {
                     asmMethod.setMethodBindInfo(method.getMethodBindInfo().clone());
                 }
@@ -82,8 +95,8 @@ public class CompatibilityModeByteCodeEnhancer {
         }
     }
 
-    private static ClazzDefinition bytecodeConvert(ClazzDefinition definition) {
-        byte[] newByteCode = generateNewByteCode(definition);
+    private static Map<String, byte[]> bytecodeConvert(ClassIncrementUpdate classUpdateInfo) {
+        byte[] newByteCode = generateNewByteCode(classUpdateInfo);
 
         for (AsmMethod method : definition.getAsmMethods()) {
             if (method.getMethodBindInfo() == null) continue;
@@ -164,10 +177,10 @@ public class CompatibilityModeByteCodeEnhancer {
      *
      * @param definition
      */
-    private static ClazzDefinition createAccessor(ClazzDefinition definition) {
+    private static ClazzDefinition createAccessor(String className) {
         // 计算深度
         int deepth = 5;
-        ClazzDefinition accessor = CompatibilityModeAccessorUtil.createAccessor(definition.getClassName(), CLASS_NAME_GENERATOR, deepth);
+        ClazzDefinition accessor = CompatibilityModeAccessorUtil.createAccessor(className, CLASS_NAME_GENERATOR, deepth);
         return accessor;
     }
 

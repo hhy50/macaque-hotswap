@@ -7,29 +7,20 @@ import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class ClassHotSwapper {
 
-    public static int redefine(ClazzDefinition clazzDefinition) throws UnmodifiableClassException, ClassNotFoundException {
-        return redefines(Arrays.asList(clazzDefinition));
-    }
 
-    public static int redefines(List<ClazzDefinition> definitions) throws UnmodifiableClassException, ClassNotFoundException {
+    public static int redefines(Map<String, byte[]> definitions) throws UnmodifiableClassException, ClassNotFoundException {
         if (Environment.isDebug()) {
             System.out.printf("[ClassHotSwap.process] redefines class count: [%d]%n", definitions.size());
         }
 
         Instrumentation inst = Environment.getInst();
-
-        Map<String, ClazzDefinition> definitionMap = definitions.stream()
-                .collect(Collectors.toMap(ClazzDefinition::getClassName, Function.identity()));
         ClassDefinition[] classDefinitions = Arrays.stream(inst.getAllLoadedClasses())
-                .filter(item -> definitionMap.containsKey(item.getName()))
-                .map(clazz -> new ClassDefinition(clazz, definitionMap.get(clazz.getName()).getByteArray()))
+                .filter(item -> definitions.containsKey(item.getName()))
+                .map(clazz -> new ClassDefinition(clazz, definitions.get(clazz.getName())))
                 .toArray(ClassDefinition[]::new);
         inst.redefineClasses(classDefinitions);
         return classDefinitions.length;

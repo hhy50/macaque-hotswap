@@ -1,4 +1,4 @@
-package six.eared.macaque.agent.asm2.enhance;
+package six.eared.macaque.agent.enhance;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,7 +12,7 @@ public class SimpleClassNameGenerator implements ClassNameGenerator {
     }
 
     @Override
-    public String generateInnerAccessorName(String className)  {
+    public String generateAccessorName(String className)  {
         return className + "$Macaque$Accessor";
     }
 }
