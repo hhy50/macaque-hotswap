@@ -1,7 +1,5 @@
 package six.eared.macaque.agent.test;
 
-import six.eared.macaque.agent.test.AbsEarlyClass2;
-
 public class EarlyClass2 extends AbsEarlyClass2 {
 
     public String test1(String name) {

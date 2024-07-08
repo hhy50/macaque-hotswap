@@ -23,7 +23,15 @@ public class VersionChainTool {
             if (CollectionUtil.isNotEmpty(definitions)) {
                 Optional<ClazzDefinition> any = definitions.stream()
                         .filter(item -> item.getName().equals(className))
-                        .map(ClazzDefinition.class::cast)
+                        .map(item -> {
+                            if (item instanceof ClazzDefinition) {
+                                return (ClazzDefinition) item;
+                            } else if (item instanceof ClassSnapshotDefinition) {
+                                return ((ClassSnapshotDefinition) item).getClazzDefinition();
+                            } else {
+                                throw new VcsException("Unknown definition type");
+                            }
+                        })
                         .findAny();
                 if (any.isPresent()) {
                     return any.get();
@@ -36,7 +44,15 @@ public class VersionChainTool {
                 VersionView versionView = VERSION_CHAIN.find(lastVd);
                 Optional<ClazzDefinition> any = versionView.getDefinitions().stream()
                         .filter(item -> item.getName().equals(className))
-                        .map(ClazzDefinition.class::cast)
+                        .map(item -> {
+                            if (item instanceof ClazzDefinition) {
+                                return (ClazzDefinition) item;
+                            } else if (item instanceof ClassSnapshotDefinition) {
+                                return ((ClassSnapshotDefinition) item).getClazzDefinition();
+                            } else {
+                                throw new VcsException("Unknown definition type");
+                            }
+                        })
                         .findAny();
                 if (any.isPresent()) {
                     return any.get();

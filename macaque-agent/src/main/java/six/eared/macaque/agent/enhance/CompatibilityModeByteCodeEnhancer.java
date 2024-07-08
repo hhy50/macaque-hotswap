@@ -6,12 +6,12 @@ import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtil;
 import six.eared.macaque.agent.asm2.AsmClassBuilder;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
-import six.eared.macaque.agent.asm2.ClassIncrementUpdate;
 import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 import six.eared.macaque.agent.asm2.classes.ClassVisitorDelegation;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.enums.CorrelationEnum;
 import six.eared.macaque.agent.exceptions.EnhanceException;
+import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.asm.ClassWriter;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
@@ -47,11 +47,12 @@ public class CompatibilityModeByteCodeEnhancer {
     private static ClassIncrementUpdate prepare(ClazzDefinition definition) throws IOException, ClassNotFoundException {
         ClazzDefinition accessor = createAccessor(definition.getClassName());
 
-        ClazzDefinition originClass = AsmUtil.readOriginClass(definition.getClassName());
         ClassIncrementUpdate incrementUpdate = new ClassIncrementUpdate(definition, accessor);
+        ClazzDefinition originClass = AsmUtil.readOriginClass(definition.getClassName());
+
         for (AsmMethod asmMethod : originClass.getAsmMethods()) {
-            if (asmMethod.isConstructor() || asmMethod.isClinit()) continue;
             AsmMethod method = definition.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
+            if (asmMethod.isConstructor() || asmMethod.isClinit()) continue;
             if (method == null || method.isStatic() ^ asmMethod.isStatic()) {
                 incrementUpdate.addDeleted(asmMethod);
             }
@@ -60,8 +61,22 @@ public class CompatibilityModeByteCodeEnhancer {
             if (asmMethod.isConstructor() || asmMethod.isClinit()) continue;
             AsmMethod method = originClass.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
             if (method == null || method.isStatic() ^ asmMethod.isStatic()) {
+                MethodBindInfo bindInfo = MethodBindManager
+                        .createMethodBindInfo(definition.getClassName(), asmMethod, accessor.getClassName());
+                asmMethod.setBindInfo(bindInfo);
                 incrementUpdate.addNew(asmMethod);
-                MethodBindManager.createMethodBindInfo(definition.getClassName(), asmMethod, accessor.getClassName());
+            }
+        }
+
+        ClazzDefinition lastClassVersion = VersionChainTool.findLastClassVersion(definition.getClassName(), false);
+        if (lastClassVersion != null) {
+            for (AsmMethod asmMethod : lastClassVersion.getAsmMethods()) {
+                if (asmMethod.isConstructor() || asmMethod.isClinit()
+                        || asmMethod.getBindInfo() == null) continue;
+                AsmMethod method = definition.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
+                if (method == null || method.isStatic() ^ asmMethod.isStatic()) {
+                    incrementUpdate.addDeleted(asmMethod);
+                }
             }
         }
         return incrementUpdate;
@@ -76,7 +91,7 @@ public class CompatibilityModeByteCodeEnhancer {
         }
 
         for (AsmMethod newMethod : classUpdateInfo.getNewMethods()) {
-            MethodBindInfo bindInfo = MethodBindManager.getBindInfo(newMethod.getClassName(), newMethod.getMethodName(), newMethod.getDesc(), newMethod.isStatic());
+            MethodBindInfo bindInfo = newMethod.getBindInfo();
             AsmMethodVisitorCaller visitorCaller = bindInfo.getVisitorCaller();
             if (visitorCaller == null || visitorCaller.isEmpty()) {
                 throw new EnhanceException("read new method error");
@@ -112,8 +127,8 @@ public class CompatibilityModeByteCodeEnhancer {
 
             @Override
             public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                MethodBindInfo bindInfo = MethodBindManager
-                        .getBindInfo(definition.getClassName(), name, desc, (access & Opcodes.ACC_STATIC) > 0);
+                AsmMethod method = definition.getMethod(name, desc);
+                MethodBindInfo bindInfo = method.getBindInfo();
                 if (bindInfo == null) {
                     MethodVisitor writer = super.visitMethod(access, name, desc, signature, exceptions);
                     return new InvokeCodeConvertor(writer);
@@ -125,6 +140,8 @@ public class CompatibilityModeByteCodeEnhancer {
             public void visitEnd() {
                 if (classIncrementUpdate.getDeletedMethods() != null) {
                     for (AsmMethod method : classIncrementUpdate.getDeletedMethods()) {
+                        if (method.getBindInfo() != null) continue;
+
                         // 将类上面需要删除的方法， 删掉
                         MethodVisitor methodWrite = super.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(),
                                 method.getMethodSign(), method.getExceptions());

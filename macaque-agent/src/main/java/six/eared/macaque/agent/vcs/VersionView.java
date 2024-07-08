@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.vcs;
 
+import lombok.Data;
 import six.eared.macaque.agent.definition.Definition;
 import six.eared.macaque.agent.enums.VersionViewStatus;
 
@@ -10,6 +11,7 @@ import java.util.List;
 /**
  *
  */
+@Data
 public class VersionView {
 
     private VersionViewStatus status;
@@ -20,22 +22,6 @@ public class VersionView {
 
     VersionView() {
         this.status = VersionViewStatus.ACTIVE;
-    }
-
-    public VersionDescriptor getVersion() {
-        return this.version;
-    }
-
-    public void setVersion(VersionDescriptor version) {
-        this.version = version;
-    }
-
-    public List<Definition> getDefinitions() {
-        return this.definitions;
-    }
-
-    public void setDefinitions(List<Definition> definitions) {
-        this.definitions = definitions;
     }
 
     public void addDefinition(Definition definition) {

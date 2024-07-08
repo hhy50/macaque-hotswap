@@ -37,12 +37,12 @@ public class MethodBindManager {
     }
 
     private static void putBindInfo(String clazzName, String method, String desc, boolean isStatic, MethodBindInfo methodBindInfo) {
-        if (isStatic) method += "#static";
+        if (isStatic) method = "static#"+method;
         BIND_INFO_MAP.put(clazzName + "#" + method + "#" + desc, methodBindInfo);
     }
 
     public static MethodBindInfo getBindInfo(String clazzName, String method, String desc, boolean isStatic) {
-        if (isStatic) method += "#static";
+        if (isStatic) method = "static#"+method;
         return BIND_INFO_MAP.get(clazzName + "#" + method + "#" + desc);
     }
 }
