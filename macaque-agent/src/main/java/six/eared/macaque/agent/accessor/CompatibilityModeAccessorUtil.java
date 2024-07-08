@@ -9,7 +9,7 @@ import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
-import six.eared.macaque.agent.enhance.ClassNameGenerator;
+import six.eared.macaque.agent.enhance.AccessorClassNameGenerator;
 import six.eared.macaque.agent.enhance.CompatibilityModeClassLoader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
@@ -35,11 +35,11 @@ public class CompatibilityModeAccessorUtil {
      * @param deepth             深度
      * @return
      */
-    public static ClazzDefinition createAccessor(String className, ClassNameGenerator classNameGenerator, int deepth) {
+    public static ClazzDefinition createAccessor(String className, AccessorClassNameGenerator classNameGenerator, int deepth) {
         if (LOADED.containsKey(className)) {
             return LOADED.get(className);
         }
-        String accessorName = classNameGenerator.generateAccessorName(className);
+        String accessorName = classNameGenerator.generate(className);
         try {
             ClazzDefinition clazzDefinition = AsmUtil.readOriginClass(className);
             String superClassName = clazzDefinition.getSuperClassName();
@@ -89,7 +89,7 @@ public class CompatibilityModeAccessorUtil {
      * @param classNameGenerator
      * @return
      */
-    private static String tryGetAccessorClassName(String className, ClassNameGenerator classNameGenerator) {
+    private static String tryGetAccessorClassName(String className, AccessorClassNameGenerator classNameGenerator) {
         if (LOADED.containsKey(className)) {
             return LOADED.get(className).getClassName();
         }
@@ -97,7 +97,7 @@ public class CompatibilityModeAccessorUtil {
     }
 
     private static void collectAccessibleMethods(ClazzDefinition definition, ClassBuilder accessorBuilder, ClazzDefinition superAccessor,
-                                                 ClassNameGenerator classNameGenerator) {
+                                                 AccessorClassNameGenerator classNameGenerator) {
         try {
             Set<AsmMethod> privateMethods = new HashSet<>();
             Map<String, AsmMethod> accessibleSuperMethods = new HashMap<>();

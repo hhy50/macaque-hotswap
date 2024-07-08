@@ -1,6 +1,5 @@
 package six.eared.macaque.agent.hotswap;
 
-import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.env.Environment;
 
 import java.lang.instrument.ClassDefinition;

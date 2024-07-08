@@ -6,18 +6,14 @@ import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.ClassUtil;
 
-import java.util.Map;
-
 /**
  * 改变调用指令的字节码转换器
  */
 
 public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
-    private final Map<String, MethodBindInfo> newMethods;
 
-    public InvokeCodeConvertor(MethodVisitor write, Map<String, MethodBindInfo> bindMethods) {
+    public InvokeCodeConvertor(MethodVisitor write) {
         super(write);
-        this.newMethods = bindMethods;
     }
 
     @Override
@@ -27,11 +23,10 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-        String uniqueDesc = name + "#" + desc;
-        if (newMethods.containsKey(uniqueDesc)) {
-            MethodBindInfo bindInfo = newMethods.get(uniqueDesc);
+        MethodBindInfo bindInfo = MethodBindManager.getBindInfo(ClassUtil.classpath2name(owner), name,
+                desc, opcode == Opcodes.INVOKESTATIC);
+        if (bindInfo != null) {
             String accessorClassPath = ClassUtil.simpleClassName2path(bindInfo.getAccessorClass());
-
             if (opcode != Opcodes.INVOKESTATIC) {
                 // 需要先将this弹出
                 super.visitVarInsn(Opcodes.ASTORE, 0);

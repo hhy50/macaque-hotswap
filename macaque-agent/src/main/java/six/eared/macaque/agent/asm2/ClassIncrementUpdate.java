@@ -2,11 +2,9 @@ package six.eared.macaque.agent.asm2;
 
 import lombok.Data;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
-import six.eared.macaque.agent.enhance.MethodBindInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -16,20 +14,29 @@ import java.util.Map;
 @Data
 public class ClassIncrementUpdate {
 
+    private String className;
+
     private ClazzDefinition clazzDefinition;
+
+    /**
+     * 访问器
+     */
+    private ClazzDefinition accessorDefinition;
 
     /**
      * 新增的
      */
-    public Map<AsmMethod, MethodBindInfo> newMethods;
+    public List<AsmMethod> newMethods;
 
     /**
      * 删除的
      */
     public List<AsmMethod> deletedMethods;
 
-    public ClassIncrementUpdate(ClazzDefinition definition) {
+    public ClassIncrementUpdate(ClazzDefinition definition, ClazzDefinition accessor) {
+        this.className = definition.getClassName();
         this.clazzDefinition = definition;
+        this.accessorDefinition = accessor;
     }
 
     public void addDeleted(AsmMethod deletedMethod) {
@@ -40,6 +47,9 @@ public class ClassIncrementUpdate {
     }
 
     public void addNew(AsmMethod newMethod) {
-//        newMethods.put(newMethod, MethodBindInfo.builder().build());
+        if (this.newMethods == null) {
+            this.newMethods = new ArrayList<>();
+        }
+        this.newMethods.add(newMethod);
     }
 }

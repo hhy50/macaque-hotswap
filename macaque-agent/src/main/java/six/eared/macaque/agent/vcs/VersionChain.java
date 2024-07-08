@@ -25,6 +25,8 @@ public class VersionChain {
     }
 
     void put(VersionView versionView) {
+        List<Definition> definitions = versionView.getDefinitions();
+        if (definitions == null) return;
         for (Definition definition : versionView.getDefinitions()) {
             if (FileType.Class.match(definition.getFileType())) {
                 fileNameIndex.compute(definition.getName(), (fileName, versionDescriptors) -> {
