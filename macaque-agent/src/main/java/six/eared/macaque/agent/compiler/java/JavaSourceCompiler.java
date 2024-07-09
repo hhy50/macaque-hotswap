@@ -59,7 +59,7 @@ public class JavaSourceCompiler implements Compiler {
                         inner:
                         for (StringTokenizer st = new StringTokenizer(classpath); st.hasMoreTokens(); ) {
                             String ele = st.nextToken();
-                            if (ele.startsWith("file:/")) ele = ele.substring(6);
+                            if (ele.startsWith("file:")) ele = ele.substring(5);
                             if (isJarFile(ele)) {
                                 File absolutePath = getJarAbsolutePath(ele, userDir);
                                 if (absolutePath != null) jarSearchPathSet.add(absolutePath);
@@ -106,7 +106,11 @@ public class JavaSourceCompiler implements Compiler {
                 }
             }
         }
-        return INSTANCE;
+        try {
+            return new JavaSourceCompiler();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
