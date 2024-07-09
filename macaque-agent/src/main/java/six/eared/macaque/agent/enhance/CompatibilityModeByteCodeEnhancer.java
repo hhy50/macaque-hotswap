@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.enhance;
 
+import com.sun.tools.doclint.Env;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
 import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtil;
@@ -10,13 +11,17 @@ import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 import six.eared.macaque.agent.asm2.classes.ClassVisitorDelegation;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.enums.CorrelationEnum;
+import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.asm.ClassWriter;
 import six.eared.macaque.asm.MethodVisitor;
 import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.asm.Type;
+import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.FileUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,6 +110,10 @@ public class CompatibilityModeByteCodeEnhancer {
                 CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), bindClazzDefinition.getByteArray());
                 bindInfo.setLoaded(true);
             }
+        }
+        if (Environment.isDebug()) {
+            FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath() + "/" + ClassUtil.toSimpleName(classUpdateInfo.getClassName()) + ".class"),
+                    classUpdateInfo.getEnhancedByteCode());
         }
     }
 

@@ -1,6 +1,5 @@
 package six.eared.macaque.agent.test;
 
-
 public class StaticEarlyClass extends AbsEarlyClass2 {
 
     public String test1() {
@@ -8,10 +7,10 @@ public class StaticEarlyClass extends AbsEarlyClass2 {
     }
 
     public String test2() {
-        return "test2";
+        return staticMethod1("1", "2", "3");
     }
 
-    public static String staticMethod1() {
-        return "staticMethod1";
+    public String staticMethod1(String str1, String str2, String str3) {
+        return str1+str2+str3;
     }
 }
