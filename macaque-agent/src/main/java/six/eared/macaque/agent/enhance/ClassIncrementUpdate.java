@@ -4,6 +4,7 @@ import lombok.Data;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.CorrelationClazzDefinition;
+import six.eared.macaque.agent.definition.Definition;
 import six.eared.macaque.agent.enums.CorrelationEnum;
 
 import java.util.ArrayList;
@@ -14,10 +15,13 @@ import java.util.List;
  */
 
 @Data
-public class ClassIncrementUpdate {
+public class ClassIncrementUpdate implements Definition {
 
     private String className;
 
+    /**
+     * 增强之前的类
+     */
     private ClazzDefinition clazzDefinition;
 
     /**
@@ -66,5 +70,20 @@ public class ClassIncrementUpdate {
             this.correlationClasses = new ArrayList<>();
         }
         this.correlationClasses.add(CorrelationClazzDefinition.of(correlation, definition));
+    }
+
+    @Override
+    public String getName() {
+        return className;
+    }
+
+    @Override
+    public String getFileType() {
+        return "class";
+    }
+
+    @Override
+    public byte[] getByteArray() {
+        return enhancedByteCode;
     }
 }

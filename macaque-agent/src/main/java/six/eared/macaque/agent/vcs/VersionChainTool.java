@@ -2,6 +2,7 @@ package six.eared.macaque.agent.vcs;
 
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.definition.Definition;
+import six.eared.macaque.agent.enhance.ClassIncrementUpdate;
 import six.eared.macaque.agent.enums.VersionViewStatus;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.VcsException;
@@ -26,8 +27,8 @@ public class VersionChainTool {
                         .map(item -> {
                             if (item instanceof ClazzDefinition) {
                                 return (ClazzDefinition) item;
-                            } else if (item instanceof ClassSnapshotDefinition) {
-                                return ((ClassSnapshotDefinition) item).getClazzDefinition();
+                            } else if (item instanceof ClassIncrementUpdate) {
+                                return ((ClassIncrementUpdate) item).getClazzDefinition();
                             } else {
                                 throw new VcsException("Unknown definition type");
                             }
@@ -47,8 +48,8 @@ public class VersionChainTool {
                         .map(item -> {
                             if (item instanceof ClazzDefinition) {
                                 return (ClazzDefinition) item;
-                            } else if (item instanceof ClassSnapshotDefinition) {
-                                return ((ClassSnapshotDefinition) item).getClazzDefinition();
+                            } else if (item instanceof ClassIncrementUpdate) {
+                                return ((ClassIncrementUpdate) item).getClazzDefinition();
                             } else {
                                 throw new VcsException("Unknown definition type");
                             }

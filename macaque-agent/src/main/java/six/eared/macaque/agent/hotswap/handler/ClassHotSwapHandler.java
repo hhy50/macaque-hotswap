@@ -7,7 +7,6 @@ import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
 import six.eared.macaque.agent.enhance.ClassIncrementUpdate;
 import six.eared.macaque.agent.enhance.CompatibilityModeByteCodeEnhancer;
 import six.eared.macaque.agent.hotswap.ClassHotSwapper;
-import six.eared.macaque.agent.vcs.ClassSnapshotDefinition;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.agent.vcs.VersionView;
 import six.eared.macaque.common.ExtPropertyName;
@@ -47,9 +46,9 @@ public class ClassHotSwapHandler extends FileHookHandler {
         VersionView versionView = VersionChainTool.getActiveVersionView();
 
         Map<String, byte[]> flatMap = new HashMap<>();
-        for (ClassIncrementUpdate record : enhanced) {
-            flatMap.put(record.getClassName(), record.getEnhancedByteCode());
-            versionView.addDefinition(new ClassSnapshotDefinition(record.getClazzDefinition(), record.getEnhancedByteCode()));
+        for (ClassIncrementUpdate item : enhanced) {
+            flatMap.put(item.getClassName(), item.getEnhancedByteCode());
+            versionView.addDefinition(item);
         }
         return flatMap;
     }
