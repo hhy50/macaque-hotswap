@@ -4,7 +4,7 @@ import six.eared.macaque.agent.annotation.HotSwapFileType;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
-import six.eared.macaque.agent.enhance.ClassEnhanceChangeRecord;
+import six.eared.macaque.agent.enhance.ClassIncrementUpdate;
 import six.eared.macaque.agent.enhance.CompatibilityModeByteCodeEnhancer;
 import six.eared.macaque.agent.hotswap.ClassHotSwapper;
 import six.eared.macaque.agent.vcs.ClassSnapshotDefinition;
@@ -35,7 +35,7 @@ public class ClassHotSwapHandler extends FileHookHandler {
                 .equalsIgnoreCase(extProperties.get(ExtPropertyName.COMPATIBILITY_MODE));
 
         if (compatibilityMode) {
-            List<ClassEnhanceChangeRecord> enhanced = CompatibilityModeByteCodeEnhancer.enhance(definitions);
+            List<ClassIncrementUpdate> enhanced = CompatibilityModeByteCodeEnhancer.enhance(definitions);
             return RmiResult.success().data(ClassHotSwapper.redefines(flatClassDefinition2(enhanced)));
         } else {
             return RmiResult.success().data(ClassHotSwapper
@@ -43,11 +43,11 @@ public class ClassHotSwapHandler extends FileHookHandler {
         }
     }
 
-    private Map<String, byte[]> flatClassDefinition2(List<ClassEnhanceChangeRecord> enhanced) {
+    private Map<String, byte[]> flatClassDefinition2(List<ClassIncrementUpdate> enhanced) {
         VersionView versionView = VersionChainTool.getActiveVersionView();
 
         Map<String, byte[]> flatMap = new HashMap<>();
-        for (ClassEnhanceChangeRecord record : enhanced) {
+        for (ClassIncrementUpdate record : enhanced) {
             flatMap.put(record.getClassName(), record.getEnhancedByteCode());
             versionView.addDefinition(new ClassSnapshotDefinition(record.getClazzDefinition(), record.getEnhancedByteCode()));
         }

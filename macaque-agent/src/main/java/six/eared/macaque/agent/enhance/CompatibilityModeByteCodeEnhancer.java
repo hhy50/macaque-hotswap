@@ -25,29 +25,26 @@ import java.util.List;
 public class CompatibilityModeByteCodeEnhancer {
 
 
-    public static List<ClassEnhanceChangeRecord> enhance(List<ClazzDefinition> definitions) throws IOException, ClassNotFoundException,
+    public static List<ClassIncrementUpdate> enhance(List<ClazzDefinition> definitions) throws IOException, ClassNotFoundException,
             NotFoundException, CannotCompileException {
 
-        List<ClassIncrementUpdate> classIncrementUpdates = new ArrayList<>();
+        List<ClassIncrementUpdate> changedClass = new ArrayList<>();
         for (ClazzDefinition definition : definitions) {
             // 准备
             ClassIncrementUpdate incrementUpdate = prepare(definition);
-            classIncrementUpdates.add(incrementUpdate);
+            changedClass.add(incrementUpdate);
         }
-
-        List<ClassEnhanceChangeRecord> changed = new ArrayList<>();
-        // 转换
-        for (ClassIncrementUpdate updateInfo : classIncrementUpdates) {
-            ClassEnhanceChangeRecord changeRecord = bytecodeConvert(updateInfo);
-            changed.add(changeRecord);
+        for (ClassIncrementUpdate incrementUpdate : changedClass) {
+            // 转换
+            bytecodeConvert(incrementUpdate);
         }
-        return changed;
+        return changedClass;
     }
 
     private static ClassIncrementUpdate prepare(ClazzDefinition definition) throws IOException, ClassNotFoundException {
         ClazzDefinition accessor = createAccessor(definition.getClassName());
 
-        ClassIncrementUpdate incrementUpdate = new ClassIncrementUpdate(definition, accessor);
+        ClassIncrementUpdate incrementUpdate = new ClassIncrementUpdate(definition);
         ClazzDefinition originClass = AsmUtil.readOriginClass(definition.getClassName());
 
         for (AsmMethod asmMethod : originClass.getAsmMethods()) {
@@ -83,13 +80,12 @@ public class CompatibilityModeByteCodeEnhancer {
     }
 
 
-    private static ClassEnhanceChangeRecord bytecodeConvert(ClassIncrementUpdate classUpdateInfo) {
+    private static void bytecodeConvert(ClassIncrementUpdate classUpdateInfo) {
         byte[] newByteCode = generateNewByteCode(classUpdateInfo);
-        ClassEnhanceChangeRecord changeRecord = new ClassEnhanceChangeRecord(classUpdateInfo.getClassName(), classUpdateInfo.getClazzDefinition(), newByteCode);
+        classUpdateInfo.setEnhancedByteCode(newByteCode);
         if (classUpdateInfo.getNewMethods() == null) {
-            return changeRecord;
+            return;
         }
-
         for (AsmMethod newMethod : classUpdateInfo.getNewMethods()) {
             MethodBindInfo bindInfo = newMethod.getBindInfo();
             AsmMethodVisitorCaller visitorCaller = bindInfo.getVisitorCaller();
@@ -104,13 +100,12 @@ public class CompatibilityModeByteCodeEnhancer {
                     .end();
             ClazzDefinition bindClazzDefinition = classBuilder.toDefinition();
             if (bindInfo.isLoaded()) {
-                changeRecord.addCorrelationClasses(CorrelationEnum.METHOD_BIND, bindClazzDefinition);
+                classUpdateInfo.addCorrelationClasses(CorrelationEnum.METHOD_BIND, bindClazzDefinition);
             } else {
                 CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), bindClazzDefinition.getByteArray());
                 bindInfo.setLoaded(true);
             }
         }
-        return changeRecord;
     }
 
     /**

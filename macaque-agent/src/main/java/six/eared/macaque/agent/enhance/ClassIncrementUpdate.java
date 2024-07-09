@@ -3,6 +3,8 @@ package six.eared.macaque.agent.enhance;
 import lombok.Data;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
+import six.eared.macaque.agent.asm2.classes.CorrelationClazzDefinition;
+import six.eared.macaque.agent.enums.CorrelationEnum;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,10 +35,16 @@ public class ClassIncrementUpdate {
      */
     public List<AsmMethod> deletedMethods;
 
-    public ClassIncrementUpdate(ClazzDefinition definition, ClazzDefinition accessor) {
+    /**
+     * 相关联的其他类
+     */
+    private List<CorrelationClazzDefinition> correlationClasses;
+
+    private byte[] enhancedByteCode;
+
+    public ClassIncrementUpdate(ClazzDefinition definition) {
         this.className = definition.getClassName();
         this.clazzDefinition = definition;
-        this.accessorDefinition = accessor;
     }
 
     public void addDeleted(AsmMethod deletedMethod) {
@@ -51,5 +59,12 @@ public class ClassIncrementUpdate {
             this.newMethods = new ArrayList<>();
         }
         this.newMethods.add(newMethod);
+    }
+
+    public void addCorrelationClasses(CorrelationEnum correlation, ClazzDefinition definition) {
+        if (this.correlationClasses == null) {
+            this.correlationClasses = new ArrayList<>();
+        }
+        this.correlationClasses.add(CorrelationClazzDefinition.of(correlation, definition));
     }
 }
