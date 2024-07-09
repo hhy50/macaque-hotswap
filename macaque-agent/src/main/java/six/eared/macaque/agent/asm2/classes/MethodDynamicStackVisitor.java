@@ -12,7 +12,7 @@ public class MethodDynamicStackVisitor extends MethodVisitor {
     /**
      * 操作码、操作数
      */
-    private final Stack opStack = new Stack<Pair<Integer /* opcode */, Integer /* opc */>>();
+    private final Stack<Pair<Integer /* opcode */, Integer /* opc */>> opStack = new Stack<>();
 
     public MethodDynamicStackVisitor(MethodVisitor write) {
         super(ASM5, write);
