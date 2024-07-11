@@ -20,7 +20,6 @@ public class BindMethodWriter extends MethodVisitor {
     @Override
     public void visitMaxs(int maxStack, int maxLocals) {
         if (method.isStatic()) {
-            maxStack += 1;
             maxLocals += 1;
         }
         super.visitMaxs(maxStack, maxLocals);

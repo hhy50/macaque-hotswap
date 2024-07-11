@@ -135,7 +135,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 MethodBindInfo bindInfo = method.getBindInfo();
                 if (bindInfo == null) {
                     MethodVisitor writer = super.visitMethod(access, name, desc, signature, exceptions);
-                    return new InvokeCodeConvertor(writer);
+                    return new InvokeCodeConvertor(method, writer);
                 }
                 return bindInfo.getVisitorCaller().createProxyObj();
             }
@@ -150,7 +150,7 @@ public class CompatibilityModeByteCodeEnhancer {
                         MethodVisitor methodWrite = super.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(),
                                 method.getMethodSign(), method.getExceptions());
                         int lvblen = AsmUtil.calculateLvbOffset(method.isStatic(), Type.getArgumentTypes(method.getDesc()));
-                        methodWrite.visitMaxs(lvblen + 3, lvblen);
+                        methodWrite.visitMaxs(3, lvblen);
                         AsmUtil.throwNoSuchMethod(methodWrite, method.getMethodName());
                     }
                 }

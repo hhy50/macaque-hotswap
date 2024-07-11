@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.enhance;
 
+import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.MethodDynamicStackVisitor;
 import six.eared.macaque.asm.MethodVisitor;
@@ -12,13 +13,14 @@ import six.eared.macaque.common.util.ClassUtil;
 
 public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
 
-    public InvokeCodeConvertor(MethodVisitor write) {
+    public InvokeCodeConvertor(AsmMethod method, MethodVisitor write) {
         super(write);
     }
 
     @Override
     public void visitMaxs(int maxStack, int maxLocals) {
-        super.visitMaxs((maxStack*2) + 1, maxLocals);
+        // 加1 是需要访问器入栈
+        super.visitMaxs(maxStack+1, maxLocals);
     }
 
     @Override
