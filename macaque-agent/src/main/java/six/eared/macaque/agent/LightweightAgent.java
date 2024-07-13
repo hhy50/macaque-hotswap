@@ -9,7 +9,7 @@ public class LightweightAgent {
 
     public static void agentmain(String args, Instrumentation inst) throws Exception {
         Environment.initEnv(true, inst);
-        LibrarySpiLoader.initLibrary();
+        LibrarySpiLoader.loadLibraries();
         System.out.println("attach success, initEnv()");
     }
 }

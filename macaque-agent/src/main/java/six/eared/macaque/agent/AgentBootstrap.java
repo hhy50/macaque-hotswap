@@ -9,10 +9,11 @@ import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.rmi.registry.LocateRegistry;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class AgentBootstrap {
@@ -21,6 +22,20 @@ public class AgentBootstrap {
      * JMX MBean 管理器
      */
     public static JmxMBeanManager JMX_MBEAN_MANAGER;
+
+    private static final List<Runnable> ON_STOP_TASK = new ArrayList<>();
+
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            for (Runnable runnable : ON_STOP_TASK) {
+                try {
+                    runnable.run();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }));
+    }
 
     /**
      * 反射调用 {@link six.eared.macaque.agent.loader.AgentMain#loadBootstrap(String, Instrumentation)}
@@ -42,17 +57,13 @@ public class AgentBootstrap {
             JMX_MBEAN_MANAGER = initJmxService(jmxPort);
 
             // init Library
-            LibrarySpiLoader.initLibrary();
+            LibrarySpiLoader.loadLibraries();
 
             JMX_MBEAN_MANAGER.registerAllMBean();
 
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    // 清理临时目录
-                    FileUtil.deleteFile(new File(FileUtil.getProcessTmpPath()));
-                }
-            });
+            // 清理临时目录
+            registryTaskOnStop(FileUtil::cleanTmpFile);
+
             System.out.printf("attach success, jmx port=%d\n", jmxPort);
             return true;
         } catch (Exception e) {
@@ -97,5 +108,10 @@ public class AgentBootstrap {
             }
         }
         return new Properties();
+    }
+
+    public static void registryTaskOnStop(Runnable task) {
+        assert task != null;
+        ON_STOP_TASK.add(task);
     }
 }

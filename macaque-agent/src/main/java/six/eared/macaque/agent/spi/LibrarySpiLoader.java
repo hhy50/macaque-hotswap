@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.spi;
 
 import six.eared.macaque.agent.hotswap.handler.FileHookHandler;
+import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.ReflectUtil;
 import six.eared.macaque.library.annotation.Library;
 import six.eared.macaque.library.hook.HotswapHook;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -24,7 +26,7 @@ public class LibrarySpiLoader {
         return loader.iterator();
     }
 
-    public static void initLibrary() throws Exception {
+    public static void loadLibraries() throws Exception {
         for (LibraryDefinition library : findLibrary()) {
             Library libraryAnnotation = library.getClazz().getAnnotation(Library.class);
             if (libraryAnnotation != null) {
@@ -67,8 +69,9 @@ public class LibrarySpiLoader {
     }
 
     private static void findLibraryFromJarFile(URL url, List<LibraryDefinition> libraries) throws IOException {
-        if (url.openConnection() instanceof JarURLConnection) {
-            JarURLConnection connection = (JarURLConnection) url.openConnection();
+        URLConnection urlConnection = url.openConnection();
+        if (urlConnection instanceof JarURLConnection) {
+            JarURLConnection connection = (JarURLConnection) urlConnection;
             JarFile jarFile = connection.getJarFile();
             Enumeration<JarEntry> entries = jarFile.entries();
 
@@ -88,13 +91,10 @@ public class LibrarySpiLoader {
     }
 
     private static LibraryDefinition createDefinition(String name, InputStream is) {
-        Properties properties = new Properties();
         try {
-            properties.load(is);
-            if (!properties.containsKey("clazz")) {
-                return null;
-            }
-            Class<?> clazz = Class.forName(properties.getProperty("clazz"));
+            String className = new String(FileUtil.is2bytes(is));
+            Class<?> clazz = Class.forName(className);
+
             LibraryDefinition libraryDefinition = new LibraryDefinition();
             libraryDefinition.setName(name);
             libraryDefinition.setClazz(clazz);

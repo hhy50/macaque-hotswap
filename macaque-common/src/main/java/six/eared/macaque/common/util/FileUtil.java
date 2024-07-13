@@ -166,4 +166,12 @@ public class FileUtil {
             }
         }
     }
+
+    /**
+     * 清理临时文件
+     */
+    public static void cleanTmpFile() {
+        String processTmpPath = getProcessTmpPath();
+        deleteFile(new File(processTmpPath));
+    }
 }
