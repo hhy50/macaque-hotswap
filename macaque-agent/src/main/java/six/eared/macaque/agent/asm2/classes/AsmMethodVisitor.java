@@ -1,8 +1,8 @@
 package six.eared.macaque.agent.asm2.classes;
 
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
 import six.eared.macaque.agent.asm2.AsmMethod;
-import six.eared.macaque.asm.ClassWriter;
-import six.eared.macaque.asm.MethodVisitor;
 
 
 public interface AsmMethodVisitor {

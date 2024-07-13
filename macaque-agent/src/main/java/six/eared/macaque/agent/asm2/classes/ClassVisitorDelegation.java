@@ -1,10 +1,10 @@
 package six.eared.macaque.agent.asm2.classes;
 
-import six.eared.macaque.asm.ClassVisitor;
-import six.eared.macaque.asm.Opcodes;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
 
 public class ClassVisitorDelegation extends ClassVisitor {
     public ClassVisitorDelegation(ClassVisitor delegation) {
-        super(Opcodes.ASM5, delegation);
+        super(Opcodes.ASM9, delegation);
     }
 }

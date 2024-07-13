@@ -1,10 +1,10 @@
 package six.eared.macaque.agent.asm2.classes;
 
 
+import org.objectweb.asm.*;
 import six.eared.macaque.agent.annotation.VisitEnd;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
-import six.eared.macaque.asm.*;
 import six.eared.macaque.common.util.StringUtil;
 
 
@@ -19,7 +19,7 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
     private boolean reuse = false;
 
     public ClazzDefinitionVisitor() {
-        super(Opcodes.ASM4);
+        super(Opcodes.ASM9);
         this.reuse = true;
     }
 
@@ -30,7 +30,7 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
      * @param fieldVisitor
      */
     public ClazzDefinitionVisitor(AsmMethodVisitor methodVisitor, AsmFieldVisitor fieldVisitor) {
-        super(Opcodes.ASM4, new ClassWriter(0));
+        super(Opcodes.ASM9, new ClassWriter(0));
         this.methodVisitor = methodVisitor;
         this.fieldVisitor = fieldVisitor;
     }
@@ -99,7 +99,6 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
         return this.methodVisitor.visitMethod(asmMethod, this.definition, (ClassWriter) this.cv);
     }
 
-    @Override
     public void visitBytes(byte[] bytes) {
         this.definition.setByteCode(bytes);
     }

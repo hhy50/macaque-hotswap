@@ -1,7 +1,7 @@
 package six.eared.macaque.agent.test.asm;
 
 import org.junit.Test;
-import six.eared.macaque.asm.ClassReader;
+import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
 

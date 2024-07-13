@@ -1,11 +1,11 @@
 package six.eared.macaque.agent.test.asm;
 
-import six.eared.macaque.asm.AnnotationVisitor;
-import six.eared.macaque.asm.Attribute;
-import six.eared.macaque.asm.FieldVisitor;
-import six.eared.macaque.asm.TypePath;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.TypePath;
 
-import static six.eared.macaque.asm.Opcodes.ASM5;
+import static org.objectweb.asm.Opcodes.ASM5;
 
 public class AsmFieldPrinter extends FieldVisitor {
 

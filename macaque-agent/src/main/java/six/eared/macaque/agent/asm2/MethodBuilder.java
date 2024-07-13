@@ -1,6 +1,6 @@
 package six.eared.macaque.agent.asm2;
 
-import six.eared.macaque.asm.MethodVisitor;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.function.Consumer;
 

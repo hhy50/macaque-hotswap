@@ -1,9 +1,9 @@
 package six.eared.macaque.agent.enhance;
 
 
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import six.eared.macaque.agent.asm2.AsmMethod;
-import six.eared.macaque.asm.MethodVisitor;
-import six.eared.macaque.asm.Opcodes;
 
 public class BindMethodWriter extends MethodVisitor {
 
@@ -12,7 +12,7 @@ public class BindMethodWriter extends MethodVisitor {
     private MethodBindInfo bindInfo;
 
     public BindMethodWriter(MethodVisitor writer, AsmMethod method, MethodBindInfo bindInfo) {
-        super(Opcodes.ASM5, writer);
+        super(Opcodes.ASM9, writer);
         this.method = method;
         this.bindInfo = bindInfo;
     }

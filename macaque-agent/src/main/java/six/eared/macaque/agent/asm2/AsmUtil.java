@@ -2,12 +2,12 @@ package six.eared.macaque.agent.asm2;
 
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
+import org.objectweb.asm.*;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitor;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
 import six.eared.macaque.agent.asm2.classes.MultiClassReader;
 import six.eared.macaque.agent.env.Environment;
-import six.eared.macaque.asm.*;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.FileUtil;
 

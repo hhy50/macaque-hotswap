@@ -1,11 +1,11 @@
 package six.eared.macaque.agent.asm2.classes;
 
-import six.eared.macaque.asm.MethodVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import six.eared.macaque.common.util.Pair;
 
 import java.util.Stack;
 
-import static six.eared.macaque.asm.Opcodes.ASM5;
 
 public class MethodDynamicStackVisitor extends MethodVisitor {
 
@@ -15,7 +15,7 @@ public class MethodDynamicStackVisitor extends MethodVisitor {
     private final Stack<Pair<Integer /* opcode */, Object /* opc */>> opStack = new Stack<>();
 
     public MethodDynamicStackVisitor(MethodVisitor write) {
-        super(ASM5, write);
+        super(Opcodes.ASM9, write);
     }
 
     public String a() {

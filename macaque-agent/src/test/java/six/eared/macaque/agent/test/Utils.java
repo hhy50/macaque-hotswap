@@ -1,9 +1,9 @@
 package six.eared.macaque.agent.test;
 
+import org.objectweb.asm.ClassReader;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.test.asm.AsmMethodPrinter;
 import six.eared.macaque.agent.test.asm.BinaryClassPrint;
-import six.eared.macaque.asm.ClassReader;
 
 import java.util.HashMap;
 import java.util.List;

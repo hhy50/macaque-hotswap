@@ -1,6 +1,6 @@
 package six.eared.macaque.agent.asm2.classes;
 
-import six.eared.macaque.asm.MethodVisitor;
+import org.objectweb.asm.MethodVisitor;
 
 import java.lang.reflect.Method;
 

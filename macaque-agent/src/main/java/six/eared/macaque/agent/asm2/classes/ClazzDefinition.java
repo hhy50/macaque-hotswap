@@ -1,11 +1,11 @@
 package six.eared.macaque.agent.asm2.classes;
 
 import lombok.Data;
+import org.objectweb.asm.ClassVisitor;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.definition.Definition;
-import six.eared.macaque.asm.ClassVisitor;
 
 import java.util.ArrayList;
 import java.util.List;

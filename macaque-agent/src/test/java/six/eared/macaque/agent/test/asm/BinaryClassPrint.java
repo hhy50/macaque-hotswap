@@ -1,10 +1,10 @@
 package six.eared.macaque.agent.test.asm;
 
 
+import org.objectweb.asm.*;
 import six.eared.macaque.agent.asm2.AsmUtil;
-import six.eared.macaque.asm.*;
 
-import static six.eared.macaque.asm.Opcodes.ASM4;
+import static org.objectweb.asm.Opcodes.ASM4;
 
 /**
  * 反编译

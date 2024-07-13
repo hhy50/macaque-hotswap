@@ -2,6 +2,7 @@ package six.eared.macaque.agent.test.compatibility;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.objectweb.asm.ClassVisitor;
 import six.eared.macaque.agent.hotswap.handler.ClassHotSwapHandler;
 import six.eared.macaque.agent.test.EarlyClass;
 import six.eared.macaque.agent.test.EarlyClass2;
@@ -9,7 +10,6 @@ import six.eared.macaque.agent.test.Env;
 import six.eared.macaque.agent.test.StaticEarlyClass;
 import six.eared.macaque.agent.test.asm.AsmMethodPrinter;
 import six.eared.macaque.agent.test.asm.BinaryClassPrint;
-import six.eared.macaque.asm.ClassVisitor;
 import six.eared.macaque.common.ExtPropertyName;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.mbean.rmi.HotSwapRmiData;

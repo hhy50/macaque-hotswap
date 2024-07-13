@@ -1,8 +1,11 @@
 package six.eared.macaque.agent.enhance;
 
-import com.sun.tools.doclint.Env;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtil;
 import six.eared.macaque.agent.asm2.AsmClassBuilder;
 import six.eared.macaque.agent.asm2.AsmMethod;
@@ -14,10 +17,6 @@ import six.eared.macaque.agent.enums.CorrelationEnum;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.agent.vcs.VersionChainTool;
-import six.eared.macaque.asm.ClassWriter;
-import six.eared.macaque.asm.MethodVisitor;
-import six.eared.macaque.asm.Opcodes;
-import six.eared.macaque.asm.Type;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.FileUtil;
 

@@ -1,58 +1,25 @@
 package six.eared.macaque.agent.asm2.classes;
 
-import six.eared.macaque.asm.IMethodVisitor;
-import six.eared.macaque.asm.MethodVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.tree.MethodNode;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.List;
+public class AsmMethodVisitorCaller {
 
-public class AsmMethodVisitorCaller implements InvocationHandler {
-
-    private int index;
-
-    protected List<AsmMethodVisitCall> calls;
+    private MethodNode methodNode;
 
     public void accept(MethodVisitor mv) {
-        for (AsmMethodVisitCall call : this.calls) {
-            call.recall(mv);
-        }
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if (calls == null) {
-            this.calls = new ArrayList<>();
-        }
-        this.calls.add(new AsmMethodVisitCall(++index, method, args));
-        if (method.getName().equals("visitStart")) {
-            visitStart();
-        }
-        if (method.getName().equals("visitEnd")) {
-            visitEnd();
-        }
-        return null;
+        if (this.methodNode != null)
+            this.methodNode.accept(mv);
     }
 
     public MethodVisitor createProxyObj() {
-        if (this.calls != null) this.calls = null;
-
-        IMethodVisitor visitor = (IMethodVisitor) Proxy.newProxyInstance(AsmMethodVisitorCaller.class.getClassLoader(),
-                new Class[]{IMethodVisitor.class}, this);
-         return new MethodVisitorDelegation(visitor);
-    }
-
-    protected void visitStart() {
-
-    }
-
-    protected void visitEnd() {
-
+        this.methodNode = new MethodNode();
+        return this.methodNode;
     }
 
     public boolean isEmpty() {
-        return this.calls == null || this.calls.isEmpty();
+        return this.methodNode == null
+                || this.methodNode.instructions == null
+                || this.methodNode.instructions.size() == 0;
     }
 }

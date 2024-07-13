@@ -1,6 +1,6 @@
 package six.eared.macaque.agent.asm2.classes;
 
-import six.eared.macaque.asm.ClassReader;
+import org.objectweb.asm.ClassReader;
 
 import java.util.Iterator;
 
@@ -44,8 +44,9 @@ public class MultiClassReader implements Iterable<ClazzDefinition> {
             } else {
                 visitor = this.reuseVisit;
             }
-            ClassReader classReader = new ClassReader(multiClassData, pos);
-            pos = classReader.accept(visitor, 0);
+            ClassReader classReader = new ClassReader(multiClassData, pos, multiClassData.length);
+            classReader.accept(visitor, 0);
+            pos = classReader.endOffset;
             return visitor.getDefinition();
         }
     }

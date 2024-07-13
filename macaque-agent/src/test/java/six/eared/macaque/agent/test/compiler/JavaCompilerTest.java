@@ -3,16 +3,16 @@ package six.eared.macaque.agent.test.compiler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.classes.*;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.test.asm.BinaryClassPrint;
-import six.eared.macaque.asm.ClassReader;
-import six.eared.macaque.asm.ClassWriter;
-import six.eared.macaque.asm.FieldVisitor;
-import six.eared.macaque.asm.MethodVisitor;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -63,9 +63,9 @@ public class JavaCompilerTest {
 
     static String clazz2 = "package six.eared.macaque.agent.asm.classes;\n" +
             "\n" +
-            "import six.eared.macaque.asm.*;\n" +
+            "import org.objectweb.asm.*;\n" +
             "\n" +
-            "import static six.eared.macaque.asm.Opcodes.ASM4;\n" +
+            "import static org.objectweb.asm.Opcodes.ASM4;\n" +
             "\n" +
             "/**\n" +
             " * 反编译\n" +

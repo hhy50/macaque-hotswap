@@ -1,13 +1,13 @@
 package six.eared.macaque.agent.test.asm;
 
-import six.eared.macaque.asm.Attribute;
-import six.eared.macaque.asm.Handle;
-import six.eared.macaque.asm.Label;
-import six.eared.macaque.asm.MethodVisitor;
+import org.objectweb.asm.Attribute;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.Arrays;
 
-import static six.eared.macaque.asm.Opcodes.ASM5;
+import static org.objectweb.asm.Opcodes.ASM5;
 
 public class AsmMethodPrinter extends MethodVisitor {
 

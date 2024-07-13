@@ -2,8 +2,8 @@ package six.eared.macaque.agent.asm2;
 
 
 import lombok.Data;
+import org.objectweb.asm.Opcodes;
 import six.eared.macaque.agent.enhance.MethodBindInfo;
-import six.eared.macaque.asm.Opcodes;
 
 import java.util.Objects;
 

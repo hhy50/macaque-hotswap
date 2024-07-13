@@ -13,10 +13,11 @@ dependencies {
     implementation files("${System.getProperty('java.home')}/../lib/tools.jar")
     implementation project(':macaque-mbean')
     implementation project(':macaque-common')
-    implementation project(':macaque-asm')
     implementation project(':library:macaque-library')
     implementation project(':library:macaque-mybatis')
     implementation project(':library:macaque-spring')
+    implementation 'org.ow2.asm:asm:9.3'
+    implementation 'org.ow2.asm:asm-tree:9.3'
     implementation 'org.projectlombok:lombok:1.18.24'
     implementation 'org.javassist:javassist:3.28.0-GA'
     testImplementation 'junit:junit:4.13.1'

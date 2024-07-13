@@ -1,10 +1,10 @@
 package six.eared.macaque.agent.enhance;
 
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.MethodDynamicStackVisitor;
-import six.eared.macaque.asm.MethodVisitor;
-import six.eared.macaque.asm.Opcodes;
 import six.eared.macaque.common.util.ClassUtil;
 
 /**
