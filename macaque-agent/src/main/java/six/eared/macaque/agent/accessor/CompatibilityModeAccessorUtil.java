@@ -172,13 +172,19 @@ public class CompatibilityModeAccessorUtil {
     }
 
     private static void getField(AsmField asmField, String owner, ClassBuilder classBuilder) throws CannotCompileException {
-        String type = Type.getType(asmField.getDesc()).getClassName();
+        Type fieldType = Type.getType(asmField.getDesc());
+        String type = fieldType.getClassName();
         String name = asmField.getFieldName();
-        if (asmField.isPrivate()) {
+        String unpacking = getUnpacking(fieldType);
+        String body = null;
 
+        if (asmField.isPrivate()) {
+            body = "Field field = " + owner + ".class.getDeclaredField(\"" + name + "\"); field.setAccessible(true);" +
+                    "return ((" + type + ") Util." + unpacking + "(field.get(this$0)));";
         } else {
-            classBuilder.defineMethod(String.format( "public %s macaque$field$%s() { return ((%s) this$0).%s; }", type, name, owner, name));
+            body = "return ((" + owner + ") this$0)." + name + ";";
         }
+        classBuilder.defineMethod(String.format("public %s "+ Accessor.FIELD_PREFIX+"%s() { %s }", type, name, body));
     }
 
     private static void invokerVirtual(ClassBuilder classBuilder, String this0Class,
@@ -220,8 +226,8 @@ public class CompatibilityModeAccessorUtil {
         StringBuilder methodSrc = new StringBuilder("public " + rType + " super_" + methodName + "(" + argsDeclare + ") {").append("\n")
                 .append("MethodType type = MethodType.methodType(" + rType + ".class,new Class[]{" + argsClassDeclare + "});").append("\n")
                 .append("MethodHandle mh = LOOKUP.findSpecial(" + this0Class + ".class,\"" + methodName + "\",type," + methodClass + ".class).bindTo(this$0);").append("\n")
-                .append(rType.equals("void") ? "" : "return (" + rType + ")")
-                .append((!rType.equals("void")) && unpacking != null ? "Util." + unpacking + "(" : "(")
+                .append(unpacking != null ? "return (" + rType + ")" : "")
+                .append(unpacking != null ? "Util." + unpacking + "(" : "(")
                 .append("mh.invoke(new Object[] {" + String.join(",", packingArgs) + "}));").append("\n")
                 .append("}");
         classBuilder.defineMethod(methodSrc.toString());
@@ -279,8 +285,9 @@ public class CompatibilityModeAccessorUtil {
             case Type.DOUBLE:
                 return "unpack_double";
             case Type.VOID:
-            default:
                 return null;
+            default:
+                return "unpack_object";
         }
     }
 }

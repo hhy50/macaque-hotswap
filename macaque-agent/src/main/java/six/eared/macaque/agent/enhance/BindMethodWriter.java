@@ -3,6 +3,7 @@ package six.eared.macaque.agent.enhance;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import six.eared.macaque.agent.accessor.Accessor;
 import six.eared.macaque.agent.asm2.AsmMethod;
 
 public class BindMethodWriter extends MethodVisitor {
@@ -23,5 +24,11 @@ public class BindMethodWriter extends MethodVisitor {
             maxLocals += 1;
         }
         super.visitMaxs(maxStack, maxLocals);
+    }
+
+    @Override
+    public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+        Accessor.accessField(this, opcode, owner, name, descriptor);
+//        super.visitFieldInsn(opcode, owner, name, descriptor);
     }
 }

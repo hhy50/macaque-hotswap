@@ -12,6 +12,7 @@ public class JavaSsistUtil {
 
     static {
         POOL.importPackage("java.lang.invoke");
+        POOL.importPackage("java.lang.reflect");
         POOL.importPackage("six.eared.macaque.agent.accessor.util");
     }
 

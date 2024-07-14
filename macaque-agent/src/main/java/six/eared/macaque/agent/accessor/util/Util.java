@@ -70,4 +70,8 @@ public class Util {
     public static boolean unpack_boolean(Object o) {
         return ((Boolean) o).booleanValue();
     }
+
+    public static Object unpack_object(Object obj) {
+        return obj;
+    }
 }
