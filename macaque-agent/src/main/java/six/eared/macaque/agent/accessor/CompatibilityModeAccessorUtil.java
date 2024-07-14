@@ -53,7 +53,7 @@ public class CompatibilityModeAccessorUtil {
             String superAccessorName = tryGetAccessorClassName(superClassName, classNameGenerator);
             ClassBuilder classBuilder = generateAccessorClass(accessorName, superAccessorName);
 
-            collectAccessibleMethods(clazzDefinition, classBuilder, superAccessor, classNameGenerator);
+            collectAccessibleMethods(clazzDefinition, classBuilder, superAccessor);
             collectAccessibleFields(clazzDefinition, classBuilder, superAccessor);
             CompatibilityModeClassLoader.loadClass(classBuilder.getClassName(), classBuilder.toByteArray());
 
@@ -96,8 +96,7 @@ public class CompatibilityModeAccessorUtil {
         return null;
     }
 
-    private static void collectAccessibleMethods(ClazzDefinition definition, ClassBuilder accessorBuilder, ClazzDefinition superAccessor,
-                                                 AccessorClassNameGenerator classNameGenerator) {
+    private static void collectAccessibleMethods(ClazzDefinition definition, ClassBuilder accessorBuilder, ClazzDefinition superAccessor) {
         try {
             Set<AsmMethod> privateMethods = new HashSet<>();
             Map<String, AsmMethod> accessibleSuperMethods = new HashMap<>();
@@ -158,6 +157,30 @@ public class CompatibilityModeAccessorUtil {
         }
     }
 
+    private static void collectAccessibleFields(ClazzDefinition definition, ClassBuilder classBuilder, ClazzDefinition superAccessor) {
+        try {
+            // my all field
+            for (AsmField asmField : definition.getAsmFields()) {
+                getField(asmField, definition.getClassName(), classBuilder);
+            }
+            // non private field in super class
+
+
+        } catch (Exception e) {
+            throw new AccessorCreateException(e);
+        }
+    }
+
+    private static void getField(AsmField asmField, String owner, ClassBuilder classBuilder) throws CannotCompileException {
+        String type = Type.getType(asmField.getDesc()).getClassName();
+        String name = asmField.getFieldName();
+        if (asmField.isPrivate()) {
+
+        } else {
+            classBuilder.defineMethod(String.format( "public %s macaque$field$%s() { return ((%s) this$0).%s; }", type, name, owner, name));
+        }
+    }
+
     private static void invokerVirtual(ClassBuilder classBuilder, String this0Class,
                                        AsmMethod method) throws CannotCompileException {
         String methodName = method.getMethodName();
@@ -202,16 +225,6 @@ public class CompatibilityModeAccessorUtil {
                 .append("mh.invoke(new Object[] {" + String.join(",", packingArgs) + "}));").append("\n")
                 .append("}");
         classBuilder.defineMethod(methodSrc.toString());
-    }
-
-
-    private static void collectAccessibleFields(ClazzDefinition definition, ClassBuilder containSuper, ClazzDefinition classBuilder) {
-        // my all field
-        for (AsmField asmField : definition.getAsmFields()) {
-
-        }
-        // non private field in super class
-
     }
 
     /**

@@ -53,6 +53,12 @@ public class ClazzDefinition implements Cloneable, Definition {
                 .findAny().orElse(null);
     }
 
+    public AsmField getField(String name, String desc) {
+        return asmFields.stream()
+                .filter(item -> item.getFieldName().equals(name) && item.getDesc().equals(desc))
+                .findAny().orElse(null);
+    }
+
     @Override
     public String getName() {
         return className;

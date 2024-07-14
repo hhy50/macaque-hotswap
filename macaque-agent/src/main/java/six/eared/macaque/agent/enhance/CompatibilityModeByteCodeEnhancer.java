@@ -8,6 +8,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtil;
 import six.eared.macaque.agent.asm2.AsmClassBuilder;
+import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
@@ -55,9 +56,16 @@ public class CompatibilityModeByteCodeEnhancer {
             AsmMethod method = definition.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
             if (asmMethod.isConstructor() || asmMethod.isClinit()) continue;
             if (method == null || method.isStatic() ^ asmMethod.isStatic()) {
-                incrementUpdate.addDeleted(asmMethod);
+                incrementUpdate.addDeletedMethod(asmMethod);
             }
         }
+        for (AsmField asmField : originClass.getAsmFields()) {
+            AsmField field = definition.getField(asmField.getFieldName(), asmField.getDesc());
+            if (field == null || field.isStatic() ^ asmField.isStatic()) {
+                incrementUpdate.addDeletedField(asmField);
+            }
+        }
+
         for (AsmMethod asmMethod : definition.getAsmMethods()) {
             if (asmMethod.isConstructor() || asmMethod.isClinit()) continue;
             AsmMethod method = originClass.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
@@ -65,7 +73,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 MethodBindInfo bindInfo = MethodBindManager
                         .createMethodBindInfo(definition.getClassName(), asmMethod, accessor.getClassName());
                 asmMethod.setBindInfo(bindInfo);
-                incrementUpdate.addNew(asmMethod);
+                incrementUpdate.addNewMethod(asmMethod);
             }
         }
 
@@ -76,7 +84,7 @@ public class CompatibilityModeByteCodeEnhancer {
                         || asmMethod.getBindInfo() == null) continue;
                 AsmMethod method = definition.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
                 if (method == null || method.isStatic() ^ asmMethod.isStatic()) {
-                    incrementUpdate.addDeleted(asmMethod);
+                    incrementUpdate.addDeletedMethod(asmMethod);
                 }
             }
         }
@@ -153,6 +161,12 @@ public class CompatibilityModeByteCodeEnhancer {
                         AsmUtil.throwNoSuchMethod(methodWrite, method.getMethodName());
                     }
                 }
+                if (classIncrementUpdate.getDeletedFields() != null) {
+                    for (AsmField field : classIncrementUpdate.getDeletedFields()) {
+//                        if (field.getBindInfo() != null) continue;
+                       this.visitField(field.getModifier(), field.getFieldName(), field.getDesc(), field.getFieldSign(), field.getValue());
+                    }
+                }
                 super.visitEnd();
             }
         });
@@ -166,7 +180,7 @@ public class CompatibilityModeByteCodeEnhancer {
      */
     private static ClazzDefinition createAccessor(String className) {
         // 计算深度
-        int deepth = 5;
+        int deepth = 0;
         ClazzDefinition accessor = CompatibilityModeAccessorUtil.createAccessor(className, new AccessorClassNameGenerator(), deepth);
         return accessor;
     }

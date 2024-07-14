@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.enhance;
 
 import lombok.Data;
+import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.CorrelationClazzDefinition;
@@ -40,6 +41,11 @@ public class ClassIncrementUpdate implements Definition {
     public List<AsmMethod> deletedMethods;
 
     /**
+     * 删除的字段
+     */
+    public List<AsmField> deletedFields;
+
+    /**
      * 相关联的其他类
      */
     private List<CorrelationClazzDefinition> correlationClasses;
@@ -51,19 +57,27 @@ public class ClassIncrementUpdate implements Definition {
         this.clazzDefinition = definition;
     }
 
-    public void addDeleted(AsmMethod deletedMethod) {
+    public void addDeletedMethod(AsmMethod deletedMethod) {
         if (this.deletedMethods == null) {
             this.deletedMethods = new ArrayList<>();
         }
         this.deletedMethods.add(deletedMethod);
     }
 
-    public void addNew(AsmMethod newMethod) {
+    public void addNewMethod(AsmMethod newMethod) {
         if (this.newMethods == null) {
             this.newMethods = new ArrayList<>();
         }
         this.newMethods.add(newMethod);
     }
+
+    public void addDeletedField(AsmField deletedField) {
+        if (this.deletedFields == null) {
+            this.deletedFields = new ArrayList<>();
+        }
+        this.deletedFields.add(deletedField);
+    }
+
 
     public void addCorrelationClasses(CorrelationEnum correlation, ClazzDefinition definition) {
         if (this.correlationClasses == null) {

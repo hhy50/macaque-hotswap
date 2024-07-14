@@ -2,6 +2,7 @@ package six.eared.macaque.agent.asm2;
 
 
 import lombok.Data;
+import org.objectweb.asm.Opcodes;
 
 @Data
 public class AsmField {
@@ -10,11 +11,19 @@ public class AsmField {
 
     private String fieldName;
 
-    private String fieldDesc;
+    private String desc;
 
     private String fieldSign;
 
     private Object value;
+
+    public boolean isPrivate() {
+        return (modifier & Opcodes.ACC_PRIVATE) > 0;
+    }
+
+    public boolean isStatic() {
+        return (modifier & Opcodes.ACC_STATIC) > 0;
+    }
 
     public static final class AsmFieldBuilder {
         private int modifier;
@@ -58,7 +67,7 @@ public class AsmField {
         public AsmField build() {
             AsmField asmField = new AsmField();
             asmField.modifier = this.modifier;
-            asmField.fieldDesc = this.fieldDesc;
+            asmField.desc = this.fieldDesc;
             asmField.fieldName = this.fieldName;
             asmField.fieldSign = this.fieldSign;
             asmField.value = this.value;
