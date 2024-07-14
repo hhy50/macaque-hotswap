@@ -3,6 +3,7 @@ package six.eared.macaque.agent.asm2;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
 import org.objectweb.asm.*;
+import org.objectweb.asm.tree.*;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitor;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
@@ -164,5 +165,12 @@ public class AsmUtil {
         writer.visitInsn(Opcodes.DUP);
         writer.visitVarInsn(Opcodes.ALOAD, 0);
         writer.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(Ljava/lang/Object;)V", false);
+    }
+
+    public static void accessorStore(InsnList instList, String accessorDesc) {
+        instList.add(new TypeInsnNode(Opcodes.NEW, accessorDesc));
+        instList.add(new InsnNode(Opcodes.DUP));
+        instList.add(new VarInsnNode(Opcodes.ALOAD, 0));
+        instList.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(Ljava/lang/Object;)V", false));
     }
 }

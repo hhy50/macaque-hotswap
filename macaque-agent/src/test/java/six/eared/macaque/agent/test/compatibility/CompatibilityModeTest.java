@@ -90,12 +90,21 @@ public class CompatibilityModeTest extends Env {
     }
 
     @Test
-    public void testStaticMethodCovertInstancec() {
+    public void testStaticMethodCovertInstance1() {
         byte[] bytes = compileToClass("StaticEarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
-                .getResourceAsStream("StaticMethodCovertInstance.java"))).get(0);
+                .getResourceAsStream("StaticMethodCovertInstance1.java"))).get(0);
 
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         Assert.assertEquals(staticEarlyClass.test2(), "123");
+    }
+
+    @Test
+    public void testStaticMethodCovertInstance2() {
+        byte[] bytes = compileToClass("StaticEarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
+                .getResourceAsStream("StaticMethodCovertInstance2.java"))).get(0);
+
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        Assert.assertEquals(staticEarlyClass.test2(), "1234");
     }
 
 //    @Test
