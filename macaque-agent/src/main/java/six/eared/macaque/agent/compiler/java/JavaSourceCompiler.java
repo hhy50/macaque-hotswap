@@ -150,6 +150,7 @@ public class JavaSourceCompiler implements Compiler {
             byte[] bytes = entry.getValue();
             File tmpFile = FileUtil.createTmpFile("compile" + File.separator + fileName, bytes);
             javaFileObjects.add(new JavaSourceFileObject(tmpFile));
+//            javaFileObjects.add(new JavaSourceStringObject(fileName, new String(bytes)));
         }
         DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
 

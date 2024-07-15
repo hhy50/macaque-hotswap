@@ -1,11 +1,9 @@
 package six.eared.macaque.agent.test;
 
+public class TestAddMethodClass {
 
-
-public class EarlyClass2 extends AbsEarlyClass2 {
-
-    public String test1(String name) {
-        return _newMethod(name, "1111");
+    public String test1() {
+        return _newMethod("1111", "2222");
     }
 
     public String test2() {

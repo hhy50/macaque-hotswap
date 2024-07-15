@@ -184,7 +184,7 @@ public class CompatibilityModeAccessorUtil {
         } else {
             body = "return ((" + owner + ") this$0)." + name + ";";
         }
-        classBuilder.defineMethod(String.format("public %s "+ Accessor.FIELD_PREFIX+"%s() { %s }", type, name, body));
+        classBuilder.defineMethod(String.format("public %s "+ Accessor.FIELD_GETTER_PREFIX+"%s() { %s }", type, name, body));
     }
 
     private static void invokerVirtual(ClassBuilder classBuilder, String this0Class,

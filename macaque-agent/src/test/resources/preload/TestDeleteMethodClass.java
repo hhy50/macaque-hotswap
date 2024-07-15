@@ -1,7 +1,6 @@
 package six.eared.macaque.agent.test;
 
-
-public class StaticEarlyClass extends AbsEarlyClass2 {
+public class TestDeleteMethodClass {
 
     public String test1() {
         return "test1";
@@ -11,7 +10,7 @@ public class StaticEarlyClass extends AbsEarlyClass2 {
         return "test2";
     }
 
-    public static String staticMethod1() {
-        return "staticMethod1";
+    public static String test3() {
+        return "test2";
     }
 }

@@ -28,7 +28,7 @@ public class BindMethodWriter extends MethodVisitor {
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-        Accessor.accessField(this, opcode, owner, name, descriptor);
+        Accessor.accessField(bindInfo, this, opcode, owner, name, descriptor);
 //        super.visitFieldInsn(opcode, owner, name, descriptor);
     }
 }
