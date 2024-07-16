@@ -61,11 +61,6 @@ public class AsmUtil {
         return REUSE_CLASS_VISITOR.getDefinition();
     }
 
-    public static ClazzDefinition readClass(byte[] byteCode, ClazzDefinitionVisitor clazzVisitor) {
-        visitClass(byteCode, clazzVisitor);
-        return clazzVisitor.getDefinition();
-    }
-
     public static void visitClass(byte[] byteCode, ClassVisitor classVisitor) {
         ClassReader classReader = new ClassReader(byteCode);
         classReader.accept(classVisitor, 0);
@@ -78,36 +73,6 @@ public class AsmUtil {
             definitions.add(definition);
         }
         return definitions;
-    }
-
-    public static String accessToDescriptor(int access) {
-        StringBuilder sb = new StringBuilder();
-
-        if ((access & Opcodes.ACC_PUBLIC) != 0) {
-            sb.append("public ");
-        } else if ((access & Opcodes.ACC_PRIVATE) != 0) {
-            sb.append("private ");
-        } else if ((access & Opcodes.ACC_PROTECTED) != 0) {
-            sb.append("protected ");
-        }
-
-        if ((access & Opcodes.ACC_STATIC) != 0) {
-            sb.append("static ");
-        }
-
-        if ((access & Opcodes.ACC_INTERFACE) != 0) {
-            sb.append("interface ");
-        } else if ((access & Opcodes.ACC_ENUM) != 0) {
-            sb.append("enum ");
-        } else if ((access & Opcodes.ACC_ANNOTATION) != 0) {
-            sb.append("@interface ");
-        }
-        return sb.toString();
-    }
-
-    public static ClassBuilder defineClass(int access, String className, String superName, String[] interfaces)
-            throws NotFoundException, CannotCompileException {
-        return new ClassBuilder(access, className, superName, interfaces);
     }
 
     public static AsmClassBuilder defineClass(int access, String className, String superName, String[] interfaces, String sign) {
@@ -132,14 +97,6 @@ public class AsmUtil {
         String[] split = methodDesc.split(delimiter);
         split[0] += AsmUtil.toTypeDesc(newArg);
         return header ? ("(" + split[0] + split[1]) : (split[0] + ")" + split[1]);
-    }
-
-    public static String methodDesc(String rDesc, String... pDesc) {
-        String desc = "";
-        for (String s : pDesc) {
-            desc += s;
-        }
-        return "(" + desc + ")" + rDesc;
     }
 
     public static void throwNoSuchMethod(MethodVisitor write, String methodName) {

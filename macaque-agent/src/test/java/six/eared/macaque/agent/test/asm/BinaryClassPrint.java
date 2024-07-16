@@ -43,16 +43,41 @@ public class BinaryClassPrint extends ClassVisitor {
     }
 
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        System.out.println("    " + AsmUtil.accessToDescriptor(access) + AsmUtil.accessToDescriptor(access) + desc + " " + name);
+        System.out.println("    " + accessToDescriptor(access) + accessToDescriptor(access) + desc + " " + name);
         return new AsmFieldPrinter();
     }
 
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        System.out.println("    " + AsmUtil.accessToDescriptor(access) + name + desc);
+        System.out.println("    " + accessToDescriptor(access) + name + desc);
         return methodVisitor;
     }
 
     public void visitEnd() {
         System.out.println("}");
+    }
+
+    public static String accessToDescriptor(int access) {
+        StringBuilder sb = new StringBuilder();
+
+        if ((access & Opcodes.ACC_PUBLIC) != 0) {
+            sb.append("public ");
+        } else if ((access & Opcodes.ACC_PRIVATE) != 0) {
+            sb.append("private ");
+        } else if ((access & Opcodes.ACC_PROTECTED) != 0) {
+            sb.append("protected ");
+        }
+
+        if ((access & Opcodes.ACC_STATIC) != 0) {
+            sb.append("static ");
+        }
+
+        if ((access & Opcodes.ACC_INTERFACE) != 0) {
+            sb.append("interface ");
+        } else if ((access & Opcodes.ACC_ENUM) != 0) {
+            sb.append("enum ");
+        } else if ((access & Opcodes.ACC_ANNOTATION) != 0) {
+            sb.append("@interface ");
+        }
+        return sb.toString();
     }
 }

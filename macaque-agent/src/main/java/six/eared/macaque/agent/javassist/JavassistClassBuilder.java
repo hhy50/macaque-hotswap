@@ -1,4 +1,4 @@
-package six.eared.macaque.agent.asm2;
+package six.eared.macaque.agent.javassist;
 
 import javassist.*;
 import lombok.Getter;
@@ -6,15 +6,14 @@ import lombok.SneakyThrows;
 
 import static six.eared.macaque.agent.javassist.JavaSsistUtil.POOL;
 
-public class ClassBuilder {
+public class JavassistClassBuilder {
 
     @Getter
     private String className;
 
     private CtClass ctClass;
 
-
-    public ClassBuilder(int modifier, String className, String superClass, String[] interfaces)
+    public JavassistClassBuilder(int modifier, String className, String superClass, String[] interfaces)
             throws NotFoundException, CannotCompileException {
         this.className = className;
         this.ctClass = javassistClass(modifier, className, superClass, interfaces);
@@ -34,24 +33,24 @@ public class ClassBuilder {
         return ctClass;
     }
 
-    public ClassBuilder defineField(String src) throws CannotCompileException {
+    public JavassistClassBuilder defineField(String src) throws CannotCompileException {
         this.ctClass.addField(CtField.make(src, this.ctClass));
         return this;
     }
 
-    public ClassBuilder defineField(int modifier, String fieldName, String fieldType) throws CannotCompileException, NotFoundException {
+    public JavassistClassBuilder defineField(int modifier, String fieldName, String fieldType) throws CannotCompileException, NotFoundException {
         CtField field = new CtField(POOL.get(fieldType), fieldName, this.ctClass);
         field.setModifiers(modifier);
         this.ctClass.addField(field);
         return this;
     }
 
-    public ClassBuilder defineConstructor(String src) throws CannotCompileException {
+    public JavassistClassBuilder defineConstructor(String src) throws CannotCompileException {
         this.ctClass.addConstructor(CtNewConstructor.make(src, ctClass));
         return this;
     }
 
-    public ClassBuilder defineMethod(String src) throws CannotCompileException {
+    public JavassistClassBuilder defineMethod(String src) throws CannotCompileException {
         this.ctClass.addMethod(CtMethod.make(src, ctClass));
         return this;
     }

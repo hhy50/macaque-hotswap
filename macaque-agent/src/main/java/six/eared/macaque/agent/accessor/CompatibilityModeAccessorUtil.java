@@ -8,7 +8,7 @@ import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
-import six.eared.macaque.agent.asm2.ClassBuilder;
+import six.eared.macaque.agent.javassist.JavassistClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.enhance.AccessorClassNameGenerator;
 import six.eared.macaque.agent.enhance.CompatibilityModeClassLoader;
@@ -50,13 +50,13 @@ public class CompatibilityModeAccessorUtil {
                 }
             }
             String superAccessorName = tryGetAccessorClassName(superClassName, classNameGenerator);
-            ClassBuilder classBuilder = generateAccessorClass(accessorName, superAccessorName);
+            JavassistClassBuilder javassistClassBuilder = generateAccessorClass(accessorName, superAccessorName);
 
-            collectAccessibleMethods(clazzDefinition, classBuilder, superAccessor);
-            collectAccessibleFields(clazzDefinition, classBuilder, superAccessor);
-            CompatibilityModeClassLoader.loadClass(classBuilder.getClassName(), classBuilder.toByteArray());
+            collectAccessibleMethods(clazzDefinition, javassistClassBuilder, superAccessor);
+            collectAccessibleFields(clazzDefinition, javassistClassBuilder, superAccessor);
+            CompatibilityModeClassLoader.loadClass(javassistClassBuilder.getClassName(), javassistClassBuilder.toByteArray());
 
-            ClazzDefinition accessorDefinition = AsmUtil.readClass(classBuilder.toByteArray());
+            ClazzDefinition accessorDefinition = AsmUtil.readClass(javassistClassBuilder.toByteArray());
             LOADED.put(className, accessorDefinition);
             return accessorDefinition;
         } catch (Exception e) {
@@ -70,17 +70,17 @@ public class CompatibilityModeAccessorUtil {
      * @param superAccessorName
      * @return
      */
-    private static ClassBuilder generateAccessorClass(String accessorName, String superAccessorName) throws NotFoundException, CannotCompileException {
+    private static JavassistClassBuilder generateAccessorClass(String accessorName, String superAccessorName) throws NotFoundException, CannotCompileException {
         boolean containSupper = superAccessorName != null;
-        ClassBuilder classBuilder
+        JavassistClassBuilder javassistClassBuilder
                 = JavaSsistUtil.defineClass(Modifier.PUBLIC, accessorName, superAccessorName, null);
-        classBuilder.defineField("public static final MethodHandles$Lookup LOOKUP = MethodHandles.lookup();");
+        javassistClassBuilder.defineField("public static final MethodHandles$Lookup LOOKUP = MethodHandles.lookup();");
         if (!containSupper) {
-            classBuilder.defineField(Modifier.PUBLIC | AccessFlag.SYNTHETIC, "this$0", "java.lang.Object");
+            javassistClassBuilder.defineField(Modifier.PUBLIC | AccessFlag.SYNTHETIC, "this$0", "java.lang.Object");
         }
-        classBuilder.defineConstructor(String.format("public %s(Object this$0) { %s }",
+        javassistClassBuilder.defineConstructor(String.format("public %s(Object this$0) { %s }",
                 ClassUtil.toSimpleName(accessorName), containSupper ? "super(this$0);" : "this.this$0=this$0;"));
-        return classBuilder;
+        return javassistClassBuilder;
     }
 
     /**
@@ -95,7 +95,7 @@ public class CompatibilityModeAccessorUtil {
         return null;
     }
 
-    private static void collectAccessibleMethods(ClazzDefinition definition, ClassBuilder accessorBuilder, ClazzDefinition superAccessor) {
+    private static void collectAccessibleMethods(ClazzDefinition definition, JavassistClassBuilder accessorBuilder, ClazzDefinition superAccessor) {
         try {
             // my all method
             for (AsmMethod method : definition.getAsmMethods()) {
@@ -144,11 +144,11 @@ public class CompatibilityModeAccessorUtil {
         }
     }
 
-    private static void collectAccessibleFields(ClazzDefinition definition, ClassBuilder classBuilder, ClazzDefinition superAccessor) {
+    private static void collectAccessibleFields(ClazzDefinition definition, JavassistClassBuilder javassistClassBuilder, ClazzDefinition superAccessor) {
         try {
             // my all field
             for (AsmField asmField : definition.getAsmFields()) {
-                getField(asmField, definition.getClassName(), classBuilder);
+                getField(asmField, definition.getClassName(), javassistClassBuilder);
             }
             // non private field in super class
 
@@ -158,7 +158,7 @@ public class CompatibilityModeAccessorUtil {
         }
     }
 
-    private static void getField(AsmField asmField, String owner, ClassBuilder classBuilder) throws CannotCompileException {
+    private static void getField(AsmField asmField, String owner, JavassistClassBuilder javassistClassBuilder) throws CannotCompileException {
         Type fieldType = Type.getType(asmField.getDesc());
         String type = fieldType.getClassName();
         String name = asmField.getFieldName();
@@ -171,10 +171,10 @@ public class CompatibilityModeAccessorUtil {
         } else {
             body = "return ((" + owner + ") this$0)." + name + ";";
         }
-        classBuilder.defineMethod(String.format("public %s "+ Accessor.FIELD_GETTER_PREFIX+"%s() { %s }", type, name, body));
+        javassistClassBuilder.defineMethod(String.format("public %s "+ Accessor.FIELD_GETTER_PREFIX+"%s() { %s }", type, name, body));
     }
 
-    private static void invokerVirtual(ClassBuilder classBuilder, String this0Class,
+    private static void invokerVirtual(JavassistClassBuilder javassistClassBuilder, String this0Class,
                                        AsmMethod method) throws CannotCompileException {
         String methodName = method.getMethodName();
         Type methodType = Type.getMethodType(method.getDesc());
@@ -188,15 +188,15 @@ public class CompatibilityModeAccessorUtil {
 
         String body = (rType.equals("void") ? "" : "return (" + rType + ")")
                 + " ((" + this0Class + ") this$0)." + methodName + "(" + String.join(",", argVars) + ");";
-        classBuilder.defineMethod(declare + "{" + body + "}");
+        javassistClassBuilder.defineMethod(declare + "{" + body + "}");
     }
 
     /**
      * @param this0Class   this0Class
      * @param method       生成的方法
-     * @param classBuilder 构造器
+     * @param javassistClassBuilder 构造器
      */
-    private static void invokeSpecial(String this0Class, String methodOwner, AsmMethod method, ClassBuilder classBuilder) throws CannotCompileException {
+    private static void invokeSpecial(String this0Class, String methodOwner, AsmMethod method, JavassistClassBuilder javassistClassBuilder) throws CannotCompileException {
         String methodName = method.getMethodName();
         Type methodType = Type.getMethodType(method.getDesc());
         String rType = methodType.getReturnType().getClassName();
@@ -216,7 +216,7 @@ public class CompatibilityModeAccessorUtil {
                 .append(unpacking != null ? "Util." + unpacking + "(" : "(")
                 .append("mh.invoke(new Object[] {" + String.join(",", packingArgs) + "}));").append("\n")
                 .append("}");
-        classBuilder.defineMethod(methodSrc.toString());
+        javassistClassBuilder.defineMethod(methodSrc.toString());
     }
 
     /**
