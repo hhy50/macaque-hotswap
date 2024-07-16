@@ -11,6 +11,6 @@ public class TestDeleteMethodClass {
     }
 
     public static String test3() {
-        return "test2";
+        return "test3";
     }
 }

@@ -7,19 +7,26 @@ import com.sun.tools.attach.VirtualMachine;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
+import six.eared.macaque.agent.javassist.JavaSsistUtil;
 import six.eared.macaque.common.jps.PID;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.ReflectUtil;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Env {
     static final Map<String, Class> PRELOADED = new HashMap<>();
+
     static {
         URL resource = Env.class.getClassLoader().getResource("macaque-agent-lightweight.jar");
         try {
@@ -51,6 +58,9 @@ public class Env {
                         ClazzDefinition clazzDefinition = AsmUtil.readClass(clazzData);
                         Class<?> clazz = (Class<?>) ReflectUtil.invokeMethod(ClassLoader.getSystemClassLoader(),
                                 "defineClass", clazzDefinition.getClassName(), clazzData, 0, clazzData.length);
+                        try (InputStream arrayIn = new ByteArrayInputStream(clazzData)) {
+                            JavaSsistUtil.POOL.makeClass(arrayIn);
+                        }
                         PRELOADED.put(clazzDefinition.getClassName(), clazz);
                         System.out.printf("preload class: %s\n", clazz.getName());
                     }
@@ -81,7 +91,15 @@ public class Env {
         }
     }
 
+    public Class<?> getPreload(String s) {
+        return PRELOADED.get(s);
+    }
+
     public static Object invoke(Object obj, String methodName, Object... args) {
         return ReflectUtil.invokeMethod(obj, methodName, args);
+    }
+
+    public static Object invokeStatic(Class<?> target, String methodName, Object... args) {
+        return ReflectUtil.invokeStaticMethod(target, methodName, args);
     }
 }

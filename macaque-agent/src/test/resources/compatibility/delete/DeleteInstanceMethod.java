@@ -5,4 +5,8 @@ public class TestDeleteMethodClass {
         System.out.println("test1");
         return "test1";
     }
+
+    public static String test3() {
+        return "test3";
+    }
 }

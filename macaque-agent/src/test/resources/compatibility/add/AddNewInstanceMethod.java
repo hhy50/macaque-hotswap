@@ -6,7 +6,7 @@ public class TestAddMethodClass {
     }
 
     public String test2() {
-        return "test2";
+        return test3();
     }
 
     /**

@@ -14,8 +14,6 @@ import java.util.Objects;
 @Data
 public class AsmMethod {
 
-    private String className;
-
     private int modifier;
 
     private String methodName;
@@ -44,10 +42,6 @@ public class AsmMethod {
         return this.methodName.equals("<clinit>");
     }
 
-    public String getUniqueDesc() {
-        return this.methodName+"#"+this.desc;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -62,7 +56,6 @@ public class AsmMethod {
     }
 
     public static final class AsmMethodBuilder {
-        private String className;
         private int modifier;
         private String methodName;
         private String methodSign;
@@ -76,10 +69,6 @@ public class AsmMethod {
             return new AsmMethodBuilder();
         }
 
-        public AsmMethodBuilder className(String className) {
-            this.className = className;
-            return this;
-        }
 
         public AsmMethodBuilder modifier(int modifier) {
             this.modifier = modifier;
@@ -108,7 +97,6 @@ public class AsmMethod {
 
         public AsmMethod build() {
             AsmMethod asmMethod = new AsmMethod();
-            asmMethod.className = this.className;
             asmMethod.modifier = this.modifier;
             asmMethod.methodName = this.methodName;
             asmMethod.methodSign = this.methodSign;

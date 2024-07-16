@@ -2,7 +2,7 @@ package six.eared.macaque.agent.compiler.java;
 
 
 import javax.tools.SimpleJavaFileObject;
-import java.io.*;
+import java.io.IOException;
 import java.net.URI;
 
 public class JavaSourceStringObject extends SimpleJavaFileObject {

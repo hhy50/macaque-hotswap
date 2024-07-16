@@ -10,12 +10,15 @@ import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
 import six.eared.macaque.agent.asm2.classes.MultiClassReader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.FileUtil;
+import six.eared.macaque.common.util.InstrumentationUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class AsmUtil {
 
@@ -43,6 +46,11 @@ public class AsmUtil {
                 e.printStackTrace();
             }
             throw e;
+        }
+        Set<Class<?>> loadedClass = InstrumentationUtil.findLoadedClass(Environment.getInst(), className);
+        if (CollectionUtil.isNotEmpty(loadedClass)) {
+            Class<?> clazz = loadedClass.iterator().next();
+            return new ClazzDefinition.InMemory(clazz);
         }
         throw new ClassNotFoundException();
     }

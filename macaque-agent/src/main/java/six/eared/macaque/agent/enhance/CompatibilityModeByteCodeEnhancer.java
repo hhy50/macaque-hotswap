@@ -92,7 +92,7 @@ public class CompatibilityModeByteCodeEnhancer {
     }
 
 
-    private static void bytecodeConvert(ClassIncrementUpdate classUpdateInfo) {
+    private static void bytecodeConvert(ClassIncrementUpdate classUpdateInfo) throws EnhanceException {
         byte[] newByteCode = generateNewByteCode(classUpdateInfo);
         classUpdateInfo.setEnhancedByteCode(newByteCode);
         if (classUpdateInfo.getNewMethods() == null) {

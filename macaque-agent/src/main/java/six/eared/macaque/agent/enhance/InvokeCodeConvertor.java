@@ -26,7 +26,7 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
     @Override
     public void visitMaxs(int maxStack, int maxLocals) {
         // 加1 是需要访问器入栈
-        super.visitMaxs(maxStack + 1, maxLocals);
+        super.visitMaxs(maxStack + 3, maxLocals);
     }
 
     @Override
