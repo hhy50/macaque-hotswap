@@ -55,6 +55,13 @@ public class JavassistClassBuilder {
         return this;
     }
 
+    public JavassistClassBuilder defineStaticBlock(String src) throws CannotCompileException {
+        CtConstructor ctConstructor = this.ctClass
+                .makeClassInitializer();
+        ctConstructor.setBody(src);
+        return this;
+    }
+
     private CtClass[] getTypes(String[] types) throws NotFoundException {
         CtClass[] ctClasses = new CtClass[types.length];
         for (int i = 0; i < types.length; i++) {

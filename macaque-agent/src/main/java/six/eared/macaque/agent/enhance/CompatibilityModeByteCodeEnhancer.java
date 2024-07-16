@@ -6,7 +6,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtil;
+import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtilV2;
 import six.eared.macaque.agent.asm2.AsmClassBuilder;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
@@ -181,7 +181,7 @@ public class CompatibilityModeByteCodeEnhancer {
     private static ClazzDefinition createAccessor(String className) {
         // 计算深度
         int deepth = 0;
-        ClazzDefinition accessor = CompatibilityModeAccessorUtil.createAccessor(className, new AccessorClassNameGenerator(), deepth);
+        ClazzDefinition accessor = CompatibilityModeAccessorUtilV2.createAccessor(className, new AccessorClassNameGenerator(), deepth);
         return accessor;
     }
 }

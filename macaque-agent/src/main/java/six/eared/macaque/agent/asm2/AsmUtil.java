@@ -81,7 +81,7 @@ public class AsmUtil {
     }
 
     public static void areturn(MethodVisitor writer, Type rType) {
-        if (rType.getReturnType().getSort() == Type.VOID) {
+        if (rType.getSort() == Type.VOID) {
             writer.visitInsn(Opcodes.RETURN);
         } else {
             writer.visitInsn(rType.getOpcode(Opcodes.IRETURN));
