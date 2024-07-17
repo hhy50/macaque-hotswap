@@ -18,15 +18,11 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
     private final AsmMethod method;
     private final MethodVisitor write;
     private int maxArglen = 0;
+    private boolean accessorLoad = false;
 
     public InvokeCodeConvertor(AsmMethod method, MethodVisitor write) {
         this.method = method;
         this.write = write;
-    }
-
-    @Override
-    public void visitMaxs(int maxStack, int maxLocals) {
-        super.visitMaxs(maxStack, maxLocals);
     }
 
     @Override
@@ -38,8 +34,9 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
             String accessorClassPath = ClassUtil.simpleClassName2path(bindInfo.getAccessorClass());
             if (opcode == Opcodes.INVOKESTATIC) {
                 // 只需要访问器入栈
-                AsmUtil.accessorStore(this.instructions, accessorClassPath);
+                //AsmUtil.accessorStore(this.instructions, accessorClassPath);
             } else {
+                this.accessorLoad = true;
                 /**
                  * 需要访问器提前入栈
                  * 先找到压入参数之前的第一条指令
@@ -83,7 +80,7 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
 
     @Override
     public void visitEnd() {
-        int minStack = maxArglen+3;
+        int minStack = maxArglen + (accessorLoad ? 3 : 0);
         this.maxStack = Math.max(minStack, maxStack);
         super.visitEnd();
         this.accept(write);

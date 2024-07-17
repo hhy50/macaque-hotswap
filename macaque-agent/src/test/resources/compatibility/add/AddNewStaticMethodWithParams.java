@@ -10,6 +10,10 @@ public class TestAddMethodClass {
         return "test2";
     }
 
+    public String test3() {
+        return "test2";
+    }
+
     public static String _newMethod(String arg1, String arg2) {
         return "arg1=" + arg1 + ",arg2=" + arg2;
     }

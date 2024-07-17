@@ -111,15 +111,17 @@ public class CompatibilityModeAccessorUtilV2 {
                 // 私有方法
                 if (method.isPrivate()) {
                     invokeSpecial(definition.getClassName(), definition.getClassName(), method, accessorBuilder);
-                    continue;
+                } else if (method.isStatic()) {
+                    invokerStatic(accessorBuilder, definition.getClassName(), method);
+                } else {
+                    // 继承而来 （如果自己重写了父类的方法, 就保存父类的字节码，防止 super调用）
+                    boolean inherited = inherited(definition.getSuperClassName(), method.getMethodName(), method.getDesc());
+                    if (inherited && superAccessor != null) {
+                        continue;
+                    }
+                    // 不是继承而来的 或者 继承来的但是没有父accessor, 就生成方法调用
+                    invokerVirtual(accessorBuilder, definition.getClassName(), method);
                 }
-                // 继承而来 （如果自己重写了父类的方法, 就保存父类的字节码，防止 super调用）
-                boolean inherited = inherited(definition.getSuperClassName(), method.getMethodName(), method.getDesc());
-                if (inherited && superAccessor != null) {
-                    continue;
-                }
-                // 不是继承而来的 或者 继承来的但是没有父accessor, 就生成方法调用
-                invokerVirtual(accessorBuilder, definition.getClassName(), method);
             }
 
             // 收集父类中所有可以访问到的方法
@@ -154,7 +156,16 @@ public class CompatibilityModeAccessorUtilV2 {
         try {
             // my all field
             for (AsmField asmField : definition.getAsmFields()) {
-                getField(asmField, definition.getClassName(), javassistClassBuilder);
+                if (asmField.isPrivate()) {
+                    getPrivateField(asmField, definition.getClassName(), javassistClassBuilder);
+                } else if (asmField.isStatic()) {
+                    getStaticField(asmField, definition.getClassName(), javassistClassBuilder);
+                } else {
+                    getField(asmField, definition.getClassName(), javassistClassBuilder);
+                }
+                if (!asmField.isFinal()) {
+                    //setField(asmField, definition.getClassName(), javassistClassBuilder);
+                }
             }
             // non private field in super class
 
@@ -168,15 +179,26 @@ public class CompatibilityModeAccessorUtilV2 {
         Type fieldType = Type.getType(asmField.getDesc());
         String type = fieldType.getClassName();
         String name = asmField.getFieldName();
-        String unpacking = getUnpacking(fieldType);
-        String body = null;
+        String body = "return ((" + owner + ") this$0)." + name + ";";
+        javassistClassBuilder.defineMethod(String.format("public %s " + Accessor.FIELD_GETTER_PREFIX + "%s() { %s }", type, name, body));
+    }
 
-        if (asmField.isPrivate()) {
-            body = "Field field = " + owner + ".class.getDeclaredField(\"" + name + "\"); field.setAccessible(true);" +
-                    "return ((" + type + ") Util." + unpacking + "(field.get(this$0)));";
-        } else {
-            body = "return ((" + owner + ") this$0)." + name + ";";
-        }
+    private static void getStaticField(AsmField asmField, String owner, JavassistClassBuilder javassistClassBuilder) throws CannotCompileException {
+        Type fieldType = Type.getType(asmField.getDesc());
+        String type = fieldType.getClassName();
+        String name = asmField.getFieldName();
+        String body = "return " + owner + "." + name + ";";
+        javassistClassBuilder.defineMethod(String.format("public %s " + Accessor.FIELD_GETTER_PREFIX + "%s() { %s }", type, name, body));
+    }
+
+    private static void getPrivateField(AsmField asmField, String owner, JavassistClassBuilder javassistClassBuilder) throws CannotCompileException {
+        Type fieldType = Type.getType(asmField.getDesc());
+        String type = fieldType.getClassName();
+        String name = asmField.getFieldName();
+        String unpacking = getUnpacking(fieldType);
+        String body = "Field field = " + owner + ".class.getDeclaredField(\"" + name + "\"); field.setAccessible(true);" +
+                "return ((" + type + ") Util." + unpacking + "(field.get("+ (asmField.isStatic() ? "null" : "this$0") +")));";
+
         javassistClassBuilder.defineMethod(String.format("public %s " + Accessor.FIELD_GETTER_PREFIX + "%s() { %s }", type, name, body));
     }
 
@@ -192,8 +214,24 @@ public class CompatibilityModeAccessorUtilV2 {
         String declare = String.format("public %s %s(%s)",
                 rType, methodName, IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName() + " " + argVars[i]).collect(Collectors.joining(",")));
 
-        String body = (rType.equals("void") ? "" : "return (" + rType + ")")
-                + " ((" + this0Class + ") this$0)." + methodName + "(" + String.join(",", argVars) + ");";
+        String body = (rType.equals("void") ? "" : "return (" + rType + ")") +
+                "((" + this0Class + ") this$0)." + methodName + "(" + String.join(",", argVars) + ");";
+        javassistClassBuilder.defineMethod(declare + "{" + body + "}");
+    }
+
+    private static void invokerStatic(JavassistClassBuilder javassistClassBuilder, String this0Class, AsmMethod method) throws CannotCompileException {
+        String methodName = method.getMethodName();
+        Type methodType = Type.getMethodType(method.getDesc());
+        Type[] args = methodType.getArgumentTypes();
+
+        String rType = methodType.getReturnType().getClassName();
+        String[] argVars = IntStream.range(0, args.length).mapToObj(i -> "var_" + i).toArray(String[]::new);
+
+        String declare = String.format("public %s %s(%s)",
+                rType, methodName, IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName() + " " + argVars[i]).collect(Collectors.joining(",")));
+
+        String body = (rType.equals("void") ? "" : "return (" + rType + ")") +
+                this0Class + "." + methodName + "(" + String.join(",", argVars) + ");";
         javassistClassBuilder.defineMethod(declare + "{" + body + "}");
     }
 

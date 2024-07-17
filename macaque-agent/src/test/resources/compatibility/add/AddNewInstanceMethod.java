@@ -6,7 +6,11 @@ public class TestAddMethodClass {
     }
 
     public String test2() {
-        return test3();
+        return test4();
+    }
+
+    public static String test3() {
+        return "test3";
     }
 
     /**
@@ -14,7 +18,7 @@ public class TestAddMethodClass {
      *
      * @return
      */
-    public String test3() {
-        return "test3";
+    public String test4() {
+        return "test4";
     }
 }

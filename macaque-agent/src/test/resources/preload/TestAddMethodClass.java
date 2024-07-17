@@ -9,4 +9,8 @@ public class TestAddMethodClass {
     public String test2() {
         return "test2";
     }
+
+    public static String test3() {
+        return "test3";
+    }
 }

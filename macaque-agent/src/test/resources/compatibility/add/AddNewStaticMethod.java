@@ -12,6 +12,10 @@ public class TestAddMethodClass {
         return _newStaticMethod();
     }
 
+    public static String test3() {
+        return "test3";
+    }
+
     public static String _newStaticMethod() {
         return "_newStaticMethod";
     }

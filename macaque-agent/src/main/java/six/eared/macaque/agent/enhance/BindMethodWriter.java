@@ -19,14 +19,6 @@ public class BindMethodWriter extends MethodVisitor {
     }
 
     @Override
-    public void visitMaxs(int maxStack, int maxLocals) {
-        if (method.isStatic()) {
-            maxLocals += 1;
-        }
-        super.visitMaxs(maxStack, maxLocals);
-    }
-
-    @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         Accessor.accessField(bindInfo, this, opcode, owner, name, descriptor);
 //        super.visitFieldInsn(opcode, owner, name, descriptor);

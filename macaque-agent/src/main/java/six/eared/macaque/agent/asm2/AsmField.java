@@ -25,6 +25,10 @@ public class AsmField {
         return (modifier & Opcodes.ACC_STATIC) > 0;
     }
 
+    public boolean isFinal() {
+        return (modifier & Opcodes.ACC_FINAL) > 0;
+    }
+
     public static final class AsmFieldBuilder {
         private int modifier;
         private String fieldName;

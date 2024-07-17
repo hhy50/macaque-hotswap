@@ -1,10 +1,10 @@
 package six.eared.macaque.agent.test;
 
 public class TestDeleteFieldClass {
-    private byte a = 1;
-    public short b = 2;
-    public int c = 3;
-    private long d = 4;
+    private static byte a = 1;
+    public static short b = 2;
+    public static int c = 3;
+    private static long d = 4;
     protected float e = 5;
     private double f = 6;
     private char g = 7;
