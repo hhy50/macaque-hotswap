@@ -3,12 +3,8 @@ package six.eared.macaque.agent.test.compatibility;
 import org.junit.Test;
 import six.eared.macaque.agent.hotswap.handler.ClassHotSwapHandler;
 import six.eared.macaque.agent.test.Env;
-import six.eared.macaque.common.ExtPropertyName;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.mbean.rmi.HotSwapRmiData;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class TestDeleteMethod extends Env {
 
@@ -103,10 +99,4 @@ public class TestDeleteMethod extends Env {
 //        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
 //        Assert.assertEquals(earlyClass.test3(), "test4");
 //    }
-
-    public Map<String, String> compatibilityMode() {
-        Map<String, String> extProperties = new HashMap<>();
-        extProperties.put(ExtPropertyName.COMPATIBILITY_MODE, Boolean.TRUE.toString());
-        return extProperties;
-    }
 }

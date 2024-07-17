@@ -38,7 +38,7 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
             String accessorClassPath = ClassUtil.simpleClassName2path(bindInfo.getAccessorClass());
             if (opcode == Opcodes.INVOKESTATIC) {
                 // 只需要访问器入栈
-                AsmUtil.accessorStore(this, accessorClassPath);
+                AsmUtil.accessorStore(this.instructions, accessorClassPath);
             } else {
                 /**
                  * 需要访问器提前入栈

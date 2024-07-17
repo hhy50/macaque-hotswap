@@ -95,6 +95,11 @@ public class CompatibilityModeByteCodeEnhancer {
     private static void bytecodeConvert(ClassIncrementUpdate classUpdateInfo) throws EnhanceException {
         byte[] newByteCode = generateNewByteCode(classUpdateInfo);
         classUpdateInfo.setEnhancedByteCode(newByteCode);
+
+        if (Environment.isDebug()) {
+            FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath() + "/" + ClassUtil.toSimpleName(classUpdateInfo.getClassName()) + ".class"),
+                    classUpdateInfo.getEnhancedByteCode());
+        }
         if (classUpdateInfo.getNewMethods() == null) {
             return;
         }
@@ -117,10 +122,6 @@ public class CompatibilityModeByteCodeEnhancer {
                 CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), bindClazzDefinition.getByteArray());
                 bindInfo.setLoaded(true);
             }
-        }
-        if (Environment.isDebug()) {
-            FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath() + "/" + ClassUtil.toSimpleName(classUpdateInfo.getClassName()) + ".class"),
-                    classUpdateInfo.getEnhancedByteCode());
         }
     }
 
@@ -152,7 +153,6 @@ public class CompatibilityModeByteCodeEnhancer {
                 if (classIncrementUpdate.getDeletedMethods() != null) {
                     for (AsmMethod method : classIncrementUpdate.getDeletedMethods()) {
                         if (method.getBindInfo() != null) continue;
-
                         // 将类上面需要删除的方法， 删掉
                         MethodVisitor methodWrite = super.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(),
                                 method.getMethodSign(), method.getExceptions());
@@ -164,7 +164,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 if (classIncrementUpdate.getDeletedFields() != null) {
                     for (AsmField field : classIncrementUpdate.getDeletedFields()) {
 //                        if (field.getBindInfo() != null) continue;
-                       this.visitField(field.getModifier(), field.getFieldName(), field.getDesc(), field.getFieldSign(), field.getValue());
+                        this.visitField(field.getModifier(), field.getFieldName(), field.getDesc(), field.getFieldSign(), field.getValue());
                     }
                 }
                 super.visitEnd();

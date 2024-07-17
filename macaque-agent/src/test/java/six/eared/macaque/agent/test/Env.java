@@ -8,6 +8,7 @@ import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.javassist.JavaSsistUtil;
+import six.eared.macaque.common.ExtPropertyName;
 import six.eared.macaque.common.jps.PID;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.ReflectUtil;
@@ -101,5 +102,11 @@ public class Env {
 
     public static Object invokeStatic(Class<?> target, String methodName, Object... args) {
         return ReflectUtil.invokeStaticMethod(target, methodName, args);
+    }
+
+    public static Map<String, String> compatibilityMode() {
+        Map<String, String> extProperties = new HashMap<>();
+        extProperties.put(ExtPropertyName.COMPATIBILITY_MODE, Boolean.TRUE.toString());
+        return extProperties;
     }
 }
