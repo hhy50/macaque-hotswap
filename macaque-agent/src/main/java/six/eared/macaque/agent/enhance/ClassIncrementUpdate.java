@@ -33,17 +33,17 @@ public class ClassIncrementUpdate implements Definition {
     /**
      * 新增的
      */
-    public List<AsmMethod> newMethods;
+    private List<AsmMethod> newMethods;
 
     /**
      * 删除的
      */
-    public List<AsmMethod> deletedMethods;
+    private List<AsmMethod> deletedMethods;
 
     /**
-     * 删除的字段
+     * 原生的全部字段
      */
-    public List<AsmField> deletedFields;
+    private List<AsmField> originFields;
 
     /**
      * 相关联的其他类
@@ -71,13 +71,12 @@ public class ClassIncrementUpdate implements Definition {
         this.newMethods.add(newMethod);
     }
 
-    public void addDeletedField(AsmField deletedField) {
-        if (this.deletedFields == null) {
-            this.deletedFields = new ArrayList<>();
+    public void addField(AsmField deletedField) {
+        if (this.originFields == null) {
+            this.originFields = new ArrayList<>();
         }
-        this.deletedFields.add(deletedField);
+        this.originFields.add(deletedField);
     }
-
 
     public void addCorrelationClasses(CorrelationEnum correlation, ClazzDefinition definition) {
         if (this.correlationClasses == null) {

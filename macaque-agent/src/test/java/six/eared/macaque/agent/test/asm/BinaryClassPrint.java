@@ -43,7 +43,7 @@ public class BinaryClassPrint extends ClassVisitor {
     }
 
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        System.out.println("    " + accessToDescriptor(access) + accessToDescriptor(access) + desc + " " + name);
+        System.out.println("    " + accessToDescriptor(access) + desc + " " + name + " = "+value);
         return new AsmFieldPrinter();
     }
 

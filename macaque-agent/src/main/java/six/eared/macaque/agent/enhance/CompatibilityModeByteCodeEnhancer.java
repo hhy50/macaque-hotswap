@@ -2,10 +2,7 @@ package six.eared.macaque.agent.enhance;
 
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtilV2;
 import six.eared.macaque.agent.asm2.AsmClassBuilder;
 import six.eared.macaque.agent.asm2.AsmField;
@@ -19,6 +16,7 @@ import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.FileUtil;
 
 import java.io.File;
@@ -48,21 +46,16 @@ public class CompatibilityModeByteCodeEnhancer {
 
     private static ClassIncrementUpdate prepare(ClazzDefinition definition) throws IOException, ClassNotFoundException {
         ClazzDefinition accessor = createAccessor(definition.getClassName());
+        ClazzDefinition originClass = AsmUtil.readOriginClass(definition.getClassName());
 
         ClassIncrementUpdate incrementUpdate = new ClassIncrementUpdate(definition);
-        ClazzDefinition originClass = AsmUtil.readOriginClass(definition.getClassName());
+        incrementUpdate.setOriginFields(originClass.getAsmFields());
 
         for (AsmMethod asmMethod : originClass.getAsmMethods()) {
             AsmMethod method = definition.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
             if (asmMethod.isConstructor() || asmMethod.isClinit()) continue;
             if (method == null || method.isStatic() ^ asmMethod.isStatic()) {
                 incrementUpdate.addDeletedMethod(asmMethod);
-            }
-        }
-        for (AsmField asmField : originClass.getAsmFields()) {
-            AsmField field = definition.getField(asmField.getFieldName(), asmField.getDesc());
-            if (field == null || field.isStatic() ^ asmField.isStatic()) {
-                incrementUpdate.addDeletedField(asmField);
             }
         }
 
@@ -77,17 +70,17 @@ public class CompatibilityModeByteCodeEnhancer {
             }
         }
 
-        ClazzDefinition lastClassVersion = VersionChainTool.findLastClassVersion(definition.getClassName(), false);
-        if (lastClassVersion != null) {
-            for (AsmMethod asmMethod : lastClassVersion.getAsmMethods()) {
-                if (asmMethod.isConstructor() || asmMethod.isClinit()
-                        || asmMethod.getBindInfo() == null) continue;
-                AsmMethod method = definition.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
-                if (method == null || method.isStatic() ^ asmMethod.isStatic()) {
-                    incrementUpdate.addDeletedMethod(asmMethod);
-                }
-            }
-        }
+//        ClazzDefinition lastClassVersion = VersionChainTool.findLastClassVersion(definition.getClassName(), false);
+//        if (lastClassVersion != null) {
+//            for (AsmMethod asmMethod : lastClassVersion.getAsmMethods()) {
+//                if (asmMethod.isConstructor() || asmMethod.isClinit()
+//                        || asmMethod.getBindInfo() == null) continue;
+//                AsmMethod method = definition.getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
+//                if (method == null || method.isStatic() ^ asmMethod.isStatic()) {
+//                    incrementUpdate.addDeletedMethod(asmMethod);
+//                }
+//            }
+//        }
         return incrementUpdate;
     }
 
@@ -131,10 +124,17 @@ public class CompatibilityModeByteCodeEnhancer {
     private static byte[] generateNewByteCode(ClassIncrementUpdate classIncrementUpdate) {
         ClazzDefinition definition = classIncrementUpdate.getClazzDefinition();
         ClassWriter classWriter = new ClassWriter(0);
+
+        if (CollectionUtil.isNotEmpty(classIncrementUpdate.getOriginFields())) {
+            for (AsmField field : classIncrementUpdate.getOriginFields()) {
+                classWriter.visitField(field.getModifier(), field.getFieldName(), field.getDesc(),
+                        field.getFieldSign(), field.getValue());
+            }
+        }
         definition.revisit(new ClassVisitorDelegation(classWriter) {
             @Override
-            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                super.visit(version, access, name, signature, superName, interfaces);
+            public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+                return null;
             }
 
             @Override
@@ -159,12 +159,6 @@ public class CompatibilityModeByteCodeEnhancer {
                         int lvblen = AsmUtil.calculateLvbOffset(method.isStatic(), Type.getArgumentTypes(method.getDesc()));
                         methodWrite.visitMaxs(3, lvblen);
                         AsmUtil.throwNoSuchMethod(methodWrite, method.getMethodName());
-                    }
-                }
-                if (classIncrementUpdate.getDeletedFields() != null) {
-                    for (AsmField field : classIncrementUpdate.getDeletedFields()) {
-//                        if (field.getBindInfo() != null) continue;
-                        this.visitField(field.getModifier(), field.getFieldName(), field.getDesc(), field.getFieldSign(), field.getValue());
                     }
                 }
                 super.visitEnd();
