@@ -156,15 +156,9 @@ public class CompatibilityModeAccessorUtilV2 {
         try {
             // my all field
             for (AsmField asmField : definition.getAsmFields()) {
-                if (asmField.isPrivate()) {
-                    getPrivateField(asmField, definition.getClassName(), javassistClassBuilder);
-                } else if (asmField.isStatic()) {
-                    getStaticField(asmField, definition.getClassName(), javassistClassBuilder);
-                } else {
-                    getField(asmField, definition.getClassName(), javassistClassBuilder);
-                }
+                getField(asmField, definition.getClassName(), javassistClassBuilder);
                 if (!asmField.isFinal()) {
-                    //setField(asmField, definition.getClassName(), javassistClassBuilder);
+                    setField(asmField, definition.getClassName(), javassistClassBuilder);
                 }
             }
             // non private field in super class
@@ -179,27 +173,33 @@ public class CompatibilityModeAccessorUtilV2 {
         Type fieldType = Type.getType(asmField.getDesc());
         String type = fieldType.getClassName();
         String name = asmField.getFieldName();
-        String body = "return ((" + owner + ") this$0)." + name + ";";
+        String body = null;
+        if (asmField.isPrivate()) {
+            String unpacking = getUnpacking(fieldType);
+            body = "Field field = " + owner + ".class.getDeclaredField(\"" + name + "\"); field.setAccessible(true);" +
+                    "return ((" + type + ") Util." + unpacking + "(field.get("+ (asmField.isStatic() ? "null" : "this$0") +")));";
+        } else if (asmField.isStatic()) {
+            body = "return " + owner + "." + name + ";";
+        } else {
+            body = "return ((" + owner + ") this$0)." + name + ";";
+        }
         javassistClassBuilder.defineMethod(String.format("public %s " + Accessor.FIELD_GETTER_PREFIX + "%s() { %s }", type, name, body));
     }
 
-    private static void getStaticField(AsmField asmField, String owner, JavassistClassBuilder javassistClassBuilder) throws CannotCompileException {
+    private static void setField(AsmField asmField, String owner, JavassistClassBuilder javassistClassBuilder) throws CannotCompileException {
         Type fieldType = Type.getType(asmField.getDesc());
         String type = fieldType.getClassName();
         String name = asmField.getFieldName();
-        String body = "return " + owner + "." + name + ";";
-        javassistClassBuilder.defineMethod(String.format("public %s " + Accessor.FIELD_GETTER_PREFIX + "%s() { %s }", type, name, body));
-    }
-
-    private static void getPrivateField(AsmField asmField, String owner, JavassistClassBuilder javassistClassBuilder) throws CannotCompileException {
-        Type fieldType = Type.getType(asmField.getDesc());
-        String type = fieldType.getClassName();
-        String name = asmField.getFieldName();
-        String unpacking = getUnpacking(fieldType);
-        String body = "Field field = " + owner + ".class.getDeclaredField(\"" + name + "\"); field.setAccessible(true);" +
-                "return ((" + type + ") Util." + unpacking + "(field.get("+ (asmField.isStatic() ? "null" : "this$0") +")));";
-
-        javassistClassBuilder.defineMethod(String.format("public %s " + Accessor.FIELD_GETTER_PREFIX + "%s() { %s }", type, name, body));
+        String body = null;
+        if (asmField.isPrivate()) {
+            body = "Field field = " + owner + ".class.getDeclaredField(\"" + name + "\"); field.setAccessible(true);" +
+                    "field.set("+(asmField.isStatic() ? "null" : "this$0")+", Util.packing(arg));";
+        } else if (asmField.isStatic()) {
+            body = owner + "." + name + " = arg;";
+        } else {
+            body = "((" + owner + ") this$0)." + name + " = arg;";
+        }
+        javassistClassBuilder.defineMethod(String.format("public void " + Accessor.FIELD_SETTER_PREFIX + "%s(%s arg) { %s }", name, type, body));
     }
 
     private static void invokerVirtual(JavassistClassBuilder javassistClassBuilder, String this0Class,
