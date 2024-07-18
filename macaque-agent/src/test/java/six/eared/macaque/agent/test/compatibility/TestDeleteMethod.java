@@ -11,92 +11,36 @@ public class TestDeleteMethod extends Env {
     private ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
 
     @Test(expected = NoSuchMethodError.class)
-    public void testDeleteInstanceMethod() {
+    public void testDeleteInstanceMethod() throws Throwable {
         byte[] bytes = compileToClass("TestDeleteMethodClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
                 .getResourceAsStream("compatibility/delete/DeleteInstanceMethod.java"))).get(0);
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-
-        Object o = newInstance("six.eared.macaque.agent.test.TestAddMethodClass");
-        invoke(o, "test2");
+        try {
+            Object o = newInstance("six.eared.macaque.agent.test.TestDeleteMethodClass");
+            invoke(o, "test2");
+        } catch (Exception e) {
+            Throwable re = e;
+            while (re.getCause() != null) {
+                re = re.getCause();
+            }
+            throw re;
+        }
     }
 
     @Test(expected = NoSuchMethodError.class)
-    public void testDeleteStaticMethod() {
+    public void testDeleteStaticMethod() throws Throwable {
         byte[] bytes = compileToClass("TestDeleteMethodClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
                 .getResourceAsStream("compatibility/delete/DeleteStaticMethod.java"))).get(0);
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
 
-//        Object o = newInstance("six.eared.macaque.agent.test.TestAddMethodClass");
-        invokeStatic(getPreload("six.eared.macaque.agent.test.TestAddMethodClass"), "test3");
+        try {
+            invokeStatic(getPreload("six.eared.macaque.agent.test.TestDeleteMethodClass"), "test3");
+        } catch (Exception e) {
+            Throwable re = e;
+            while (re.getCause() != null) {
+                re = re.getCause();
+            }
+            throw re;
+        }
     }
-
-//
-//    @Test
-//    public void testInstanceMethodCovertStatic() {
-//        byte[] bytes = compileToClass("EarlyClass2.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
-//                .getResourceAsStream("InstanceMethodCovertStatic.java"))).get(0);
-//
-//        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-//        Assert.assertEquals(earlyClass2.test2(), "testAAA");
-//    }
-//
-//    @Test
-//    public void testStaticMethodCovertInstance1() {
-//        byte[] bytes = compileToClass("StaticEarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
-//                .getResourceAsStream("StaticMethodCovertInstance1.java"))).get(0);
-//
-//        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-//        Assert.assertEquals(staticEarlyClass.test2(), "123");
-//    }
-//
-//    @Test
-//    public void testStaticMethodCovertInstance2() {
-//        byte[] bytes = compileToClass("StaticEarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
-//                .getResourceAsStream("StaticMethodCovertInstance2.java"))).get(0);
-//
-//        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-//        Assert.assertEquals(staticEarlyClass.test2(), "1234");
-//    }
-
-
-
-//    @Test
-//    public void testAddNewMethodWithParams() {
-//        byte[] bytes = compileToClass("EarlyClass2.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
-//                .getResourceAsStream("AddNewInstanceMethodWithParams.java"))).get(0);
-//        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
-//        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-//        Assert.assertEquals(earlyClass.test2(), "_newMethod");
-//    }
-
-
-//
-//
-//    @Test
-//    public void testAddNewSimpleMethod2() throws IOException {
-//        byte[] bytes = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
-//                .getResourceAsStream("AddNewSimpleMethod2.java"))).get(0);
-//        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
-//        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-//        Assert.assertEquals(earlyClass.test2(), "_newMethod");
-//    }
-//
-//
-//    @Test
-//    public void testAddNewStaticMethod() {
-//        byte[] bytes = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
-//                .getResourceAsStream("AddNewStaticMethod.java"))).get(0);
-//        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
-//        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-//        Assert.assertEquals(earlyClass.test3(), "test4");
-//    }
-//
-//    @Test
-//    public void testInstanceMethod() {
-//        byte[] bytes = compileToClass("EarlyClass.java", FileUtil.is2bytes(CompatibilityModeTest.class.getClassLoader()
-//                .getResourceAsStream("AddNewInstanceMethod.java"))).get(0);
-//        ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
-//        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-//        Assert.assertEquals(earlyClass.test3(), "test4");
-//    }
 }
