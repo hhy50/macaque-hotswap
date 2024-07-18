@@ -3,7 +3,7 @@ package six.eared.macaque.agent.asm2;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
+import six.eared.macaque.agent.enhance.ClazzDataDefinition;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.StringUtil;
 
@@ -59,7 +59,7 @@ public class AsmClassBuilder {
         return this;
     }
 
-    public ClazzDefinition toDefinition() {
+    public ClazzDataDefinition toDefinition() {
         return AsmUtil.readClass(this.classWriter.toByteArray());
     }
 

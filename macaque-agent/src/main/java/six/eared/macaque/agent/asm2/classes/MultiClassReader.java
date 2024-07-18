@@ -1,10 +1,12 @@
 package six.eared.macaque.agent.asm2.classes;
 
 import org.objectweb.asm.ClassReader;
+import six.eared.macaque.agent.enhance.ClazzDataDefinition;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
-public class MultiClassReader implements Iterable<ClazzDefinition> {
+public class MultiClassReader implements Iterable<ClazzDataDefinition> {
     private ClazzDefinitionVisitorFactory visitorFactory;
 
     protected byte[] multiClassData;
@@ -16,18 +18,14 @@ public class MultiClassReader implements Iterable<ClazzDefinition> {
         this.visitorFactory = visitorFactory;
     }
 
-    public MultiClassReader(byte[] multiClassData) {
-        this(multiClassData, ClazzDefinitionVisitorFactory.DEFAULT);
-    }
-
     @Override
-    public Iterator<ClazzDefinition> iterator() {
+    public Iterator<ClazzDataDefinition> iterator() {
         return new MultiClassReaderItr();
     }
 
-    class MultiClassReaderItr implements Iterator<ClazzDefinition> {
+    class MultiClassReaderItr implements Iterator<ClazzDataDefinition> {
 
-        private ClazzDefinitionVisitor reuseVisit;
+        private final ClazzDefinitionVisitor visitor = new ClazzDefinitionVisitor();
 
         @Override
         public boolean hasNext() {
@@ -35,17 +33,10 @@ public class MultiClassReader implements Iterable<ClazzDefinition> {
         }
 
         @Override
-        public ClazzDefinition next() {
-            ClazzDefinitionVisitor visitor = null;
-            if (this.reuseVisit == null) {
-                if ((visitor = visitorFactory.creatClazzVisitor()).isReuse()) {
-                    this.reuseVisit = visitor;
-                }
-            } else {
-                visitor = this.reuseVisit;
-            }
+        public ClazzDataDefinition next() {
             ClassReader classReader = new ClassReader(multiClassData, pos, multiClassData.length);
             classReader.accept(visitor, 0);
+            visitor.setByteCode(Arrays.copyOfRange(multiClassData, pos, classReader.endOffset));
             pos = classReader.endOffset;
             return visitor.getDefinition();
         }

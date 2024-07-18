@@ -1,63 +1,35 @@
 package six.eared.macaque.agent.asm2.classes;
 
 
-import org.objectweb.asm.*;
-import six.eared.macaque.agent.annotation.VisitEnd;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
+import six.eared.macaque.agent.enhance.ClazzDataDefinition;
 import six.eared.macaque.common.util.StringUtil;
 
 
 public class ClazzDefinitionVisitor extends ClassVisitor {
 
-    private AsmMethodVisitor methodVisitor;
-
-    private AsmFieldVisitor fieldVisitor;
-
-    private ClazzDefinition definition = null;
-
-    private boolean reuse = false;
+    private ClazzDataDefinition definition = null;
 
     public ClazzDefinitionVisitor() {
         super(Opcodes.ASM9);
-        this.reuse = true;
     }
 
-    /**
-     * not reuse
-     *
-     * @param methodVisitor
-     * @param fieldVisitor
-     */
-    public ClazzDefinitionVisitor(AsmMethodVisitor methodVisitor, AsmFieldVisitor fieldVisitor) {
-        super(Opcodes.ASM9, new ClassWriter(0));
-        this.methodVisitor = methodVisitor;
-        this.fieldVisitor = fieldVisitor;
-    }
-
-    public ClazzDefinition getDefinition() {
+    public ClazzDataDefinition getDefinition() {
         return this.definition;
     }
 
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        if (this.reuse) {
-            this.cv = new ClassWriter(0);
-        }
-        if (this.cv == null) {
-            throw new RuntimeException("cw is null");
-        }
-        this.cv.visit(version, access, name, signature, superName, interfaces);
-
-        this.definition = new ClazzDefinition();
+        this.definition = new ClazzDataDefinition();
         this.definition.setClassName(name.replaceAll("/", "."));
         if (StringUtil.isNotEmpty(superName)) {
             this.definition.setSuperClassName(superName.replaceAll("/", "."));
         }
         this.definition.setInterfaces(interfaces);
-
-        if (this.methodVisitor != null) {
-            this.methodVisitor.visitStart(this.definition);
-        }
     }
 
     @Override
@@ -70,13 +42,8 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
                 .fieldSign(signature)
                 .value(value)
                 .build();
-
-        if (this.fieldVisitor == null) {
-            this.definition.addAsmField(asmField);
-            return this.cv.visitField(access, name, desc, signature, value);
-        }
-
-        return this.fieldVisitor.visitField(asmField, this.definition, (ClassWriter) this.cv);
+        this.definition.addAsmField(asmField);
+        return super.visitField(access, name, desc, signature, value);
     }
 
     @Override
@@ -89,39 +56,14 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
                 .methodSign(signature)
                 .exceptions(exceptions)
                 .build();
-
-        if (this.methodVisitor == null) {
-            this.definition.addAsmMethod(asmMethod);
-            return this.cv.visitMethod(access, name, desc, signature, exceptions);
-        }
-
-        return this.methodVisitor.visitMethod(asmMethod, this.definition, (ClassWriter) this.cv);
+        this.definition.addAsmMethod(asmMethod);
+        return super.visitMethod(access, name, desc, signature, exceptions);
     }
 
-    public void visitBytes(byte[] bytes) {
-        this.definition.setByteCode(bytes);
-    }
-
-    public void visitEnd() {
-        if (this.methodVisitor != null || this.fieldVisitor != null) {
-            invokeAllVisitEnd();
-        }
-
-        ClassWriter writer = ClassWriter.class.cast(this.cv);
-        this.definition.setByteCode(writer.toByteArray());
-        if (!this.reuse) {
-            this.cv = null;
-        }
-    }
-
-    private void invokeAllVisitEnd() {
-        Class<VisitEnd> visitEndClass = VisitEnd.class;
-        if (this.methodVisitor != null) {
-            this.methodVisitor.visitEnd();
-        }
-    }
-
-    public boolean isReuse() {
-        return reuse;
+    /**
+     *
+     */
+    public void setByteCode(byte[] byteCode) {
+        this.definition.setBytecode(byteCode);
     }
 }

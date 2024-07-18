@@ -1,49 +1,36 @@
 package six.eared.macaque.agent.enhance;
 
 import lombok.Data;
-import six.eared.macaque.agent.asm2.AsmField;
-import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.CorrelationClazzDefinition;
-import six.eared.macaque.agent.definition.Definition;
 import six.eared.macaque.agent.enums.CorrelationEnum;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 类的增量信息
+ * 类更新的增量信息
  */
 
 @Data
-public class ClassIncrementUpdate implements Definition {
+public class ClassIncrementUpdate {
 
     private String className;
 
     /**
      * 增强之前的类
      */
-    private ClazzDefinition clazzDefinition;
+    private ClazzDataDefinition clazzDefinition;
 
     /**
      * 访问器
      */
-    private ClazzDefinition accessorDefinition;
+    private ClazzDefinition accessor;
 
     /**
-     * 新增的
+     * 本次更新的方法
      */
-    private List<AsmMethod> newMethods;
-
-    /**
-     * 删除的
-     */
-    private List<AsmMethod> deletedMethods;
-
-    /**
-     * 原生的全部字段
-     */
-    private List<AsmField> originFields;
+    private List<MethodInstance> methods;
 
     /**
      * 相关联的其他类
@@ -52,30 +39,33 @@ public class ClassIncrementUpdate implements Definition {
 
     private byte[] enhancedByteCode;
 
-    public ClassIncrementUpdate(ClazzDefinition definition) {
+    public ClassIncrementUpdate(ClazzDataDefinition definition, ClazzDefinition accessor) {
         this.className = definition.getClassName();
         this.clazzDefinition = definition;
+        this.accessor = accessor;
     }
 
-    public void addDeletedMethod(AsmMethod deletedMethod) {
-        if (this.deletedMethods == null) {
-            this.deletedMethods = new ArrayList<>();
+    public void addMethod(MethodInstance asmMethod) {
+        if (this.methods == null) {
+            this.methods = new ArrayList<>();
         }
-        this.deletedMethods.add(deletedMethod);
+        this.methods.add(asmMethod);
     }
 
-    public void addNewMethod(AsmMethod newMethod) {
-        if (this.newMethods == null) {
-            this.newMethods = new ArrayList<>();
+    public MethodInstance getMethod(String name, String desc) {
+        if (this.methods == null) {
+            return null;
         }
-        this.newMethods.add(newMethod);
+        return this.methods
+                .stream().filter(item -> item.getMethodName().equals(name) && item.getDesc().equals(desc))
+                .findAny().orElse(null);
     }
 
-    public void addField(AsmField deletedField) {
-        if (this.originFields == null) {
-            this.originFields = new ArrayList<>();
+    public void remove(MethodInstance methodInstance) {
+        if (this.methods == null) {
+            return;
         }
-        this.originFields.add(deletedField);
+        this.methods.remove(methodInstance);
     }
 
     public void addCorrelationClasses(CorrelationEnum correlation, ClazzDefinition definition) {
@@ -83,20 +73,5 @@ public class ClassIncrementUpdate implements Definition {
             this.correlationClasses = new ArrayList<>();
         }
         this.correlationClasses.add(CorrelationClazzDefinition.of(correlation, definition));
-    }
-
-    @Override
-    public String getName() {
-        return className;
-    }
-
-    @Override
-    public String getFileType() {
-        return "class";
-    }
-
-    @Override
-    public byte[] getByteArray() {
-        return enhancedByteCode;
     }
 }

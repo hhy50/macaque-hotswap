@@ -2,7 +2,6 @@ package six.eared.macaque.agent.test.asm;
 
 
 import org.objectweb.asm.*;
-import six.eared.macaque.agent.asm2.AsmUtil;
 
 import static org.objectweb.asm.Opcodes.ASM4;
 

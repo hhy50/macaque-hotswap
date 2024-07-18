@@ -1,13 +1,12 @@
 package six.eared.macaque.agent.asm2;
 
-import javassist.CannotCompileException;
-import javassist.NotFoundException;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitor;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
 import six.eared.macaque.agent.asm2.classes.MultiClassReader;
+import six.eared.macaque.agent.enhance.ClazzDataDefinition;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.CollectionUtil;
@@ -55,7 +54,7 @@ public class AsmUtil {
         throw new ClassNotFoundException();
     }
 
-    public synchronized static ClazzDefinition readClass(byte[] byteCode) {
+    public synchronized static ClazzDataDefinition readClass(byte[] byteCode) {
         ClassReader classReader = new ClassReader(byteCode);
         classReader.accept(REUSE_CLASS_VISITOR, 0);
         return REUSE_CLASS_VISITOR.getDefinition();
@@ -66,10 +65,10 @@ public class AsmUtil {
         classReader.accept(classVisitor, 0);
     }
 
-    public static List<ClazzDefinition> readMultiClass(byte[] byteCode, ClazzDefinitionVisitorFactory factory) {
-        MultiClassReader multiClassReader = new MultiClassReader(byteCode, factory);
-        List<ClazzDefinition> definitions = new ArrayList<>();
-        for (ClazzDefinition definition : multiClassReader) {
+    public static List<ClazzDataDefinition> readMultiClass(byte[] byteCode) {
+        MultiClassReader multiClassReader = new MultiClassReader(byteCode, ClazzDefinitionVisitorFactory.DEFAULT);
+        List<ClazzDataDefinition> definitions = new ArrayList<>();
+        for (ClazzDataDefinition definition : multiClassReader) {
             definitions.add(definition);
         }
         return definitions;

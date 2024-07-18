@@ -8,6 +8,7 @@ import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.enhance.AccessorClassNameGenerator;
+import six.eared.macaque.agent.enhance.ClazzDataDefinition;
 import six.eared.macaque.agent.enhance.CompatibilityModeClassLoader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
@@ -56,9 +57,9 @@ public class CompatibilityModeAccessorUtil {
             collectAccessibleMethods(outClazzDefinition, classBuilder, superAccessor, AccessorClassNameGenerator);
             collectAccessibleFields(outClazzDefinition, classBuilder, superAccessor);
 
-            ClazzDefinition definition = classBuilder.toDefinition();
-            CompatibilityModeClassLoader.loadClass(classBuilder.getClassName(), definition.getByteArray());
-            ClazzDefinition accessorDefinition = AsmUtil.readClass(definition.getByteArray());
+            ClazzDataDefinition definition = classBuilder.toDefinition();
+            CompatibilityModeClassLoader.loadClass(classBuilder.getClassName(), definition.getBytecode());
+            ClazzDefinition accessorDefinition = AsmUtil.readClass(definition.getBytecode());
 
             LOADED.put(className, accessorDefinition);
             return accessorDefinition;

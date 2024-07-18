@@ -6,5 +6,5 @@ public interface Definition {
 
     public String getFileType();
 
-    public byte[] getByteArray();
+    public byte[] getByteData();
 }

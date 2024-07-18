@@ -1,13 +1,9 @@
 package six.eared.macaque.agent.asm2.classes;
 
 import lombok.Data;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
-import six.eared.macaque.agent.asm2.AsmUtil;
-import six.eared.macaque.agent.definition.Definition;
-import six.eared.macaque.agent.exceptions.OpNotSupportException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -20,15 +16,13 @@ import java.util.List;
 import static org.objectweb.asm.Opcodes.*;
 
 @Data
-public class ClazzDefinition implements Cloneable, Definition {
+public abstract class ClazzDefinition implements Cloneable {
 
     protected String className;
 
     protected String superClassName;
 
     protected String[] interfaces;
-
-    protected byte[] byteCode;
 
     protected final List<AsmMethod> asmMethods = new ArrayList<>();
 
@@ -68,25 +62,6 @@ public class ClazzDefinition implements Cloneable, Definition {
                 .findAny().orElse(null);
     }
 
-    @Override
-    public String getName() {
-        return className;
-    }
-
-    @Override
-    public String getFileType() {
-        return "class";
-    }
-
-    @Override
-    public byte[] getByteArray() {
-        return byteCode;
-    }
-
-    public void revisit(ClassVisitor classVisitor) {
-        AsmUtil.visitClass(this.byteCode, classVisitor);
-    }
-
     public static class InMemory extends ClazzDefinition {
 
         public InMemory(Class<?> clazz) {
@@ -122,15 +97,6 @@ public class ClazzDefinition implements Cloneable, Definition {
                         .build();
                 addAsmField(asmField);
             }
-        }
-
-        public byte[] getByteArray() {
-            throw new OpNotSupportException("Memory class not support read class");
-        }
-
-        @Override
-        public void revisit(ClassVisitor classVisitor) {
-            throw new OpNotSupportException("Memory class not support visit class");
         }
 
         public static int toAsmOpcode(int modifier) {

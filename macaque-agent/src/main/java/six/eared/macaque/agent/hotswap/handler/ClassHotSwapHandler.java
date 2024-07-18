@@ -2,9 +2,8 @@ package six.eared.macaque.agent.hotswap.handler;
 
 import six.eared.macaque.agent.annotation.HotSwapFileType;
 import six.eared.macaque.agent.asm2.AsmUtil;
-import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
-import six.eared.macaque.agent.asm2.classes.ClazzDefinitionVisitorFactory;
 import six.eared.macaque.agent.enhance.ClassIncrementUpdate;
+import six.eared.macaque.agent.enhance.ClazzDataDefinition;
 import six.eared.macaque.agent.enhance.CompatibilityModeByteCodeEnhancer;
 import six.eared.macaque.agent.hotswap.ClassHotSwapper;
 import six.eared.macaque.agent.vcs.VersionChainTool;
@@ -29,7 +28,8 @@ public class ClassHotSwapHandler extends FileHookHandler {
 
     @SuppressWarnings("unchecked")
     public RmiResult handler(byte[] bytes, Map<String, String> extProperties) throws Exception {
-        List<ClazzDefinition> definitions = AsmUtil.readMultiClass(bytes, ClazzDefinitionVisitorFactory.DEFAULT);
+        List<ClazzDataDefinition> definitions = AsmUtil.readMultiClass(bytes);
+
         boolean compatibilityMode = Boolean.TRUE.toString()
                 .equalsIgnoreCase(extProperties.get(ExtPropertyName.COMPATIBILITY_MODE));
 
@@ -48,18 +48,18 @@ public class ClassHotSwapHandler extends FileHookHandler {
         Map<String, byte[]> flatMap = new HashMap<>();
         for (ClassIncrementUpdate item : enhanced) {
             flatMap.put(item.getClassName(), item.getEnhancedByteCode());
-            versionView.addDefinition(item);
+//            versionView.addDefinition(item);
         }
         return flatMap;
     }
 
-    private Map<String, byte[]> flatClassDefinition(List<ClazzDefinition> definitions) {
+    private Map<String, byte[]> flatClassDefinition(List<ClazzDataDefinition> definitions) {
         VersionView versionView = VersionChainTool.getActiveVersionView();
 
         Map<String, byte[]> flatMap = new HashMap<>();
-        for (ClazzDefinition definition : definitions) {
-            flatMap.put(definition.getClassName(), definition.getByteArray());
-            versionView.addDefinition(definition);
+        for (ClazzDataDefinition item : definitions) {
+            flatMap.put(item.getClassName(), item.getBytecode());
+//            versionView.addDefinition(item);
         }
         return flatMap;
     }

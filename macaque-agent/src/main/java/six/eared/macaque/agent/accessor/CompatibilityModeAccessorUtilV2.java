@@ -8,13 +8,13 @@ import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
-import six.eared.macaque.agent.javassist.JavassistClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.enhance.AccessorClassNameGenerator;
 import six.eared.macaque.agent.enhance.CompatibilityModeClassLoader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
 import six.eared.macaque.agent.javassist.JavaSsistUtil;
+import six.eared.macaque.agent.javassist.JavassistClassBuilder;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.StringUtil;
 

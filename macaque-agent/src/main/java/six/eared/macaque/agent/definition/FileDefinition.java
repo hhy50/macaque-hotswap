@@ -19,7 +19,7 @@ public class FileDefinition implements Definition {
     }
 
     @Override
-    public byte[] getByteArray() {
+    public byte[] getByteData() {
         return bytes;
     }
 
