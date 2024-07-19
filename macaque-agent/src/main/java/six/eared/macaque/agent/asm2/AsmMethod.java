@@ -3,10 +3,8 @@ package six.eared.macaque.agent.asm2;
 
 import lombok.Data;
 import org.objectweb.asm.Opcodes;
-import six.eared.macaque.agent.enhance.MethodBindInfo;
 
 import java.util.Objects;
-
 
 /**
  *
@@ -23,8 +21,6 @@ public class AsmMethod {
     private String desc;
 
     private String[] exceptions;
-
-    private MethodBindInfo bindInfo;
 
     public boolean isPrivate() {
         return (this.modifier & Opcodes.ACC_PRIVATE) > 0;

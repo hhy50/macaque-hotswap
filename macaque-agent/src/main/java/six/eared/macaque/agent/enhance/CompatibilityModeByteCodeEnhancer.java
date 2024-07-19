@@ -2,18 +2,14 @@ package six.eared.macaque.agent.enhance;
 
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.*;
 import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtilV2;
 import six.eared.macaque.agent.asm2.AsmClassBuilder;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
+import six.eared.macaque.agent.asm2.classes.ClassVisitorDelegation;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.enums.CorrelationEnum;
 import six.eared.macaque.agent.env.Environment;
@@ -26,11 +22,12 @@ import six.eared.macaque.common.util.FileUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 
 public class CompatibilityModeByteCodeEnhancer {
-
 
     public static List<ClassIncrementUpdate> enhance(List<ClazzDataDefinition> definitions) throws IOException, ClassNotFoundException,
             NotFoundException, CannotCompileException {
@@ -48,27 +45,48 @@ public class CompatibilityModeByteCodeEnhancer {
         return changedClass;
     }
 
-    private static ClassIncrementUpdate prepare(ClazzDataDefinition definition) {
+    private static ClassIncrementUpdate prepare(ClazzDataDefinition definition) throws IOException, ClassNotFoundException {
         ClazzDefinition accessor = createAccessor(definition.getClassName());
-        ClassIncrementUpdate incrementUpdate = new ClassIncrementUpdate(definition, accessor);
+        ClazzDefinition originDefinition = AsmUtil.readOriginClass(definition.getClassName());
+        ClassIncrementUpdate incrementUpdate = new ClassIncrementUpdate(definition, originDefinition, accessor);
 
-        ClassNode classNode = new ClassNode();
-        AsmUtil.visitClass(definition.getBytecode(), classNode);
+        AsmUtil.visitClass(definition.getBytecode(), new ClassVisitorDelegation(null) {
+            @Override
+            public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+                AsmMethod asmMethod = definition.getMethod(name, desc);
+                MethodInstance methodInstance = new MethodInstance(asmMethod, new AsmMethodVisitorCaller());
+                if (!originDefinition.hasMethod(asmMethod)) {
+                    MethodBindInfo bindInfo = MethodBindManager
+                            .createMethodBindInfo(definition.getClassName(), asmMethod, accessor.getClassName());
+                    methodInstance.setBindInfo(bindInfo);
+                }
+                incrementUpdate.addMethod(methodInstance);
+                return methodInstance.getVisitorCaller();
+            }
 
-        for (MethodNode method : classNode.methods) {
-            MethodInstance methodInstance = new MethodInstance();
-            incrementUpdate.addMethod(methodInstance);
-        }
-
+            @Override
+            public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+                AsmField asmField = definition.getField(name, desc);
+                FieldInstance fieldInstance = new FieldInstance(asmField);
+                incrementUpdate.addField(fieldInstance);
+                return null;
+            }
+        });
         return incrementUpdate;
     }
 
 
     private static void bytecodeConvert(ClassIncrementUpdate classUpdateInfo) throws EnhanceException {
         generateNewByteCode(classUpdateInfo);
+
         if (CollectionUtil.isNotEmpty(classUpdateInfo.getMethods())) {
-            for (MethodInstance newMethod : classUpdateInfo.getMethods()) {
-                MethodBindInfo bindInfo = newMethod.getMethodBindInfo();
+            Iterator<MethodInstance> iterator = classUpdateInfo.getMethods().iterator();
+            while (iterator.hasNext()) {
+                MethodInstance newMethod = iterator.next();
+                MethodBindInfo bindInfo = newMethod.getBindInfo();
+                if (bindInfo == null) {
+                    throw new EnhanceException("not method bind info");
+                }
                 AsmMethodVisitorCaller visitorCaller = newMethod.getVisitorCaller();
                 if (visitorCaller == null || visitorCaller.isEmpty()) {
                     throw new EnhanceException("read new method error");
@@ -86,6 +104,7 @@ public class CompatibilityModeByteCodeEnhancer {
                     CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), bindClazzDefinition.getBytecode());
                     bindInfo.setLoaded(true);
                 }
+                iterator.remove();
             }
         }
     }
@@ -94,29 +113,32 @@ public class CompatibilityModeByteCodeEnhancer {
      * 生成新的字节码
      */
     private static void generateNewByteCode(ClassIncrementUpdate classIncrementUpdate) throws ByteCodeConvertException {
-        ClazzDefinition originClass = null;
-        try {
-            originClass = AsmUtil.readOriginClass(classIncrementUpdate.getClassName());
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        ClazzDefinition originClass = classIncrementUpdate.getOriginDefinition();
+
         ClassWriter classWriter = new ClassWriter(0);
+        classWriter.visit(originClass.getClassVersion(), originClass.getModifiers() | Opcodes.ACC_OPEN,
+                ClassUtil.simpleClassName2path(originClass.getClassName()), originClass.getSign(), ClassUtil.simpleClassName2path(originClass.getSuperClassName()),
+                Arrays.stream(originClass.getInterfaces()).map(ClassUtil::simpleClassName2path).toArray(String[]::new));
+
+        // TODO annotation
+
         for (AsmField field : originClass.getAsmFields()) {
             classWriter.visitField(field.getModifier(), field.getFieldName(), field.getDesc(),
                     field.getFieldSign(), field.getValue());
+            FieldInstance fi = classIncrementUpdate.getField(field.getFieldName(), field.getDesc());
+            classIncrementUpdate.remove(fi);
         }
-
         for (AsmMethod method : originClass.getAsmMethods()) {
             MethodVisitor methodWrite = classWriter.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(),
                     method.getMethodSign(), method.getExceptions());
             MethodInstance mi = classIncrementUpdate.getMethod(method.getMethodName(), method.getDesc());
-            if (mi == null) {
+            if (mi == null || mi.getAsmMethod().isStatic() ^ method.isStatic()) {
                 // 将类上面需要删除的方法， 删掉
                 int lvblen = AsmUtil.calculateLvbOffset(method.isStatic(), Type.getArgumentTypes(method.getDesc()));
                 methodWrite.visitMaxs(3, lvblen);
                 AsmUtil.throwNoSuchMethod(methodWrite, method.getMethodName());
+                continue;
+            } else if (mi.getAsmMethod().isStatic() ^ method.isStatic()) {
                 continue;
             }
             AsmMethodVisitorCaller visitorCaller = mi.getVisitorCaller();

@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.asm2.classes;
 
 import lombok.Data;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
@@ -17,12 +18,17 @@ import static org.objectweb.asm.Opcodes.*;
 
 @Data
 public abstract class ClazzDefinition implements Cloneable {
+    protected int classVersion;
+
+    protected int modifiers;
 
     protected String className;
 
     protected String superClassName;
 
     protected String[] interfaces;
+
+    private String sign;
 
     protected final List<AsmMethod> asmMethods = new ArrayList<>();
 
@@ -62,9 +68,16 @@ public abstract class ClazzDefinition implements Cloneable {
                 .findAny().orElse(null);
     }
 
+    public boolean hasMethod(AsmMethod asmMethod) {
+        AsmMethod method = getMethod(asmMethod.getMethodName(), asmMethod.getDesc());
+        return method != null && method.isStatic() == asmMethod.isStatic();
+    }
+
     public static class InMemory extends ClazzDefinition {
 
         public InMemory(Class<?> clazz) {
+            this.classVersion = Opcodes.V1_8;
+            this.modifiers = toAsmOpcode(clazz.getModifiers());
             this.className = clazz.getName();
             this.superClassName = clazz.getSuperclass().getName();
             this.interfaces = Arrays.stream(clazz.getInterfaces()).map(Class::getName).toArray(String[]::new);
@@ -83,11 +96,12 @@ public abstract class ClazzDefinition implements Cloneable {
                         .builder()
                         .modifier(toAsmOpcode(constructor.getModifiers()))
                         .methodName("<init>")
-                        .desc("()"+Type.getDescriptor(clazz))
+                        .desc("()V")
                         .build();
                 addAsmMethod(asmMethod);
             }
 
+            boolean hasStatic = false;
             for (Field field : clazz.getDeclaredFields()) {
                 AsmField asmField = AsmField.AsmFieldBuilder
                         .builder()
@@ -96,7 +110,25 @@ public abstract class ClazzDefinition implements Cloneable {
                         .fieldDesc(Type.getDescriptor(field.getType()))
                         .build();
                 addAsmField(asmField);
+                hasStatic = hasStatic | (asmField.getModifier() | ACC_STATIC) > 0;
             }
+
+            if (hasStatic) {
+                addAsmMethod(AsmMethod.AsmMethodBuilder
+                    .builder()
+                    .modifier(toAsmOpcode(ACC_STATIC))
+                    .methodName("<clinit>")
+                    .desc("()V")
+                    .build());
+            }
+
+//            AsmField asmField = AsmField.AsmFieldBuilder
+//                    .builder()
+//                    .modifier(toAsmOpcode(field.getModifiers()))
+//                    .fieldName(field.getName())
+//                    .fieldDesc(Type.getDescriptor(field.getType()))
+//                    .build();
+//            addAsmField(asmField);
         }
 
         public static int toAsmOpcode(int modifier) {

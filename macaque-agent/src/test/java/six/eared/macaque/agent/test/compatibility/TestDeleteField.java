@@ -11,7 +11,7 @@ public class TestDeleteField extends Env {
     private ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
 
     @Test
-    public void testDeleteInstanceField() {
+    public void testDeleteField() {
         byte[] bytes = compileToClass("TestDeleteFieldClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
                 .getResourceAsStream("compatibility/delete/DeleteInstanceField.java"))).get(0);
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));

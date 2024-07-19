@@ -25,11 +25,14 @@ public class ClazzDefinitionVisitor extends ClassVisitor {
 
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         this.definition = new ClazzDataDefinition();
+        this.definition.setClassVersion(version);
+        this.definition.setModifiers(access);
         this.definition.setClassName(name.replaceAll("/", "."));
         if (StringUtil.isNotEmpty(superName)) {
             this.definition.setSuperClassName(superName.replaceAll("/", "."));
         }
         this.definition.setInterfaces(interfaces);
+        this.definition.setSign(signature);
     }
 
     @Override

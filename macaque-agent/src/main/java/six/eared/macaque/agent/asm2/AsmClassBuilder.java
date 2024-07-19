@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.asm2;
 
+import lombok.Getter;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -12,9 +13,10 @@ import java.util.stream.Collectors;
 
 public class AsmClassBuilder {
 
-
+    @Getter
     private String className;
 
+    @Getter
     private String superClassName;
 
     private ClassWriter classWriter = new ClassWriter(0);
@@ -61,21 +63,5 @@ public class AsmClassBuilder {
 
     public ClazzDataDefinition toDefinition() {
         return AsmUtil.readClass(this.classWriter.toByteArray());
-    }
-
-    public String getClassName() {
-        return className;
-    }
-
-    public void setClassName(String className) {
-        this.className = className;
-    }
-
-    public String getSuperClassName() {
-        return superClassName;
-    }
-
-    public void setSuperClassName(String superClassName) {
-        this.superClassName = superClassName;
     }
 }

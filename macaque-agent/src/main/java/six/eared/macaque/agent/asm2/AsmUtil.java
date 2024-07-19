@@ -57,7 +57,9 @@ public class AsmUtil {
     public synchronized static ClazzDataDefinition readClass(byte[] byteCode) {
         ClassReader classReader = new ClassReader(byteCode);
         classReader.accept(REUSE_CLASS_VISITOR, 0);
-        return REUSE_CLASS_VISITOR.getDefinition();
+        ClazzDataDefinition definition = REUSE_CLASS_VISITOR.getDefinition();
+        definition.setBytecode(byteCode);
+        return definition;
     }
 
     public static void visitClass(byte[] byteCode, ClassVisitor classVisitor) {

@@ -23,6 +23,11 @@ public class ClassIncrementUpdate {
     private ClazzDataDefinition clazzDefinition;
 
     /**
+     * 原生的类
+     */
+    private ClazzDefinition originDefinition;
+
+    /**
      * 访问器
      */
     private ClazzDefinition accessor;
@@ -33,15 +38,21 @@ public class ClassIncrementUpdate {
     private List<MethodInstance> methods;
 
     /**
+     * 本次更新的字段
+     */
+    private List<FieldInstance> fields;
+
+    /**
      * 相关联的其他类
      */
     private List<CorrelationClazzDefinition> correlationClasses;
 
     private byte[] enhancedByteCode;
 
-    public ClassIncrementUpdate(ClazzDataDefinition definition, ClazzDefinition accessor) {
+    public ClassIncrementUpdate(ClazzDataDefinition definition,ClazzDefinition originDefinition, ClazzDefinition accessor) {
         this.className = definition.getClassName();
         this.clazzDefinition = definition;
+        this.originDefinition = originDefinition;
         this.accessor = accessor;
     }
 
@@ -50,6 +61,13 @@ public class ClassIncrementUpdate {
             this.methods = new ArrayList<>();
         }
         this.methods.add(asmMethod);
+    }
+
+    public void addField(FieldInstance fieldInstance) {
+        if (this.fields == null) {
+            this.fields = new ArrayList<>();
+        }
+        this.fields.add(fieldInstance);
     }
 
     public MethodInstance getMethod(String name, String desc) {
@@ -61,11 +79,27 @@ public class ClassIncrementUpdate {
                 .findAny().orElse(null);
     }
 
+    public FieldInstance getField(String fieldName, String desc) {
+        if (this.fields == null) {
+            return null;
+        }
+        return this.fields
+                .stream().filter(item -> item.getFieldName().equals(fieldName) && item.getDesc().equals(desc))
+                .findAny().orElse(null);
+    }
+
     public void remove(MethodInstance methodInstance) {
         if (this.methods == null) {
             return;
         }
         this.methods.remove(methodInstance);
+    }
+
+    public void remove(FieldInstance fieldInstance) {
+        if (this.fields == null) {
+            return;
+        }
+        this.fields.remove(fieldInstance);
     }
 
     public void addCorrelationClasses(CorrelationEnum correlation, ClazzDefinition definition) {

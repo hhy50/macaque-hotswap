@@ -1,25 +1,22 @@
 package six.eared.macaque.agent.asm2.classes;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.MethodNode;
 
-public class AsmMethodVisitorCaller {
+public class AsmMethodVisitorCaller extends MethodNode {
 
-    private MethodNode methodNode;
-
-    public void accept(MethodVisitor mv) {
-        if (this.methodNode != null)
-            this.methodNode.accept(mv);
+    public AsmMethodVisitorCaller() {
+        super(Opcodes.ASM9);
     }
 
-    public MethodVisitor createProxyObj() {
-        this.methodNode = new MethodNode();
-        return this.methodNode;
+    public void accept(MethodVisitor mv) {
+        if (!this.isEmpty())
+            super.accept(mv);
     }
 
     public boolean isEmpty() {
-        return this.methodNode == null
-                || this.methodNode.instructions == null
-                || this.methodNode.instructions.size() == 0;
+        return this.instructions == null
+                || this.instructions.size() == 0;
     }
 }
