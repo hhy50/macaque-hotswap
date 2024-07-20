@@ -10,12 +10,12 @@ import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MethodInstance {
+public class MethodUpdateInfo {
     private AsmMethod asmMethod;
     private MethodBindInfo bindInfo;
     private AsmMethodVisitorCaller visitorCaller;
 
-    public MethodInstance(AsmMethod asmMethod, AsmMethodVisitorCaller visitorCaller) {
+    public MethodUpdateInfo(AsmMethod asmMethod, AsmMethodVisitorCaller visitorCaller) {
         this.asmMethod = asmMethod;
         this.visitorCaller = visitorCaller;
     }

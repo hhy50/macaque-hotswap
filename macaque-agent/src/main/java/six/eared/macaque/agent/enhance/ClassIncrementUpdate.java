@@ -35,12 +35,12 @@ public class ClassIncrementUpdate {
     /**
      * 本次更新的方法
      */
-    private List<MethodInstance> methods;
+    private List<MethodUpdateInfo> methods;
 
     /**
      * 本次更新的字段
      */
-    private List<FieldInstance> fields;
+    private List<FieldUpdateInfo> fields;
 
     /**
      * 相关联的其他类
@@ -56,21 +56,21 @@ public class ClassIncrementUpdate {
         this.accessor = accessor;
     }
 
-    public void addMethod(MethodInstance asmMethod) {
+    public void addMethod(MethodUpdateInfo asmMethod) {
         if (this.methods == null) {
             this.methods = new ArrayList<>();
         }
         this.methods.add(asmMethod);
     }
 
-    public void addField(FieldInstance fieldInstance) {
+    public void addField(FieldUpdateInfo fieldUpdateInfo) {
         if (this.fields == null) {
             this.fields = new ArrayList<>();
         }
-        this.fields.add(fieldInstance);
+        this.fields.add(fieldUpdateInfo);
     }
 
-    public MethodInstance getMethod(String name, String desc) {
+    public MethodUpdateInfo getMethod(String name, String desc) {
         if (this.methods == null) {
             return null;
         }
@@ -79,7 +79,7 @@ public class ClassIncrementUpdate {
                 .findAny().orElse(null);
     }
 
-    public FieldInstance getField(String fieldName, String desc) {
+    public FieldUpdateInfo getField(String fieldName, String desc) {
         if (this.fields == null) {
             return null;
         }
@@ -88,18 +88,18 @@ public class ClassIncrementUpdate {
                 .findAny().orElse(null);
     }
 
-    public void remove(MethodInstance methodInstance) {
+    public void remove(MethodUpdateInfo methodUpdateInfo) {
         if (this.methods == null) {
             return;
         }
-        this.methods.remove(methodInstance);
+        this.methods.remove(methodUpdateInfo);
     }
 
-    public void remove(FieldInstance fieldInstance) {
+    public void remove(FieldUpdateInfo fieldUpdateInfo) {
         if (this.fields == null) {
             return;
         }
-        this.fields.remove(fieldInstance);
+        this.fields.remove(fieldUpdateInfo);
     }
 
     public void addCorrelationClasses(CorrelationEnum correlation, ClazzDefinition definition) {

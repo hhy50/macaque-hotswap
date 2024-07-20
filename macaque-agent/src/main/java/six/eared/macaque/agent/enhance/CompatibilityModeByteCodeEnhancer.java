@@ -54,21 +54,21 @@ public class CompatibilityModeByteCodeEnhancer {
             @Override
             public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
                 AsmMethod asmMethod = definition.getMethod(name, desc);
-                MethodInstance methodInstance = new MethodInstance(asmMethod, new AsmMethodVisitorCaller());
+                MethodUpdateInfo methodUpdateInfo = new MethodUpdateInfo(asmMethod, new AsmMethodVisitorCaller());
                 if (!originDefinition.hasMethod(asmMethod)) {
                     MethodBindInfo bindInfo = MethodBindManager
                             .createMethodBindInfo(definition.getClassName(), asmMethod, accessor.getClassName());
-                    methodInstance.setBindInfo(bindInfo);
+                    methodUpdateInfo.setBindInfo(bindInfo);
                 }
-                incrementUpdate.addMethod(methodInstance);
-                return methodInstance.getVisitorCaller();
+                incrementUpdate.addMethod(methodUpdateInfo);
+                return methodUpdateInfo.getVisitorCaller();
             }
 
             @Override
             public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
                 AsmField asmField = definition.getField(name, desc);
-                FieldInstance fieldInstance = new FieldInstance(asmField);
-                incrementUpdate.addField(fieldInstance);
+                FieldUpdateInfo fieldUpdateInfo = new FieldUpdateInfo(asmField);
+                incrementUpdate.addField(fieldUpdateInfo);
                 return null;
             }
         });
@@ -80,9 +80,9 @@ public class CompatibilityModeByteCodeEnhancer {
         generateNewByteCode(classUpdateInfo);
 
         if (CollectionUtil.isNotEmpty(classUpdateInfo.getMethods())) {
-            Iterator<MethodInstance> iterator = classUpdateInfo.getMethods().iterator();
+            Iterator<MethodUpdateInfo> iterator = classUpdateInfo.getMethods().iterator();
             while (iterator.hasNext()) {
-                MethodInstance newMethod = iterator.next();
+                MethodUpdateInfo newMethod = iterator.next();
                 MethodBindInfo bindInfo = newMethod.getBindInfo();
                 if (bindInfo == null) {
                     throw new EnhanceException("not method bind info");
@@ -125,13 +125,13 @@ public class CompatibilityModeByteCodeEnhancer {
         for (AsmField field : originClass.getAsmFields()) {
             classWriter.visitField(field.getModifier(), field.getFieldName(), field.getDesc(),
                     field.getFieldSign(), field.getValue());
-            FieldInstance fi = classIncrementUpdate.getField(field.getFieldName(), field.getDesc());
+            FieldUpdateInfo fi = classIncrementUpdate.getField(field.getFieldName(), field.getDesc());
             classIncrementUpdate.remove(fi);
         }
         for (AsmMethod method : originClass.getAsmMethods()) {
             MethodVisitor methodWrite = classWriter.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(),
                     method.getMethodSign(), method.getExceptions());
-            MethodInstance mi = classIncrementUpdate.getMethod(method.getMethodName(), method.getDesc());
+            MethodUpdateInfo mi = classIncrementUpdate.getMethod(method.getMethodName(), method.getDesc());
             if (mi == null || mi.getAsmMethod().isStatic() ^ method.isStatic()) {
                 // 将类上面需要删除的方法， 删掉
                 int lvblen = AsmUtil.calculateLvbOffset(method.isStatic(), Type.getArgumentTypes(method.getDesc()));

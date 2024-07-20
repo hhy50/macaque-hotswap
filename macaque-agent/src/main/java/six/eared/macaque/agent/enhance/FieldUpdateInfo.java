@@ -9,7 +9,7 @@ import six.eared.macaque.agent.asm2.AsmField;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FieldInstance {
+public class FieldUpdateInfo {
 
     private AsmField asmField;
 
