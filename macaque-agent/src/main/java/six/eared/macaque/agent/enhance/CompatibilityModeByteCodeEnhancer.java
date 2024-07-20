@@ -3,6 +3,7 @@ package six.eared.macaque.agent.enhance;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
 import org.objectweb.asm.*;
+import six.eared.macaque.agent.accessor.Accessor;
 import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtilV2;
 import six.eared.macaque.agent.asm2.AsmClassBuilder;
 import six.eared.macaque.agent.asm2.AsmField;
@@ -46,7 +47,7 @@ public class CompatibilityModeByteCodeEnhancer {
     }
 
     private static ClassIncrementUpdate prepare(ClazzDataDefinition definition) throws IOException, ClassNotFoundException {
-        ClazzDefinition accessor = createAccessor(definition.getClassName());
+        Accessor accessor = createAccessor(definition.getClassName());
         ClazzDefinition originDefinition = AsmUtil.readOriginClass(definition.getClassName());
         ClassIncrementUpdate incrementUpdate = new ClassIncrementUpdate(definition, originDefinition, accessor);
 
@@ -87,15 +88,12 @@ public class CompatibilityModeByteCodeEnhancer {
                 if (bindInfo == null) {
                     throw new EnhanceException("not method bind info");
                 }
-                AsmMethodVisitorCaller visitorCaller = newMethod.getVisitorCaller();
-                if (visitorCaller == null || visitorCaller.isEmpty()) {
-                    throw new EnhanceException("read new method error");
-                }
+                BindMethodWriter bindMethodWriter = new BindMethodWriter(newMethod, classUpdateInfo.getAccessor());
                 AsmClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
                         .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
                                 bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
                                 newMethod.getExceptions(), newMethod.getMethodSign())
-                        .accept(writer -> visitorCaller.accept(new BindMethodWriter(writer, newMethod.getAsmMethod(), bindInfo)))
+                        .accept(bindMethodWriter::write)
                         .end();
                 ClazzDataDefinition bindClazzDefinition = classBuilder.toDefinition();
                 if (bindInfo.isLoaded()) {
@@ -160,10 +158,10 @@ public class CompatibilityModeByteCodeEnhancer {
      *
      * @param className
      */
-    private static ClazzDefinition createAccessor(String className) {
+    private static Accessor createAccessor(String className) {
         // 计算深度
-        int deepth = 0;
-        ClazzDefinition accessor = CompatibilityModeAccessorUtilV2.createAccessor(className, new AccessorClassNameGenerator(), deepth);
+        int deepth = 3;
+        Accessor accessor = CompatibilityModeAccessorUtilV2.createAccessor(className, new AccessorClassNameGenerator(), deepth);
         return accessor;
     }
 }

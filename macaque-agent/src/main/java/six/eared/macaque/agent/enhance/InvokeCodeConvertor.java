@@ -3,7 +3,9 @@ package six.eared.macaque.agent.enhance;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.MethodDynamicStackVisitor;
@@ -41,28 +43,7 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
                  * 需要访问器提前入栈
                  * 先找到压入参数之前的第一条指令
                  */
-                Type[] argsType = Type.getArgumentTypes(desc);
-                AbstractInsnNode prev = this.instructions.getLast();
-                int n = argsType.length;
-                while (n > 0) {
-                    if (prev instanceof MethodInsnNode) {
-                        int invoke = ((MethodInsnNode) prev).getOpcode();
-                        String invokeName = ((MethodInsnNode) prev).name;
-                        n += Type.getArgumentTypes(((MethodInsnNode) prev).desc).length;
-                        if (invokeName.equals("<init>")) {
-                            // new
-                            // dup
-                            n += 2;
-                        } else if (invoke != Opcodes.INVOKESTATIC) {
-                            n += 1;
-                        }
-                    } else if (prev instanceof LineNumberNode || prev instanceof LabelNode) {
-                        prev = prev.getPrevious();
-                        continue;
-                    }
-                    prev = prev.getPrevious();
-                    n--;
-                }
+                AbstractInsnNode prev = AsmUtil.getPrevStackInsn(Type.getArgumentTypes(desc).length, this.instructions.getLast());
 
                 InsnList inst = new InsnList();
                 // 需要先将obj弹出

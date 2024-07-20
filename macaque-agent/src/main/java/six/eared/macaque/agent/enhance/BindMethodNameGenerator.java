@@ -7,6 +7,6 @@ public class BindMethodNameGenerator {
     private static final AtomicInteger COUNTER = new AtomicInteger(1);
 
     public String generate(String className, String methodName) {
-        return className + "$Macaque$" + methodName + "$" + COUNTER.getAndIncrement();
+        return className + "$macaque$" + methodName + "$" + COUNTER.getAndIncrement();
     }
 }

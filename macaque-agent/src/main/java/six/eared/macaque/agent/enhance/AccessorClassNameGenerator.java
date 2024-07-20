@@ -8,6 +8,6 @@ public class AccessorClassNameGenerator {
      * @return
      */
     public String generate(String className)  {
-        return className + "$Macaque$Accessor";
+        return className + "$macaque$Accessor";
     }
 }

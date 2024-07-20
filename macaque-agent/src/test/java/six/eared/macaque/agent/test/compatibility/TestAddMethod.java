@@ -23,19 +23,19 @@ public class TestAddMethod extends Env {
     @Test
     public void testAddInstanceMethod() {
         byte[] bytes = compileToClass("TestAddMethodClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
-                .getResourceAsStream("compatibility/add/AddNewInstanceMethod.java"))).get(0);
+                .getResourceAsStream("compatibility/add/AddInstanceMethod.java"))).get(0);
 
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-        Assert.assertEquals(invoke(INSTANCE, "test2"), "test4");
+        Assert.assertEquals(invoke(INSTANCE, "test2"), "12345678test1test3");
 
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-        Assert.assertEquals(invoke(INSTANCE, "test2"), "test4");
+        Assert.assertEquals(invoke(INSTANCE, "test2"), "12345678test1test3");
     }
 
     @Test
     public void testAddInstanceMethodWithParams() {
         byte[] bytes = compileToClass("TestAddMethodClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
-                .getResourceAsStream("compatibility/add/AddNewInstanceMethodWithParams.java"))).get(0);
+                .getResourceAsStream("compatibility/add/AddInstanceMethodWithParams.java"))).get(0);
 
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         Assert.assertEquals(invoke(INSTANCE, "test2"), "arg1=1,arg2=2");
@@ -47,7 +47,7 @@ public class TestAddMethod extends Env {
     @Test
     public void testAddStaticMethod() {
         byte[] bytes = compileToClass("TestAddMethodClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
-                .getResourceAsStream("compatibility/add/AddNewStaticMethod.java"))).get(0);
+                .getResourceAsStream("compatibility/add/AddStaticMethod.java"))).get(0);
 
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         Assert.assertEquals(invoke(INSTANCE, "test2"), "_newStaticMethod");
@@ -57,9 +57,9 @@ public class TestAddMethod extends Env {
     }
 
     @Test
-    public void testAddNewStaticMethodWithParams() {
+    public void testAddStaticMethodWithParams() {
         byte[] bytes = compileToClass("TestAddMethodClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
-                .getResourceAsStream("compatibility/add/AddNewStaticMethodWithParams.java"))).get(0);
+                .getResourceAsStream("compatibility/add/AddStaticMethodWithParams.java"))).get(0);
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
 
         Object o = newInstance("six.eared.macaque.agent.test.TestAddMethodClass");

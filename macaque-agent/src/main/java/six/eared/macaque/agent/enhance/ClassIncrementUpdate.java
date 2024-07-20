@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.enhance;
 
 import lombok.Data;
+import six.eared.macaque.agent.accessor.Accessor;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.CorrelationClazzDefinition;
 import six.eared.macaque.agent.enums.CorrelationEnum;
@@ -30,7 +31,7 @@ public class ClassIncrementUpdate {
     /**
      * 访问器
      */
-    private ClazzDefinition accessor;
+    private Accessor accessor;
 
     /**
      * 本次更新的方法
@@ -49,7 +50,7 @@ public class ClassIncrementUpdate {
 
     private byte[] enhancedByteCode;
 
-    public ClassIncrementUpdate(ClazzDataDefinition definition,ClazzDefinition originDefinition, ClazzDefinition accessor) {
+    public ClassIncrementUpdate(ClazzDataDefinition definition,ClazzDefinition originDefinition, Accessor accessor) {
         this.className = definition.getClassName();
         this.clazzDefinition = definition;
         this.originDefinition = originDefinition;

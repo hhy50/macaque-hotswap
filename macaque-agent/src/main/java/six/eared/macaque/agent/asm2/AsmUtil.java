@@ -139,4 +139,44 @@ public class AsmUtil {
         instList.add(new VarInsnNode(Opcodes.ALOAD, 0));
         instList.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(Ljava/lang/Object;)V", false));
     }
+
+    /**
+     * 获取上n个参数入栈的指令
+     * @param
+     * @param current
+     */
+    public static AbstractInsnNode getPrevStackInsn(int n, AbstractInsnNode current) {
+        AbstractInsnNode prev = current;
+        while (n > 0) {
+            prev = getPrev(prev);
+            if (prev instanceof MethodInsnNode) {
+                int invoke = prev.getOpcode();
+                String invokeName = ((MethodInsnNode) prev).name;
+                n += Type.getArgumentTypes(((MethodInsnNode) prev).desc).length;
+                if (invokeName.equals("<init>")) {
+                    // new
+                    // dup
+                    n += 2;
+                } else if (invoke != Opcodes.INVOKESTATIC) {
+                    n += 1;
+                }
+            }
+            prev = prev.getPrevious();
+            n--;
+        }
+        return prev;
+    }
+
+    /**
+     * 获取上一条指令
+     * @param current
+     * @return
+     */
+    public static AbstractInsnNode getPrev(AbstractInsnNode current) {
+        AbstractInsnNode prev = current;
+        while (prev instanceof LineNumberNode || prev instanceof LabelNode) {
+            prev = prev.getPrevious();
+        }
+        return prev;
+    }
 }

@@ -26,7 +26,7 @@ import java.util.stream.IntStream;
 
 public class CompatibilityModeAccessorUtilV2 {
 
-    private static final Map<String, ClazzDefinition> LOADED = new HashMap<>();
+    private static final Map<String, Accessor> LOADED = new HashMap<>();
 
     /**
      * @param className          外部类类名
@@ -34,7 +34,7 @@ public class CompatibilityModeAccessorUtilV2 {
      * @param deepth             深度
      * @return
      */
-    public static ClazzDefinition createAccessor(String className, AccessorClassNameGenerator classNameGenerator, int deepth) {
+    public static Accessor createAccessor(String className, AccessorClassNameGenerator classNameGenerator, int deepth) {
         if (LOADED.containsKey(className)) {
             return LOADED.get(className);
         }
@@ -42,7 +42,7 @@ public class CompatibilityModeAccessorUtilV2 {
         try {
             ClazzDefinition clazzDefinition = AsmUtil.readOriginClass(className);
             String superClassName = clazzDefinition.getSuperClassName();
-            ClazzDefinition superAccessor = null;
+            Accessor superAccessor = null;
             if (deepth > 0) {
                 if (StringUtil.isNotEmpty(superClassName)
                         && !isSystemClass(superClassName)) {
@@ -56,9 +56,9 @@ public class CompatibilityModeAccessorUtilV2 {
             collectAccessibleFields(clazzDefinition, javassistClassBuilder, superAccessor);
             CompatibilityModeClassLoader.loadClass(javassistClassBuilder.getClassName(), javassistClassBuilder.toByteArray());
 
-            ClazzDefinition accessorDefinition = AsmUtil.readClass(javassistClassBuilder.toByteArray());
-            LOADED.put(className, accessorDefinition);
-            return accessorDefinition;
+            Accessor accessor = new Accessor(className, AsmUtil.readClass(javassistClassBuilder.toByteArray()), superAccessor);
+            LOADED.put(className, accessor);
+            return accessor;
         } catch (Exception e) {
             throw new AccessorCreateException(e);
         }
@@ -79,7 +79,7 @@ public class CompatibilityModeAccessorUtilV2 {
                 .defineStaticBlock("{" +
                         "Constructor constructor = MethodHandles$Lookup.class.getDeclaredConstructors()[0];" +
                         "constructor.setAccessible(true); " +
-                        "LOOKUP = (MethodHandles$Lookup) constructor.newInstance(new Object[]{"+className+".class});" +
+                        "LOOKUP = (MethodHandles$Lookup) constructor.newInstance(new Object[]{" + className + ".class});" +
                         "}");
         if (!containSupper) {
             javassistClassBuilder.defineField(Modifier.PUBLIC | AccessFlag.SYNTHETIC, "this$0", "java.lang.Object");
@@ -101,7 +101,7 @@ public class CompatibilityModeAccessorUtilV2 {
         return null;
     }
 
-    private static void collectAccessibleMethods(ClazzDefinition definition, JavassistClassBuilder accessorBuilder, ClazzDefinition superAccessor) {
+    private static void collectAccessibleMethods(ClazzDefinition definition, JavassistClassBuilder accessorBuilder, Accessor superAccessor) {
         try {
             // my all method
             for (AsmMethod method : definition.getAsmMethods()) {
@@ -152,7 +152,7 @@ public class CompatibilityModeAccessorUtilV2 {
         }
     }
 
-    private static void collectAccessibleFields(ClazzDefinition definition, JavassistClassBuilder javassistClassBuilder, ClazzDefinition superAccessor) {
+    private static void collectAccessibleFields(ClazzDefinition definition, JavassistClassBuilder javassistClassBuilder, Accessor superAccessor) {
         try {
             // my all field
             for (AsmField asmField : definition.getAsmFields()) {
@@ -177,13 +177,13 @@ public class CompatibilityModeAccessorUtilV2 {
         if (asmField.isPrivate()) {
             String unpacking = getUnpacking(fieldType);
             body = "Field field = " + owner + ".class.getDeclaredField(\"" + name + "\"); field.setAccessible(true);" +
-                    "return ((" + type + ") Util." + unpacking + "(field.get("+ (asmField.isStatic() ? "null" : "this$0") +")));";
+                    "return ((" + type + ") Util." + unpacking + "(field.get(" + (asmField.isStatic() ? "null" : "this$0") + ")));";
         } else if (asmField.isStatic()) {
             body = "return " + owner + "." + name + ";";
         } else {
             body = "return ((" + owner + ") this$0)." + name + ";";
         }
-        javassistClassBuilder.defineMethod(String.format("public %s " + Accessor.FIELD_GETTER_PREFIX + "%s() { %s }", type, name, body));
+        javassistClassBuilder.defineMethod(String.format("public"+(asmField.isStatic()?" static ":" ")+"%s " + Accessor.FIELD_GETTER_PREFIX + "%s() { %s }", type, name, body));
     }
 
     private static void setField(AsmField asmField, String owner, JavassistClassBuilder javassistClassBuilder) throws CannotCompileException {
@@ -193,13 +193,13 @@ public class CompatibilityModeAccessorUtilV2 {
         String body = null;
         if (asmField.isPrivate()) {
             body = "Field field = " + owner + ".class.getDeclaredField(\"" + name + "\"); field.setAccessible(true);" +
-                    "field.set("+(asmField.isStatic() ? "null" : "this$0")+", Util.packing(arg));";
+                    "field.set(" + (asmField.isStatic() ? "null" : "this$0") + ", Util.packing(arg));";
         } else if (asmField.isStatic()) {
             body = owner + "." + name + " = arg;";
         } else {
             body = "((" + owner + ") this$0)." + name + " = arg;";
         }
-        javassistClassBuilder.defineMethod(String.format("public void " + Accessor.FIELD_SETTER_PREFIX + "%s(%s arg) { %s }", name, type, body));
+        javassistClassBuilder.defineMethod(String.format("public"+(asmField.isStatic()?" static ":" ")+"void " + Accessor.FIELD_SETTER_PREFIX + "%s(%s arg) { %s }", name, type, body));
     }
 
     private static void invokerVirtual(JavassistClassBuilder javassistClassBuilder, String this0Class,
