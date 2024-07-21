@@ -3,7 +3,8 @@ package six.eared.macaque.agent.accessor;
 import javassist.CannotCompileException;
 import javassist.Modifier;
 import javassist.NotFoundException;
-import javassist.bytecode.AccessFlag;
+import javassist.bytecode.*;
+import lombok.SneakyThrows;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
@@ -16,6 +17,7 @@ import six.eared.macaque.agent.exceptions.AccessorCreateException;
 import six.eared.macaque.agent.javassist.JavaSsistUtil;
 import six.eared.macaque.agent.javassist.JavassistClassBuilder;
 import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.ReflectUtil;
 import six.eared.macaque.common.util.StringUtil;
 
 import java.io.IOException;
@@ -245,6 +247,7 @@ public class CompatibilityModeAccessorUtilV2 {
                     this0Class + "." + methodName + "(" + String.join(",", argVars) + ");";
         }
         javassistClassBuilder.defineMethod(declare + "{" + body + "}");
+        fixMethodHandle(javassistClassBuilder.getMethod(methodName), javassistClassBuilder.getCtClass().getClassFile().getConstPool(), "()Ljava/lang/String;");
     }
 
     /**
@@ -330,6 +333,28 @@ public class CompatibilityModeAccessorUtilV2 {
                 return null;
             default:
                 return "wrap_object";
+        }
+    }
+
+    @SneakyThrows
+    public static void fixMethodHandle(MethodInfo methodInfo, ConstPool constPool, String desc) {
+        CodeAttribute ca = methodInfo.getCodeAttribute();
+        CodeIterator ci = ca.iterator();
+
+        while (ci.hasNext()) {
+            int index = ci.next();
+            int op = ci.byteAt(index);
+            if (op == Opcode.INVOKEVIRTUAL) {
+                int refIndex = ci.s16bitAt(index + 1);
+                Object memberrefInfo = ReflectUtil.invokeMethod(constPool, "getItem", refIndex);
+                String owner = constPool.getMethodrefClassName(refIndex);
+                String name = constPool.getMethodrefName(refIndex);
+                if (owner.equals("java.lang.invoke.MethodHandle") && name.equals("invoke")) {
+                    Object nameAndType = ReflectUtil.invokeMethod(constPool, "getItem", ReflectUtil.getFieldValue(memberrefInfo, "nameAndTypeIndex"));
+                    int descIndex = constPool.addUtf8Info(desc);
+                    ReflectUtil.setFieldValue(nameAndType, "typeDescriptor", descIndex);
+                }
+            }
         }
     }
 }

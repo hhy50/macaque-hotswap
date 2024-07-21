@@ -68,6 +68,25 @@ public class ReflectUtil {
         }
     }
 
+    public static Object getFieldValue(Object obj, String fieldName) {
+        for (Field declaredField : getDeclaredFields(obj.getClass())) {
+            if (declaredField.getName().equals(fieldName)) {
+                return getFieldValue(obj, declaredField);
+            }
+        }
+
+        Class<?> superclass = obj.getClass().getSuperclass();
+        while (superclass != null) {
+            for (Field declaredField : getDeclaredFields(superclass)) {
+                if (declaredField.getName().equals(fieldName)) {
+                    return getFieldValue(obj, declaredField);
+                }
+            }
+            superclass = superclass.getSuperclass();
+        }
+        return null;
+    }
+
     public static Object getFieldValue(Object obj, Field field) {
         try {
             field.setAccessible(true);
