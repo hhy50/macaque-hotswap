@@ -4,6 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
+import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.common.util.ClassUtil;
 
@@ -29,13 +35,34 @@ public class Accessor {
         return accessor.getClassName();
     }
 
-    public void accessMethod(MethodVisitor visitor, String owner, String name, String desc) {
-        String accessorClass = findAccessorClass(owner);
-        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, accessorClass, name, desc, false);
+    public void accessMethod(InsnList insnList, int opcode, String owner, String name, String desc) {
+        if (opcode != Opcodes.INVOKESTATIC) {
+            // 非静态方法需要判断操作的变量是否是 slot[0]
+            AbstractInsnNode insn = AsmUtil.getPrevStackInsn(Type.getArgumentTypes(desc).length, insnList.getLast());
+            insn = AsmUtil.getPrev(insn);
+            if (insn instanceof VarInsnNode
+                    && insn.getOpcode() == Opcodes.ALOAD
+                    && ((VarInsnNode) insn).var == 0) {
+                String accessorClass = findAccessorClass(owner);
+                insnList.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, accessorClass, name, desc, false));
+                return;
+            }
+        } else {
+            String accessorClass = findAccessorClass(owner);
+            if (accessorClass != null) {
+                insnList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, accessorClass, name, desc, false));
+                return;
+            }
+        }
+        insnList.add(new MethodInsnNode(opcode, owner, name, desc, false));
     }
 
     public void accessField(MethodVisitor visitor, int opcode, String owner, String name, String desc) {
         String accessorClass = findAccessorClass(owner);
+        if (accessorClass == null) {
+            visitor.visitFieldInsn(opcode, owner, name, desc);
+            return;
+        }
         if (opcode == Opcodes.GETSTATIC) {
             visitor.visitMethodInsn(Opcodes.INVOKESTATIC, accessorClass, Accessor.FIELD_GETTER_PREFIX + name, "(" + ")" + desc, false);
         } else if (opcode == Opcodes.GETFIELD) {

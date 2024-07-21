@@ -11,7 +11,7 @@ public class TestAddMethodClass {
         return test4();
     }
 
-    public static String test3() {
+    private static String test3() {
         return "test3";
     }
 

@@ -13,7 +13,7 @@ public class TestAddMethodClass {
         return "test2";
     }
 
-    public static String test3() {
+    private static String test3() {
         return "test3";
     }
 }

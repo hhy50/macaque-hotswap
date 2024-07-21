@@ -7,6 +7,9 @@ import six.eared.macaque.agent.test.Env;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
+
 public class TestAddMethod extends Env {
 
     private ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
@@ -15,13 +18,26 @@ public class TestAddMethod extends Env {
 
     private Class<?> CLAZZ;
 
-    public TestAddMethod() {
+    public static MethodHandles.Lookup LOOKUP;
+
+    static {
+
+    }
+
+    public TestAddMethod() throws InvocationTargetException, InstantiationException, IllegalAccessException {
         INSTANCE = newInstance("six.eared.macaque.agent.test.TestAddMethodClass");
         CLAZZ = getPreload("six.eared.macaque.agent.test.TestAddMethodClass");
+//        Constructor var0 = MethodHandles.Lookup.class.getDeclaredConstructors()[0];
+//        var0.setAccessible(true);
+//        LOOKUP = (MethodHandles.Lookup)var0.newInstance(CLAZZ);
     }
 
     @Test
-    public void testAddInstanceMethod() {
+    public void testAddInstanceMethod() throws Throwable {
+//        MethodType var0 = MethodType.methodType(String.class, new Class[0]);
+//        MethodHandle var1 = LOOKUP.findStatic(CLAZZ, "test3", var0);
+//        System.out.println((String) Util.unpack_object(var1.invoke()));
+
         byte[] bytes = compileToClass("TestAddMethodClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
                 .getResourceAsStream("compatibility/add/AddInstanceMethod.java"))).get(0);
 

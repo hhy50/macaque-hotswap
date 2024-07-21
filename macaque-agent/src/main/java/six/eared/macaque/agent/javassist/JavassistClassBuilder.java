@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.javassist;
 
 import javassist.*;
+import javassist.bytecode.MethodInfo;
 import lombok.Getter;
 import lombok.SneakyThrows;
 
@@ -70,8 +71,16 @@ public class JavassistClassBuilder {
         return ctClasses;
     }
 
+    public MethodInfo getMethod(String name) {
+        return this.ctClass.getClassFile().getMethod(name);
+    }
+
     @SneakyThrows
     public byte[] toByteArray() {
         return this.ctClass.toBytecode();
+    }
+
+    public CtClass getCtClass() {
+        return ctClass;
     }
 }

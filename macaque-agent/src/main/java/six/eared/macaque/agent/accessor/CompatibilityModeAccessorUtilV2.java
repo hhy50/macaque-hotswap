@@ -108,11 +108,10 @@ public class CompatibilityModeAccessorUtilV2 {
                 if (method.isConstructor() || method.isClinit()) {
                     continue;
                 }
-                // 私有方法
-                if (method.isPrivate()) {
-                    invokeSpecial(definition.getClassName(), definition.getClassName(), method, accessorBuilder);
-                } else if (method.isStatic()) {
+                if (method.isStatic()) {
                     invokerStatic(accessorBuilder, definition.getClassName(), method);
+                } else if (method.isPrivate()) {
+                    invokeSpecial(definition.getClassName(), definition.getClassName(), method, accessorBuilder);
                 } else {
                     // 继承而来 （如果自己重写了父类的方法, 就保存父类的字节码，防止 super调用）
                     boolean inherited = inherited(definition.getSuperClassName(), method.getMethodName(), method.getDesc());
@@ -183,7 +182,7 @@ public class CompatibilityModeAccessorUtilV2 {
         } else {
             body = "return ((" + owner + ") this$0)." + name + ";";
         }
-        javassistClassBuilder.defineMethod(String.format("public"+(asmField.isStatic()?" static ":" ")+"%s " + Accessor.FIELD_GETTER_PREFIX + "%s() { %s }", type, name, body));
+        javassistClassBuilder.defineMethod(String.format("public " + (asmField.isStatic() ? "static " : "") + "%s " + Accessor.FIELD_GETTER_PREFIX + "%s() { %s }", type, name, body));
     }
 
     private static void setField(AsmField asmField, String owner, JavassistClassBuilder javassistClassBuilder) throws CannotCompileException {
@@ -193,13 +192,13 @@ public class CompatibilityModeAccessorUtilV2 {
         String body = null;
         if (asmField.isPrivate()) {
             body = "Field field = " + owner + ".class.getDeclaredField(\"" + name + "\"); field.setAccessible(true);" +
-                    "field.set(" + (asmField.isStatic() ? "null" : "this$0") + ", Util.packing(arg));";
+                    "field.set(" + (asmField.isStatic() ? "null" : "this$0") + ", Util.wrapping(arg));";
         } else if (asmField.isStatic()) {
             body = owner + "." + name + " = arg;";
         } else {
             body = "((" + owner + ") this$0)." + name + " = arg;";
         }
-        javassistClassBuilder.defineMethod(String.format("public"+(asmField.isStatic()?" static ":" ")+"void " + Accessor.FIELD_SETTER_PREFIX + "%s(%s arg) { %s }", name, type, body));
+        javassistClassBuilder.defineMethod(String.format("public "+(asmField.isStatic()?"static ":"")+"void " + Accessor.FIELD_SETTER_PREFIX + "%s(%s arg) { %s }", name, type, body));
     }
 
     private static void invokerVirtual(JavassistClassBuilder javassistClassBuilder, String this0Class,
@@ -227,11 +226,24 @@ public class CompatibilityModeAccessorUtilV2 {
         String rType = methodType.getReturnType().getClassName();
         String[] argVars = IntStream.range(0, args.length).mapToObj(i -> "var_" + i).toArray(String[]::new);
 
-        String declare = String.format("public %s %s(%s)",
+        String declare = String.format("public static %s %s(%s)",
                 rType, methodName, IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName() + " " + argVars[i]).collect(Collectors.joining(",")));
+        String body = null;
+        if (method.isPrivate()) {
+            String argsClassDeclare = Arrays.stream(args).map(type -> type.getClassName() + ".class").collect(Collectors.joining(","));
+            String[] packingArgs = Arrays.stream(argVars).map(a -> "Util.wrapping(" + a + ")").toArray(String[]::new);
+            String unpacking = getUnpacking(methodType.getReturnType());
 
-        String body = (rType.equals("void") ? "" : "return (" + rType + ")") +
-                this0Class + "." + methodName + "(" + String.join(",", argVars) + ");";
+            body = new StringBuilder()
+                    .append("MethodType type = MethodType.methodType(" + rType + ".class,new Class[]{" + argsClassDeclare + "});").append("\n")
+                    .append("MethodHandle mh = LOOKUP.findStatic(" + this0Class + ".class,\"" + methodName + "\",type);").append("\n")
+                    .append(unpacking != null ? "return (" + rType + ")" : "")
+                    .append(unpacking != null ? "Util." + unpacking + "(" : "(")
+                    .append("mh.invoke(new Object[] {" + String.join(",", packingArgs) + "}));").toString();
+        } else {
+            body = (rType.equals("void") ? "" : "return (" + rType + ")") +
+                    this0Class + "." + methodName + "(" + String.join(",", argVars) + ");";
+        }
         javassistClassBuilder.defineMethod(declare + "{" + body + "}");
     }
 
@@ -250,7 +262,7 @@ public class CompatibilityModeAccessorUtilV2 {
         String argsClassDeclare = Arrays.stream(args).map(type -> type.getClassName() + ".class").collect(Collectors.joining(","));
         String argsDeclare = IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName() + " " + argVars[i])
                 .collect(Collectors.joining(","));
-        String[] packingArgs = Arrays.stream(argVars).map(a -> "Util.packing(" + a + ")").toArray(String[]::new);
+        String[] packingArgs = Arrays.stream(argVars).map(a -> "Util.wrapping(" + a + ")").toArray(String[]::new);
         String unpacking = getUnpacking(methodType.getReturnType());
 
         StringBuilder methodSrc = new StringBuilder("public " + rType + " super_" + methodName + "(" + argsDeclare + ") {").append("\n")
@@ -299,25 +311,25 @@ public class CompatibilityModeAccessorUtilV2 {
     public static String getUnpacking(Type type) {
         switch (type.getSort()) {
             case Type.BOOLEAN:
-                return "unpack_boolean";
+                return "wrap_boolean";
             case Type.CHAR:
-                return "unpack_char";
+                return "wrap_char";
             case Type.BYTE:
-                return "unpack_byte";
+                return "wrap_byte";
             case Type.SHORT:
-                return "unpack_short";
+                return "wrap_short";
             case Type.INT:
-                return "unpack_int";
+                return "wrap_int";
             case Type.FLOAT:
-                return "unpack_float";
+                return "wrap_float";
             case Type.LONG:
-                return "unpack_long";
+                return "wrap_long";
             case Type.DOUBLE:
-                return "unpack_double";
+                return "wrap_double";
             case Type.VOID:
                 return null;
             default:
-                return "unpack_object";
+                return "wrap_object";
         }
     }
 }
