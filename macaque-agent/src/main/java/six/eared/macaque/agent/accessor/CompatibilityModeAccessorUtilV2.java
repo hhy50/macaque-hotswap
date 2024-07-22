@@ -1,10 +1,9 @@
 package six.eared.macaque.agent.accessor;
 
-import javassist.CannotCompileException;
-import javassist.Modifier;
-import javassist.NotFoundException;
+import javassist.*;
 import javassist.bytecode.*;
 import lombok.SneakyThrows;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
@@ -22,11 +21,13 @@ import six.eared.macaque.common.util.StringUtil;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 
 public class CompatibilityModeAccessorUtilV2 {
+    private static final AtomicInteger COUNTER = new AtomicInteger(1);
 
     private static final Map<String, Accessor> LOADED = new HashMap<>();
 
@@ -77,12 +78,7 @@ public class CompatibilityModeAccessorUtilV2 {
         boolean containSupper = superAccessorName != null;
         JavassistClassBuilder javassistClassBuilder = JavaSsistUtil
                 .defineClass(Modifier.PUBLIC, accessorName, superAccessorName, null)
-                .defineField("public static final MethodHandles$Lookup LOOKUP;")
-                .defineStaticBlock("{" +
-                        "Constructor constructor = MethodHandles$Lookup.class.getDeclaredConstructors()[0];" +
-                        "constructor.setAccessible(true); " +
-                        "LOOKUP = (MethodHandles$Lookup) constructor.newInstance(new Object[]{" + className + ".class});" +
-                        "}");
+                .defineField("public static final MethodHandles$Lookup LOOKUP = Util.lookup(" + className + ".class);");
         if (!containSupper) {
             javassistClassBuilder.defineField(Modifier.PUBLIC | AccessFlag.SYNTHETIC, "this$0", "java.lang.Object");
         }
@@ -113,7 +109,7 @@ public class CompatibilityModeAccessorUtilV2 {
                 if (method.isStatic()) {
                     invokerStatic(accessorBuilder, definition.getClassName(), method);
                 } else if (method.isPrivate()) {
-                    invokeSpecial(definition.getClassName(), definition.getClassName(), method, accessorBuilder);
+                    invokeSpecial(accessorBuilder, method, definition.getClassName(), definition.getClassName());
                 } else {
                     // 继承而来 （如果自己重写了父类的方法, 就保存父类的字节码，防止 super调用）
                     boolean inherited = inherited(definition.getSuperClassName(), method.getMethodName(), method.getDesc());
@@ -136,7 +132,7 @@ public class CompatibilityModeAccessorUtilV2 {
                     String key = superMethod.getMethodName() + "#" + superMethod.getDesc();
                     if (!unique.contains(key)) {
                         unique.add(superMethod.getMethodName() + "#" + superMethod.getDesc());
-                        invokeSpecial(definition.getClassName(), superClassDefinition.getClassName(), superMethod, accessorBuilder);
+                        invokeSpecial(accessorBuilder, superMethod, definition.getClassName(), superClassDefinition.getClassName());
                     }
                 }
                 if (superAccessor != null || superClassDefinition.getClassName().equals("java.lang.Object") || superClassDefinition.getSuperClassName() == null) {
@@ -200,7 +196,7 @@ public class CompatibilityModeAccessorUtilV2 {
         } else {
             body = "((" + owner + ") this$0)." + name + " = arg;";
         }
-        javassistClassBuilder.defineMethod(String.format("public "+(asmField.isStatic()?"static ":"")+"void " + Accessor.FIELD_SETTER_PREFIX + "%s(%s arg) { %s }", name, type, body));
+        javassistClassBuilder.defineMethod(String.format("public " + (asmField.isStatic() ? "static " : "") + "void " + Accessor.FIELD_SETTER_PREFIX + "%s(%s arg) { %s }", name, type, body));
     }
 
     private static void invokerVirtual(JavassistClassBuilder javassistClassBuilder, String this0Class,
@@ -232,22 +228,25 @@ public class CompatibilityModeAccessorUtilV2 {
                 rType, methodName, IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName() + " " + argVars[i]).collect(Collectors.joining(",")));
         String body = null;
         if (method.isPrivate()) {
-            String argsClassDeclare = Arrays.stream(args).map(type -> type.getClassName() + ".class").collect(Collectors.joining(","));
-            String[] packingArgs = Arrays.stream(argVars).map(a -> "Util.wrapping(" + a + ")").toArray(String[]::new);
-            String unpacking = getUnpacking(methodType.getReturnType());
+            String mhVar = methodName + "_MH_" + COUNTER.getAndIncrement();
+            String argsTypeDeclare = Arrays.stream(args).map(type -> type.getClassName() + ".class").collect(Collectors.joining(","));
+            javassistClassBuilder
+                    .defineField("private static final MethodHandle " + mhVar + " = LOOKUP.findStatic(" + this0Class + ".class,\"" + methodName + "\", " +
+                            "MethodType.methodType(" + rType + ".class,new Class[]{" + argsTypeDeclare + "}));")
+                    .defineMethod(declare + "{ throw new RuntimeException(\"not impl\"); }", (bytecode) -> {
+                        bytecode.addGetstatic(javassistClassBuilder.getClassName(), mhVar, "Ljava/lang/invoke/MethodHandle;");
+                        loadArgs(bytecode, args);
+                        bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", methodType.getDescriptor());
+                        areturn(bytecode, methodType.getReturnType());
 
-            body = new StringBuilder()
-                    .append("MethodType type = MethodType.methodType(" + rType + ".class,new Class[]{" + argsClassDeclare + "});").append("\n")
-                    .append("MethodHandle mh = LOOKUP.findStatic(" + this0Class + ".class,\"" + methodName + "\",type);").append("\n")
-                    .append(unpacking != null ? "return (" + rType + ")" : "")
-                    .append(unpacking != null ? "Util." + unpacking + "(" : "(")
-                    .append("mh.invoke(new Object[] {" + String.join(",", packingArgs) + "}));").toString();
+                        bytecode.setMaxLocals(2+args.length);
+                        bytecode.setMaxStack(2+AsmUtil.calculateLvbOffset(true, args));
+                    });
         } else {
             body = (rType.equals("void") ? "" : "return (" + rType + ")") +
                     this0Class + "." + methodName + "(" + String.join(",", argVars) + ");";
+            javassistClassBuilder.defineMethod(declare + "{" + body + "}");
         }
-        javassistClassBuilder.defineMethod(declare + "{" + body + "}");
-        fixMethodHandle(javassistClassBuilder.getMethod(methodName), javassistClassBuilder.getCtClass().getClassFile().getConstPool(), "()Ljava/lang/String;");
     }
 
     /**
@@ -255,27 +254,30 @@ public class CompatibilityModeAccessorUtilV2 {
      * @param method                生成的方法
      * @param javassistClassBuilder 构造器
      */
-    private static void invokeSpecial(String this0Class, String methodOwner, AsmMethod method, JavassistClassBuilder javassistClassBuilder) throws CannotCompileException {
+    private static void invokeSpecial(JavassistClassBuilder javassistClassBuilder, AsmMethod method, String this0Class, String methodOwner) throws CannotCompileException {
         String methodName = method.getMethodName();
         Type methodType = Type.getMethodType(method.getDesc());
         String rType = methodType.getReturnType().getClassName();
 
         Type[] args = methodType.getArgumentTypes();
-        String[] argVars = IntStream.range(0, args.length).mapToObj(i -> "var_" + i).toArray(String[]::new);
-        String argsClassDeclare = Arrays.stream(args).map(type -> type.getClassName() + ".class").collect(Collectors.joining(","));
-        String argsDeclare = IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName() + " " + argVars[i])
-                .collect(Collectors.joining(","));
-        String[] packingArgs = Arrays.stream(argVars).map(a -> "Util.wrapping(" + a + ")").toArray(String[]::new);
-        String unpacking = getUnpacking(methodType.getReturnType());
+        String mhVar = methodName + "_MH_" + COUNTER.getAndIncrement();
+        String argsTypeDeclare = Arrays.stream(args).map(type -> type.getClassName() + ".class").collect(Collectors.joining(","));
 
-        StringBuilder methodSrc = new StringBuilder("public " + rType + " super_" + methodName + "(" + argsDeclare + ") {").append("\n")
-                .append("MethodType type = MethodType.methodType(" + rType + ".class,new Class[]{" + argsClassDeclare + "});").append("\n")
-                .append("MethodHandle mh = LOOKUP.findSpecial(" + methodOwner + ".class,\"" + methodName + "\",type," + this0Class + ".class).bindTo(this$0);").append("\n")
-                .append(unpacking != null ? "return (" + rType + ")" : "")
-                .append(unpacking != null ? "Util." + unpacking + "(" : "(")
-                .append("mh.invoke(new Object[] {" + String.join(",", packingArgs) + "}));").append("\n")
-                .append("}");
-        javassistClassBuilder.defineMethod(methodSrc.toString());
+        String declare = String.format("public %s %s(%s)",
+                rType, "super_"+methodName, IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName() + " " + "var_" + i).collect(Collectors.joining(",")));
+        javassistClassBuilder
+                .defineField("private static final MethodHandle " + mhVar + " = LOOKUP.findSpecial(" + methodOwner + ".class,\"" + methodName + "\", " +
+                        "MethodType.methodType(" + rType + ".class,new Class[]{" + argsTypeDeclare + "}), " + this0Class + ".class);")
+                .defineMethod(declare + "{ throw new RuntimeException(\"not impl\"); }", (bytecode) -> {
+                    bytecode.addGetstatic(javassistClassBuilder.getClassName(), mhVar, "Ljava/lang/invoke/MethodHandle;");
+                    loadThis$0(bytecode, javassistClassBuilder.getClassName(), this0Class);
+                    loadArgs(bytecode, args);
+                    bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", AsmUtil.addArgsDesc(methodType.getDescriptor(), methodOwner, true));
+                    areturn(bytecode, methodType.getReturnType());
+
+                    bytecode.setMaxLocals(2+args.length);
+                    bytecode.setMaxStack(2+AsmUtil.calculateLvbOffset(false, args));
+                });
     }
 
     /**
@@ -334,6 +336,24 @@ public class CompatibilityModeAccessorUtilV2 {
             default:
                 return "wrap_object";
         }
+    }
+
+    private static void loadArgs(Bytecode bytecode, Type[] argumentTypes) {
+        int i = 0;
+        for (Type argumentType : argumentTypes) {
+            bytecode.add(argumentType.getOpcode(Opcodes.ILOAD), i + 1);
+            if (argumentType.getSort() == Type.DOUBLE || argumentType.getSort() == Type.LONG) i++;
+            i++;
+        }
+    }
+
+    private static void loadThis$0(Bytecode bytecode, String this$0Holder, String this0Class) {
+        bytecode.addAload(0);
+        bytecode.addGetfield(this$0Holder, "this$0", AsmUtil.toTypeDesc(this0Class));
+    }
+
+    private static void areturn(Bytecode bytecode, Type rType) {
+        bytecode.add(rType.getOpcode(Opcodes.IRETURN));
     }
 
     @SneakyThrows

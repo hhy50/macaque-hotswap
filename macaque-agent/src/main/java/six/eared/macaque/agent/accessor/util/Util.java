@@ -1,7 +1,19 @@
 package six.eared.macaque.agent.accessor.util;
 
 
+import lombok.SneakyThrows;
+
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Constructor;
+
 public class Util {
+
+    @SneakyThrows
+    public static MethodHandles.Lookup lookup(Class callerClass) {
+        Constructor constructor = MethodHandles.Lookup.class.getDeclaredConstructors()[0];
+        constructor.setAccessible(true);
+        return (MethodHandles.Lookup) constructor.newInstance(callerClass);
+    }
 
     public static Object wrapping(Object obj) {
         return obj;

@@ -1,9 +1,14 @@
 package six.eared.macaque.agent.javassist;
 
 import javassist.*;
+import javassist.bytecode.Bytecode;
 import javassist.bytecode.MethodInfo;
 import lombok.Getter;
 import lombok.SneakyThrows;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
 
 import static six.eared.macaque.agent.javassist.JavaSsistUtil.POOL;
 
@@ -56,6 +61,17 @@ public class JavassistClassBuilder {
         return this;
     }
 
+    public JavassistClassBuilder defineMethod(String src, Consumer<Bytecode> interceptor) throws CannotCompileException {
+        Bytecode bytecode = new Bytecode(ctClass.getClassFile().getConstPool());
+        interceptor.accept(bytecode);
+
+        CtMethod ctMethod = CtNewMethod.make(src, ctClass);
+        MethodInfo methodInfo = ctMethod.getMethodInfo();
+        methodInfo.setCodeAttribute(bytecode.toCodeAttribute());
+        this.ctClass.addMethod(ctMethod);
+        return this;
+    }
+
     public JavassistClassBuilder defineStaticBlock(String src) throws CannotCompileException {
         CtConstructor ctConstructor = this.ctClass
                 .makeClassInitializer();
@@ -71,9 +87,12 @@ public class JavassistClassBuilder {
         return ctClasses;
     }
 
-    public MethodInfo getMethod(String name) {
-        return this.ctClass.getClassFile().getMethod(name);
-    }
+//    public void defineNotImplMethod(String src) throws CannotCompileException {
+//        CtMethod ctMethod = CtNewMethod.make(src, this.ctClass);
+//        ctMethod.getMethodInfo()
+//                .setCodeAttribute(bytecode.toCodeAttribute());
+//        this.ctClass.addMethod(ctMethod);
+//    }
 
     @SneakyThrows
     public byte[] toByteArray() {
