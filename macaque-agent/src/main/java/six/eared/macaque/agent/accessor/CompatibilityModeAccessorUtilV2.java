@@ -239,8 +239,9 @@ public class CompatibilityModeAccessorUtilV2 {
                         bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", methodType.getDescriptor());
                         areturn(bytecode, methodType.getReturnType());
 
-                        bytecode.setMaxLocals(2+args.length);
-                        bytecode.setMaxStack(2+AsmUtil.calculateLvbOffset(true, args));
+                        int lvb = AsmUtil.calculateLvbOffset(false, args);
+                        bytecode.setMaxLocals(lvb);
+                        bytecode.setMaxStack(2+lvb);
                     });
         } else {
             body = (rType.equals("void") ? "" : "return (" + rType + ")") +
@@ -275,8 +276,9 @@ public class CompatibilityModeAccessorUtilV2 {
                     bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", AsmUtil.addArgsDesc(methodType.getDescriptor(), methodOwner, true));
                     areturn(bytecode, methodType.getReturnType());
 
-                    bytecode.setMaxLocals(2+args.length);
-                    bytecode.setMaxStack(2+AsmUtil.calculateLvbOffset(false, args));
+                    int lvb = AsmUtil.calculateLvbOffset(false, args);
+                    bytecode.setMaxLocals(1+lvb);
+                    bytecode.setMaxStack(2+lvb);
                 });
     }
 
