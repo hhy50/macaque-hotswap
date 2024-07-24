@@ -26,8 +26,8 @@ public class AsmClassBuilder {
     }
 
     public AsmClassBuilder defineClass(int access, String className, String superName, String[] interfaces, String signature) {
-        this.classWriter.visit(Opcodes.V1_8, access, ClassUtil.simpleClassName2path(className), signature,
-                superName != null ? ClassUtil.simpleClassName2path(superName) : "java/lang/Object", interfaces);
+        this.classWriter.visit(Opcodes.V1_8, access, ClassUtil.className2path(className), signature,
+                superName != null ? ClassUtil.className2path(superName) : "java/lang/Object", interfaces);
         this.className = className;
         this.superClassName = superName;
         return this;

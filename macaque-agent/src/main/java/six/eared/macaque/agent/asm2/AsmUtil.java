@@ -35,7 +35,7 @@ public class AsmUtil {
      * @throws ClassNotFoundException
      */
     public static ClazzDefinition readOriginClass(String className) throws ClassNotFoundException, IOException {
-        try (InputStream is = ClassLoader.getSystemResourceAsStream(ClassUtil.className2path(className));) {
+        try (InputStream is = ClassLoader.getSystemResourceAsStream(ClassUtil.className2path(className)+".class");) {
             if (is != null) {
                 return AsmUtil.readClass(FileUtil.is2bytes(is));
             }
@@ -90,7 +90,7 @@ public class AsmUtil {
     }
 
     public static String toTypeDesc(String className) {
-        return "L" + ClassUtil.simpleClassName2path(className) + ";";
+        return "L" + ClassUtil.className2path(className) + ";";
     }
 
     public static String addArgsDesc(String methodDesc, String newArg, boolean header) {

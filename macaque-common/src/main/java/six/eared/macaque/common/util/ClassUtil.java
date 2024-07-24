@@ -9,10 +9,6 @@ import java.util.List;
 
 public class ClassUtil {
     public static String className2path(String clazz) {
-        return clazz.replace('.', '/') + ".class";
-    }
-
-    public static String simpleClassName2path(String clazz) {
         return clazz.replace('.', '/');
     }
 

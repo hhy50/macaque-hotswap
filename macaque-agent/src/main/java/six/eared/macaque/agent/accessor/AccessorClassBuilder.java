@@ -9,9 +9,12 @@ import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
+import six.eared.macaque.agent.asm2.MethodUniqueDesc;
 import six.eared.macaque.agent.javassist.JavassistClassBuilder;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -27,6 +30,8 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
     @Setter
     private String this$0;
 
+    Map<MethodUniqueDesc, MethodAccessorRule> methodAccessorRules = new HashMap<>();
+
     @Setter
     private Accessor parent;
 
@@ -40,18 +45,17 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
     }
 
     public void addMethod(String owner, AsmMethod method) throws CannotCompileException {
-        AccessorRule rule = null;
+        MethodAccessorRule rule = null;
         if (method.isStatic()) {
             rule = invokerStatic(owner, method);
         } else if (method.isPrivate()) {
             rule = invokeSpecial(owner, method);
-        } else {
-            if (owner.equals(this.this$0)) { // 不是继承而来的
-                rule = invokerVirtual(owner, method);
-            } else if (parent == null) { // 继承来的但是没有父accessor, 就生成方法调用
-                rule = invokeSpecial(owner, method);
-            }
+        } else if (owner.equals(this.this$0)) { // 不是继承而来的
+            rule = invokerVirtual(owner, method);
+        } else if (parent == null) { // 继承来的但是没有父accessor, 就生成方法调用
+            rule = invokeSpecial(owner, method);
         }
+        this.methodAccessorRules.put(MethodUniqueDesc.of(method.getMethodName(), method.getDesc()), rule);
     }
 
     public void addField(String owner, AsmField filed) throws CannotCompileException {
@@ -64,7 +68,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
     /**
      *
      */
-    private AccessorRule invokerStatic(String owner, AsmMethod method) throws CannotCompileException {
+    private MethodAccessorRule invokerStatic(String owner, AsmMethod method) throws CannotCompileException {
         if (method.isPrivate()) {
             String methodName = method.getMethodName();
             Type methodType = Type.getMethodType(method.getDesc());
@@ -87,12 +91,12 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
                         bytecode.setMaxLocals(lvb);
                         bytecode.setMaxStack(2+lvb); // 2=mh+?
                     });
-            return AccessorRule.forward(true, this.getClassName(), methodName, method.getDesc());
+            return MethodAccessorRule.forward(true, this.getClassName(), methodName, method.getDesc());
         }
-        return AccessorRule.direct();
+        return MethodAccessorRule.direct();
     }
 
-    private AccessorRule invokerVirtual(String owner, AsmMethod method) throws CannotCompileException {
+    private MethodAccessorRule invokerVirtual(String owner, AsmMethod method) throws CannotCompileException {
         String methodName = method.getMethodName();
         Type methodType = Type.getMethodType(method.getDesc());
         String rType = methodType.getReturnType().getClassName();
@@ -104,11 +108,11 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
         String body = (rType.equals("void")?"":"return ("+rType+")")+
                 "(("+owner+") this$0)."+methodName+"("+String.join(",", argVars)+");";
         this.defineMethod(declare+"{"+body+"}");
-        return AccessorRule.forward(true, this.getClassName(), methodName, method.getDesc());
+        return MethodAccessorRule.forward(true, this.getClassName(), methodName, method.getDesc());
     }
 
 
-    private AccessorRule invokeSpecial(String owner, AsmMethod method) throws CannotCompileException {
+    private MethodAccessorRule invokeSpecial(String owner, AsmMethod method) throws CannotCompileException {
         String methodName = method.getMethodName();
         Type methodType = Type.getMethodType(method.getDesc());
         String rType = methodType.getReturnType().getClassName();
@@ -132,7 +136,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
                     bytecode.setMaxLocals(lvb);
                     bytecode.setMaxStack(2+lvb); // 2=mh+this$0
                 });
-        return AccessorRule.forward(true, this.getClassName(), newMethodName, method.getDesc());
+        return MethodAccessorRule.forward(true, this.getClassName(), newMethodName, method.getDesc());
     }
 
     /**
@@ -230,11 +234,20 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
 
     private static void loadThis$0(Bytecode bytecode, String this$0Holder, String this0Class) {
         bytecode.addAload(0);
-        bytecode.addGetfield(this$0Holder, "this$0", AsmUtil.toTypeDesc(this0Class));
+        bytecode.addGetfield(this$0Holder, "this$0", "Ljava/lang/Object;");
         bytecode.addCheckcast(this0Class);
     }
 
     private static void areturn(Bytecode bytecode, Type rType) {
         bytecode.add(rType.getOpcode(Opcodes.IRETURN));
+    }
+
+    public Accessor toAccessor() {
+        Accessor accessor = new Accessor();
+        accessor.ownerClass = this$0;
+        accessor.methodAccessorRules = methodAccessorRules;
+        accessor.parent = parent;
+        accessor.definition = AsmUtil.readClass(this.toByteArray());
+        return accessor;
     }
 }

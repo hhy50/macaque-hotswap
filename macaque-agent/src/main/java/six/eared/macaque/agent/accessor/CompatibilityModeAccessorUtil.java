@@ -77,8 +77,8 @@ public class CompatibilityModeAccessorUtil {
      */
     private static AsmClassBuilder generateAccessorClass(String accessorName, ClazzDefinition definition,
                                                          String superAccessorName) {
-        String outClassDesc = "L" + ClassUtil.simpleClassName2path(definition.getClassName()) + ";";
-        String accessorDesc = ClassUtil.simpleClassName2path(accessorName);
+        String outClassDesc = "L" + ClassUtil.className2path(definition.getClassName()) + ";";
+        String accessorDesc = ClassUtil.className2path(accessorName);
         AsmClassBuilder classBuilder = AsmUtil
                 .defineClass(Opcodes.ACC_PUBLIC, accessorName, superAccessorName, null, null)
                 .defineConstruct(Opcodes.ACC_PUBLIC, new String[]{"java.lang.Object"}, null, null)
@@ -100,7 +100,7 @@ public class CompatibilityModeAccessorUtil {
                     }
 
                     visitor.visitMethodInsn(Opcodes.INVOKESPECIAL,
-                            containSupper ? ClassUtil.simpleClassName2path(superAccessorName) : "java/lang/Object", "<init>",
+                            containSupper ? ClassUtil.className2path(superAccessorName) : "java/lang/Object", "<init>",
                             containSupper ? Type.getMethodType(Type.VOID_TYPE, Type.getType(definition.getSuperClassName())).getDescriptor() : "()V", false);
 
                     visitor.visitInsn(Opcodes.RETURN);
@@ -272,11 +272,11 @@ public class CompatibilityModeAccessorUtil {
         visitor.visitMaxs(lvbOffset + 2, lvbOffset);
 
         visitor.visitVarInsn(Opcodes.ALOAD, 0);
-        visitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.simpleClassName2path(this0holder), "this$0", "Ljava/lang/Object;");
-        visitor.visitTypeInsn(Opcodes.CHECKCAST, ClassUtil.simpleClassName2path(ouClassName));
+        visitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.className2path(this0holder), "this$0", "Ljava/lang/Object;");
+        visitor.visitTypeInsn(Opcodes.CHECKCAST, ClassUtil.className2path(ouClassName));
 
         loadArgs(visitor, argumentTypes);
-        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, ClassUtil.simpleClassName2path(ouClassName), asmMethod.getMethodName(), methodType.getDescriptor(), false);
+        visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, ClassUtil.className2path(ouClassName), asmMethod.getMethodName(), methodType.getDescriptor(), false);
 
         // areturn
         areturn(visitor, methodType.getReturnType());
@@ -334,7 +334,7 @@ public class CompatibilityModeAccessorUtil {
         visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 0); // slot_0 = MethodType type
 
         // MethodHandle mh = {@param accessorClassName}.LOOKUP.findSpecial({super_outClass}.class, "{@param methodName}", type, {@param superClassName}.class)
-        visitor.visitFieldInsn(Opcodes.GETSTATIC, ClassUtil.simpleClassName2path(accessorClassName), "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
+        visitor.visitFieldInsn(Opcodes.GETSTATIC, ClassUtil.className2path(accessorClassName), "LOOKUP", "Ljava/lang/invoke/MethodHandles$Lookup;");
         visitor.visitLdcInsn(Type.getType(AsmUtil.toTypeDesc(methodOwner)));
         visitor.visitLdcInsn(asmMethod.getMethodName());
         visitor.visitVarInsn(Opcodes.ALOAD, lvbOffset + 0); // slot_0 = type
@@ -343,7 +343,7 @@ public class CompatibilityModeAccessorUtil {
 
         // .bindTo({@param this0holder}.this$0);
         visitor.visitVarInsn(Opcodes.ALOAD, 0);
-        visitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.simpleClassName2path(this0holder), "this$0", "Ljava/lang/Object;");
+        visitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.className2path(this0holder), "this$0", "Ljava/lang/Object;");
         visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "bindTo", "(Ljava/lang/Object;)Ljava/lang/invoke/MethodHandle;", false);
         visitor.visitVarInsn(Opcodes.ASTORE, lvbOffset + 1); // slot_1 = MethodHandle mh
 

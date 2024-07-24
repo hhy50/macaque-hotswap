@@ -115,8 +115,8 @@ public class CompatibilityModeByteCodeEnhancer {
 
         ClassWriter classWriter = new ClassWriter(0);
         classWriter.visit(originClass.getClassVersion(), originClass.getModifiers() | Opcodes.ACC_OPEN,
-                ClassUtil.simpleClassName2path(originClass.getClassName()), originClass.getSign(), ClassUtil.simpleClassName2path(originClass.getSuperClassName()),
-                Arrays.stream(originClass.getInterfaces()).map(ClassUtil::simpleClassName2path).toArray(String[]::new));
+                ClassUtil.className2path(originClass.getClassName()), originClass.getSign(), ClassUtil.className2path(originClass.getSuperClassName()),
+                Arrays.stream(originClass.getInterfaces()).map(ClassUtil::className2path).toArray(String[]::new));
 
         // TODO annotation
 

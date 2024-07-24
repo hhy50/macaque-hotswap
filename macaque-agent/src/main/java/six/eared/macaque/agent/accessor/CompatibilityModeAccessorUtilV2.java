@@ -1,6 +1,8 @@
 package six.eared.macaque.agent.accessor;
 
-import javassist.*;
+import javassist.CannotCompileException;
+import javassist.Modifier;
+import javassist.NotFoundException;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
@@ -13,7 +15,8 @@ import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.StringUtil;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -50,7 +53,7 @@ public class CompatibilityModeAccessorUtilV2 {
             collectSuperMember(clazzDefinition, javassistClassBuilder, superAccessor);
 
             CompatibilityModeClassLoader.loadClass(javassistClassBuilder.getClassName(), javassistClassBuilder.toByteArray());
-            Accessor accessor = new Accessor(className, AsmUtil.readClass(javassistClassBuilder.toByteArray()), superAccessor);
+            Accessor accessor =  javassistClassBuilder.toAccessor();
             LOADED.put(className, accessor);
             return accessor;
         } catch (Exception e) {

@@ -33,7 +33,7 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
                 desc, opcode == Opcodes.INVOKESTATIC);
         if (bindInfo != null) {
             this.maxArglen = Math.max(Type.getArgumentTypes(desc).length, maxArglen);
-            String accessorClassPath = ClassUtil.simpleClassName2path(bindInfo.getAccessorClass());
+            String accessorClassPath = ClassUtil.className2path(bindInfo.getAccessorClass());
             if (opcode == Opcodes.INVOKESTATIC) {
                 // 只需要访问器入栈
                 //AsmUtil.accessorStore(this.instructions, accessorClassPath);
@@ -52,7 +52,7 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
                 AsmUtil.accessorStore(inst, accessorClassPath);
                 this.instructions.insert(prev, inst);
             }
-            super.visitMethodInsn(Opcodes.INVOKESTATIC, ClassUtil.simpleClassName2path(bindInfo.getBindClass()), bindInfo.getBindMethod(),
+            super.visitMethodInsn(Opcodes.INVOKESTATIC, ClassUtil.className2path(bindInfo.getBindClass()), bindInfo.getBindMethod(),
                     bindInfo.getBindMethodDesc(), itf);
             return;
         }

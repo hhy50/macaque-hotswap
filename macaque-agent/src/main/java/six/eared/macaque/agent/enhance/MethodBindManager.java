@@ -2,6 +2,7 @@ package six.eared.macaque.agent.enhance;
 
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
+import six.eared.macaque.agent.asm2.ClassMethodUniqueDesc;
 import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 
 import java.util.HashMap;
@@ -14,7 +15,7 @@ public class MethodBindManager {
     /**
      * 只有新方法才有bind info
      */
-    private static final Map<String, MethodBindInfo> BIND_INFO_MAP = new HashMap<>();
+    private static final Map<ClassMethodUniqueDesc, MethodBindInfo> BIND_INFO_MAP = new HashMap<>();
 
     public static MethodBindInfo createMethodBindInfo(String clazzName, AsmMethod method, String accessorName) {
         MethodBindInfo bindInfo = getBindInfo(clazzName, method.getMethodName(), method.getDesc(), method.isStatic());
@@ -28,7 +29,7 @@ public class MethodBindManager {
         MethodBindInfo methodBindInfo = new MethodBindInfo();
         methodBindInfo.setBindClass(bindClassName);
         methodBindInfo.setBindMethod(bindMethodName);
-        methodBindInfo.setBindMethodDesc(method.isStatic() ? method.getDesc() : AsmUtil.addArgsDesc(method.getDesc(), accessorName, true));
+        methodBindInfo.setBindMethodDesc(method.isStatic()?method.getDesc():AsmUtil.addArgsDesc(method.getDesc(), accessorName, true));
         methodBindInfo.setAccessorClass(accessorName);
         methodBindInfo.setVisitorCaller(new AsmMethodVisitorCaller());
 
@@ -36,13 +37,13 @@ public class MethodBindManager {
         return methodBindInfo;
     }
 
-    private static void putBindInfo(String clazzName, String method, String desc, boolean isStatic, MethodBindInfo methodBindInfo) {
-        if (isStatic) method = "static#" + method;
-        BIND_INFO_MAP.put(clazzName + "#" + method + "#" + desc, methodBindInfo);
+    private static void putBindInfo(String clazzName, String methodName, String desc, boolean isStatic, MethodBindInfo methodBindInfo) {
+        if (isStatic) methodName = "static#"+methodName;
+        BIND_INFO_MAP.put(ClassMethodUniqueDesc.of(clazzName, methodName, desc), methodBindInfo);
     }
 
-    public static MethodBindInfo getBindInfo(String clazzName, String method, String desc, boolean isStatic) {
-        if (isStatic) method = "static#" + method;
-        return BIND_INFO_MAP.get(clazzName + "#" + method + "#" + desc);
+    public static MethodBindInfo getBindInfo(String clazzName, String methodName, String desc, boolean isStatic) {
+        if (isStatic) methodName = "static#"+methodName;
+        return BIND_INFO_MAP.get(ClassMethodUniqueDesc.of(clazzName, methodName, desc));
     }
 }

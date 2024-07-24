@@ -6,8 +6,6 @@ import javassist.bytecode.MethodInfo;
 import lombok.Getter;
 import lombok.SneakyThrows;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
 import static six.eared.macaque.agent.javassist.JavaSsistUtil.POOL;
