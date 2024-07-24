@@ -6,6 +6,7 @@ import javassist.bytecode.Bytecode;
 import lombok.Setter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.javassist.JavassistClassBuilder;
@@ -45,26 +46,19 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
         } else if (method.isPrivate()) {
             rule = invokeSpecial(owner, method);
         } else {
-            // 继承而来 （如果自己重写了父类的方法, 就保存父类的字节码，防止 super调用）
-            if (!owner.equals(this.this$0) && parent != null) {
-               return;
+            if (owner.equals(this.this$0)) { // 不是继承而来的
+                rule = invokerVirtual(owner, method);
+            } else if (parent == null) { // 继承来的但是没有父accessor, 就生成方法调用
+                rule = invokeSpecial(owner, method);
             }
-            // 不是继承而来的 或者 继承来的但是没有父accessor, 就生成方法调用
-            rule = invokerVirtual(owner, method);
         }
     }
 
-    public String getThis$0holder() {
-        if (parent != null) {
-            String holder = null;
-            Accessor c = parent;
-            while (c != null) {
-                holder = c.getClassName();
-                c = c.parent;
-            }
-            return holder;
+    public void addField(String owner, AsmField filed) throws CannotCompileException {
+        getField(owner, filed);
+        if (filed.isFinal()) {
+            setField(owner, filed);
         }
-        return super.className;
     }
 
     /**
@@ -82,9 +76,9 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
             String argsVarDeclare = IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName()+" "+argVars[i]).collect(Collectors.joining(","));
 
             super.defineField("private static final MethodHandle "+mhVar+" = LOOKUP.findStatic("+this$0+".class,\""+methodName+"\", MethodType.methodType("+rType+".class,new Class[]{"+argsTypeDeclare+"}));")
-                    .defineMethod("public static "+rType+" "+methodName+ "("+argsVarDeclare+") { throw new RuntimeException(\"not impl\"); }", (bytecode) -> {
+                    .defineMethod("public static "+rType+" "+methodName+"("+argsVarDeclare+") { throw new RuntimeException(\"not impl\"); }", (bytecode) -> {
                         // return (rType) mh.invoke(args...);
-                        bytecode.addGetstatic(owner, mhVar, "Ljava/lang/invoke/MethodHandle;");
+                        bytecode.addGetstatic(this.getClassName(), mhVar, "Ljava/lang/invoke/MethodHandle;");
                         loadArgs(bytecode, args);
                         bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", methodType.getDescriptor());
                         areturn(bytecode, methodType.getReturnType());
@@ -141,6 +135,90 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
         return AccessorRule.forward(true, this.getClassName(), newMethodName, method.getDesc());
     }
 
+    /**
+     * 为私有字段和实例字段生成访问方法
+     * 排除非私有的静态(ps: 非私有的静态可以在任意地方访问,所以不需要访问方法)
+     *
+     * @param asmField
+     * @throws CannotCompileException
+     */
+    private void getField(String owner, AsmField asmField) throws CannotCompileException {
+        Type fieldType = Type.getType(asmField.getDesc());
+        String type = fieldType.getClassName();
+        String name = asmField.getFieldName();
+
+        String declare = "public "+(asmField.isStatic()?"static ":"")+type+" "+(owner.replace('.', '_')+Accessor.FIELD_GETTER_PREFIX+name)+"()";
+        if (asmField.isPrivate()) {
+            String mhVar = name+"_getter_mh_"+COUNTER.getAndIncrement();
+            super.defineField("private static final MethodHandle "+mhVar+"=LOOKUP."+(asmField.isStatic()?"findStaticGetter":"findGetter")+"("+owner+".class, \""+name+"\", "+fieldType.getClassName()+".class);")
+                    .defineMethod(declare+"{ throw new RuntimeException(\"not impl\"); }", (bytecode) -> {
+                        String dynamicDesc = "()"+asmField.getDesc();
+                        if (!asmField.isStatic()) {
+                            loadThis$0(bytecode, getThis$0holder(), this$0);
+                            dynamicDesc = AsmUtil.addArgsDesc(dynamicDesc, this$0, true);
+                        }
+                        // mh.invoke(this$0, args...)
+                        bytecode.addGetstatic(this.getClassName(), mhVar, "Ljava/lang/invoke/MethodHandle;");
+                        bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", dynamicDesc);
+                        areturn(bytecode, fieldType);
+
+                        bytecode.setMaxLocals(asmField.isStatic()?0:1); // 1=this
+                        bytecode.setMaxStack(asmField.isStatic()?1:2); // 2=mh+this$0, 静态没有this$0
+                    });
+        } else if (!asmField.isStatic()) {
+            super.defineMethod(declare+"{ return "+("(("+this$0+") this$0)."+name)+"; }");
+        }
+    }
+
+    /**
+     * 为私有字段和实例字段生成访问方法
+     * 排除非私有的静态(ps: 非私有的静态可以在任意地方访问,所以不需要访问方法)
+     *
+     * @param owner
+     * @param asmField
+     * @throws CannotCompileException
+     */
+    private void setField(String owner, AsmField asmField) throws CannotCompileException {
+        Type fieldType = Type.getType(asmField.getDesc());
+        String type = fieldType.getClassName();
+        String name = asmField.getFieldName();
+
+        String declare = "public "+(asmField.isStatic()?"static ":"")+"void "+(owner.replace('.', '_')+Accessor.FIELD_SETTER_PREFIX+name)+"("+type+" arg)";
+        if (asmField.isPrivate()) {
+            String mhVar = name+"_set_mh_"+COUNTER.getAndIncrement();
+            super.defineField("private static final MethodHandle "+mhVar+"=LOOKUP."+(asmField.isStatic()?"findStaticSetter":"findSetter")+"("+owner+".class, \""+name+"\", "+fieldType.getClassName()+".class);")
+                    .defineMethod(declare+"{ throw new RuntimeException(\"not impl\"); }", (bytecode) -> {
+                        String dynamicDesc = "("+asmField.getDesc()+")V";
+                        if (!asmField.isStatic()) {
+                            loadThis$0(bytecode, getThis$0holder(), this$0);
+                            dynamicDesc = AsmUtil.addArgsDesc(dynamicDesc, this$0, true);
+                        }
+                        bytecode.addGetstatic(this.getClassName(), mhVar, "Ljava/lang/invoke/MethodHandle;");
+                        bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", dynamicDesc);
+                        areturn(bytecode, fieldType);
+
+                        int lvb = AsmUtil.calculateLvbOffset(asmField.isStatic(), new Type[]{fieldType});
+                        bytecode.setMaxLocals(asmField.isStatic()?lvb:lvb+1);
+                        bytecode.setMaxLocals(asmField.isStatic()?lvb:lvb+1);
+                    });
+        } else if (!asmField.isStatic()) {
+            super.defineMethod(declare+"{"+this$0+"."+name+"=arg;}");
+        }
+    }
+
+    public String getThis$0holder() {
+        if (parent != null) {
+            String holder = null;
+            Accessor c = parent;
+            while (c != null) {
+                holder = c.getClassName();
+                c = c.parent;
+            }
+            return holder;
+        }
+        return super.className;
+    }
+
     private static void loadArgs(Bytecode bytecode, Type[] argumentTypes) {
         int i = 0;
         for (Type argumentType : argumentTypes) {
@@ -153,6 +231,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
     private static void loadThis$0(Bytecode bytecode, String this$0Holder, String this0Class) {
         bytecode.addAload(0);
         bytecode.addGetfield(this$0Holder, "this$0", AsmUtil.toTypeDesc(this0Class));
+        bytecode.addCheckcast(this0Class);
     }
 
     private static void areturn(Bytecode bytecode, Type rType) {

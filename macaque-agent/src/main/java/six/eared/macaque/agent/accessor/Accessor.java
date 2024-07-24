@@ -16,7 +16,7 @@ import six.eared.macaque.common.util.ClassUtil;
 
 @AllArgsConstructor
 public class Accessor {
-    public static final String FIELD_GETTER_PREFIX = "macaque$get$field$";
+    public static final String FIELD_GETTER_PREFIX = "$macaque$get$field$";
     public static final String FIELD_SETTER_PREFIX = "macaque$set$field$";
 
     /**
