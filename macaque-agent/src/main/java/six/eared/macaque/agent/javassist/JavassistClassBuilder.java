@@ -15,11 +15,11 @@ import static six.eared.macaque.agent.javassist.JavaSsistUtil.POOL;
 public class JavassistClassBuilder {
 
     @Getter
-    private String className;
+    protected final String className;
 
-    private CtClass ctClass;
+    protected CtClass ctClass;
 
-    public JavassistClassBuilder(int modifier, String className, String superClass, String[] interfaces)
+    protected JavassistClassBuilder(int modifier, String className, String superClass, String[] interfaces)
             throws NotFoundException, CannotCompileException {
         this.className = className;
         this.ctClass = javassistClass(modifier, className, superClass, interfaces);
@@ -39,47 +39,34 @@ public class JavassistClassBuilder {
         return ctClass;
     }
 
-    public JavassistClassBuilder defineField(String src) throws CannotCompileException {
-        this.ctClass.addField(CtField.make(src, this.ctClass));
-        return this;
-    }
-
-    public JavassistClassBuilder defineField(int modifier, String fieldName, String fieldType) throws CannotCompileException, NotFoundException {
-        CtField field = new CtField(POOL.get(fieldType), fieldName, this.ctClass);
-        field.setModifiers(modifier);
-        this.ctClass.addField(field);
-        return this;
-    }
-
     public JavassistClassBuilder defineConstructor(String src) throws CannotCompileException {
         this.ctClass.addConstructor(CtNewConstructor.make(src, ctClass));
         return this;
     }
 
-    public JavassistClassBuilder defineMethod(String src) throws CannotCompileException {
-        this.ctClass.addMethod(CtMethod.make(src, ctClass));
+    public JavassistClassBuilder defineField(String src) throws CannotCompileException {
+        this.ctClass.addField(CtField.make(src, this.ctClass));
         return this;
+    }
+
+    public CtMethod defineMethod(String src) throws CannotCompileException {
+        CtMethod ctMethod = CtMethod.make(src, ctClass);
+        this.ctClass.addMethod(ctMethod);
+        return ctMethod;
     }
 
     public JavassistClassBuilder defineMethod(String src, Consumer<Bytecode> interceptor) throws CannotCompileException {
+        CtMethod ctMethod = this.defineMethod(src);
+
         Bytecode bytecode = new Bytecode(ctClass.getClassFile().getConstPool());
         interceptor.accept(bytecode);
 
-        CtMethod ctMethod = CtNewMethod.make(src, ctClass);
         MethodInfo methodInfo = ctMethod.getMethodInfo();
         methodInfo.setCodeAttribute(bytecode.toCodeAttribute());
-        this.ctClass.addMethod(ctMethod);
         return this;
     }
 
-    public JavassistClassBuilder defineStaticBlock(String src) throws CannotCompileException {
-        CtConstructor ctConstructor = this.ctClass
-                .makeClassInitializer();
-        ctConstructor.setBody(src);
-        return this;
-    }
-
-    private CtClass[] getTypes(String[] types) throws NotFoundException {
+    static CtClass[] getTypes(String[] types) throws NotFoundException {
         CtClass[] ctClasses = new CtClass[types.length];
         for (int i = 0; i < types.length; i++) {
             ctClasses[i] = POOL.get(types[i]);
@@ -87,19 +74,8 @@ public class JavassistClassBuilder {
         return ctClasses;
     }
 
-//    public void defineNotImplMethod(String src) throws CannotCompileException {
-//        CtMethod ctMethod = CtNewMethod.make(src, this.ctClass);
-//        ctMethod.getMethodInfo()
-//                .setCodeAttribute(bytecode.toCodeAttribute());
-//        this.ctClass.addMethod(ctMethod);
-//    }
-
     @SneakyThrows
     public byte[] toByteArray() {
         return this.ctClass.toBytecode();
-    }
-
-    public CtClass getCtClass() {
-        return ctClass;
     }
 }

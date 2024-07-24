@@ -28,8 +28,7 @@ public class Accessor {
     @Getter
     private ClazzDefinition accessor;
 
-    @Getter
-    private Accessor parent;
+    Accessor parent;
 
     public String getClassName() {
         return accessor.getClassName();

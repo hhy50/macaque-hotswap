@@ -20,6 +20,4 @@ public class JavaSsistUtil {
             throws NotFoundException, CannotCompileException {
         return new JavassistClassBuilder(modifier, className, superClass, interfaces);
     }
-
-
 }
