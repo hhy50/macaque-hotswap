@@ -6,16 +6,16 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
-import six.eared.macaque.agent.asm2.classes.MethodDynamicStackVisitor;
 import six.eared.macaque.common.util.ClassUtil;
 
 /**
  * 改变调用指令的字节码转换器
  */
 
-public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
+public class InvokeCodeConvertor extends MethodNode {
 
     private final AsmMethod method;
     private final MethodVisitor write;
@@ -23,6 +23,7 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
     private boolean accessorLoad = false;
 
     public InvokeCodeConvertor(AsmMethod method, MethodVisitor write) {
+        super(Opcodes.ASM9);
         this.method = method;
         this.write = write;
     }
@@ -43,8 +44,7 @@ public class InvokeCodeConvertor extends MethodDynamicStackVisitor {
                  * 需要访问器提前入栈
                  * 先找到压入参数之前的第一条指令
                  */
-                AbstractInsnNode prev = AsmUtil.getPrevStackInsn(Type.getArgumentTypes(desc).length, this.instructions.getLast());
-
+                AbstractInsnNode prev = AsmUtil.getPrevStackInsn(Type.getArgumentTypes(desc).length,AsmUtil.getPrevValid(this.instructions.getLast()));
                 InsnList inst = new InsnList();
                 // 需要先将obj弹出
                 inst.add(new InsnNode(Opcodes.POP));

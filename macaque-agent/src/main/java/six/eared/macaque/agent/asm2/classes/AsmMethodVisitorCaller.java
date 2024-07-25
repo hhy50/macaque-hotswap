@@ -13,6 +13,7 @@ public class AsmMethodVisitorCaller extends MethodNode {
     public void accept(MethodVisitor mv) {
         if (!this.isEmpty())
             super.accept(mv);
+        super.instructions.clear();
     }
 
     public boolean isEmpty() {
