@@ -8,7 +8,7 @@ import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import six.eared.macaque.agent.asm2.AsmUtil;
-import six.eared.macaque.agent.asm2.MethodUniqueDesc;
+import six.eared.macaque.agent.asm2.ClassMethodUniqueDesc;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.common.util.ClassUtil;
 
@@ -24,7 +24,7 @@ public class Accessor {
      */
     String ownerClass;
 
-    Map<MethodUniqueDesc, MethodAccessorRule> methodAccessorRules;
+    Map<ClassMethodUniqueDesc, MethodAccessorRule> methodAccessorRules;
 
     ClazzDefinition definition;
 
@@ -35,7 +35,7 @@ public class Accessor {
     }
 
     protected MethodAccessorRule findMethodAccessRule(String owner, String name, String desc) {
-        MethodAccessorRule rule = methodAccessorRules.get(MethodUniqueDesc.of(name, desc));
+        MethodAccessorRule rule = methodAccessorRules.get(ClassMethodUniqueDesc.of(ClassUtil.classpath2name(owner), name, desc));
         if (rule != null) return rule;
         if (parent != null) return parent.findMethodAccessRule(owner, name, desc);
         return MethodAccessorRule.direct();

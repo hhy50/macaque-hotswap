@@ -6,10 +6,7 @@ import javassist.bytecode.Bytecode;
 import lombok.Setter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import six.eared.macaque.agent.asm2.AsmField;
-import six.eared.macaque.agent.asm2.AsmMethod;
-import six.eared.macaque.agent.asm2.AsmUtil;
-import six.eared.macaque.agent.asm2.MethodUniqueDesc;
+import six.eared.macaque.agent.asm2.*;
 import six.eared.macaque.agent.javassist.JavassistClassBuilder;
 
 import java.util.Arrays;
@@ -30,7 +27,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
     @Setter
     private String this$0;
 
-    Map<MethodUniqueDesc, MethodAccessorRule> methodAccessorRules = new HashMap<>();
+    Map<ClassMethodUniqueDesc, MethodAccessorRule> methodAccessorRules = new HashMap<>();
 
     @Setter
     private Accessor parent;
@@ -55,7 +52,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
         } else if (parent == null) { // 继承来的但是没有父accessor, 就生成方法调用
             rule = invokeSpecial(owner, method);
         }
-        this.methodAccessorRules.put(MethodUniqueDesc.of(method.getMethodName(), method.getDesc()), rule);
+        this.methodAccessorRules.put(ClassMethodUniqueDesc.of(owner, method.getMethodName(), method.getDesc()), rule);
     }
 
     public void addField(String owner, AsmField filed) throws CannotCompileException {
@@ -108,7 +105,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
         String body = (rType.equals("void")?"":"return ("+rType+")")+
                 "(("+owner+") this$0)."+methodName+"("+String.join(",", argVars)+");";
         this.defineMethod(declare+"{"+body+"}");
-        return MethodAccessorRule.forward(true, this.getClassName(), methodName, method.getDesc());
+        return MethodAccessorRule.forward(false, this.getClassName(), methodName, method.getDesc());
     }
 
 
@@ -136,7 +133,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
                     bytecode.setMaxLocals(lvb);
                     bytecode.setMaxStack(2+lvb); // 2=mh+this$0
                 });
-        return MethodAccessorRule.forward(true, this.getClassName(), newMethodName, method.getDesc());
+        return MethodAccessorRule.forward(false, this.getClassName(), newMethodName, method.getDesc());
     }
 
     /**
