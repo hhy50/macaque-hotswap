@@ -26,7 +26,7 @@ public class BindMethodWriter extends MethodNode {
             super.visitFieldInsn(opcode, owner, name, desc);
             return;
         }
-        accessor.accessField(this, opcode, owner, name, desc);
+        accessor.accessField(this.instructions, opcode, owner, name, desc);
     }
 
     @Override

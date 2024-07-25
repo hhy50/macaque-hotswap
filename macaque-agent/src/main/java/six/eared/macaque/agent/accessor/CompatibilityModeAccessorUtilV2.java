@@ -3,6 +3,7 @@ package six.eared.macaque.agent.accessor;
 import javassist.CannotCompileException;
 import javassist.Modifier;
 import javassist.NotFoundException;
+import javassist.bytecode.BadBytecode;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
@@ -53,7 +54,7 @@ public class CompatibilityModeAccessorUtilV2 {
             collectSuperMember(clazzDefinition, javassistClassBuilder, superAccessor);
 
             CompatibilityModeClassLoader.loadClass(javassistClassBuilder.getClassName(), javassistClassBuilder.toByteArray());
-            Accessor accessor =  javassistClassBuilder.toAccessor();
+            Accessor accessor = javassistClassBuilder.toAccessor();
             LOADED.put(className, accessor);
             return accessor;
         } catch (Exception e) {
@@ -106,7 +107,7 @@ public class CompatibilityModeAccessorUtilV2 {
         }
     }
 
-    private static void collectSuperMember(ClazzDefinition definition, AccessorClassBuilder accessorBuilder, Accessor superAccessor) throws IOException, ClassNotFoundException, CannotCompileException {
+    private static void collectSuperMember(ClazzDefinition definition, AccessorClassBuilder accessorBuilder, Accessor superAccessor) throws IOException, ClassNotFoundException, CannotCompileException, BadBytecode, NotFoundException {
         // 收集父类中所有可以访问到的方法
         ClazzDefinition superClassDefinition = AsmUtil.readOriginClass(definition.getSuperClassName());
         for (AsmMethod superMethod : superClassDefinition.getAsmMethods()) {

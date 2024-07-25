@@ -1,10 +1,11 @@
 package six.eared.macaque.agent.javassist;
 
 import javassist.*;
-import javassist.bytecode.Bytecode;
-import javassist.bytecode.MethodInfo;
+import javassist.bytecode.*;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.objectweb.asm.Type;
+import six.eared.macaque.agent.asm2.AsmUtil;
 
 import java.util.function.Consumer;
 
@@ -53,14 +54,16 @@ public class JavassistClassBuilder {
         return ctMethod;
     }
 
-    public JavassistClassBuilder defineMethod(String src, Consumer<Bytecode> interceptor) throws CannotCompileException {
+    public JavassistClassBuilder defineMethod(String src, Consumer<Bytecode> interceptor) throws CannotCompileException, BadBytecode, NotFoundException {
         CtMethod ctMethod = this.defineMethod(src);
+        MethodInfo methodInfo = ctMethod.getMethodInfo();
 
         Bytecode bytecode = new Bytecode(ctClass.getClassFile().getConstPool());
         interceptor.accept(bytecode);
-
-        MethodInfo methodInfo = ctMethod.getMethodInfo();
-        methodInfo.setCodeAttribute(bytecode.toCodeAttribute());
+        CodeAttribute codeAttr = bytecode.toCodeAttribute();
+        codeAttr.computeMaxStack();
+        codeAttr.setMaxLocals(AsmUtil.calculateLvbOffset((methodInfo.getAccessFlags()&AccessFlag.STATIC)>0, Type.getMethodType(methodInfo.getDescriptor()).getArgumentTypes()));
+        methodInfo.setCodeAttribute(codeAttr);
         return this;
     }
 

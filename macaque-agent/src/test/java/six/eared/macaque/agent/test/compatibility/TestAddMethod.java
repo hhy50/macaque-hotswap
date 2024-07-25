@@ -42,10 +42,10 @@ public class TestAddMethod extends Env {
                 .getResourceAsStream("compatibility/add/AddInstanceMethod.java"))).get(0);
 
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-        Assert.assertEquals(invoke(INSTANCE, "test2"), "12345678test1test3");
+        Assert.assertEquals(invoke(INSTANCE, "test2"), "12345678test1test390");
 
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-        Assert.assertEquals(invoke(INSTANCE, "test2"), "12345678test1test3");
+        Assert.assertEquals(invoke(INSTANCE, "test2"), "12345678test1test390");
     }
 
     @Test

@@ -1,4 +1,33 @@
 package six.eared.macaque.agent.accessor;
 
-public class FieldAccessRule {
+import org.objectweb.asm.tree.InsnList;
+import six.eared.macaque.common.util.ClassUtil;
+
+public interface FieldAccessRule {
+
+    /**
+     * 访问
+     *
+     * @param insnList
+     * @param opcode
+     * @param owner
+     * @param name
+     */
+    void access(InsnList insnList, int opcode, String owner, String name, String type);
+
+    /**
+     * 对字段的访问转移到具体方法上
+     * @param isStatic
+     * @param targetOwner
+     * @param targetMethodName
+     * @param targetDesc
+     * @return
+     */
+    static FieldAccessRule forwardToMethod(boolean isStatic, String targetOwner, String targetMethodName, String targetDesc) {
+        return new FieldForwardMethodAccess(isStatic, ClassUtil.className2path(targetOwner), targetMethodName, targetDesc);
+    }
+
+    static FieldAccessRule direct() {
+        return FieldDirectAccess.INSTANCE;
+    }
 }
