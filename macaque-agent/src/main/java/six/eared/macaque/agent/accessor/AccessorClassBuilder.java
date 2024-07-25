@@ -4,8 +4,8 @@ import javassist.CannotCompileException;
 import javassist.NotFoundException;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Bytecode;
+import javassist.bytecode.Opcode;
 import lombok.Setter;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.*;
 import six.eared.macaque.agent.javassist.JavassistClassBuilder;
@@ -28,9 +28,8 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
     @Setter
     private String this$0;
 
-    Map<ClassMethodUniqueDesc, MethodAccessorRule> methodAccessorRules = new HashMap<>();
-    Map<ClassFieldUniqueDesc, FieldAccessRule> fieldReadRules = new HashMap<>();
-    Map<ClassFieldUniqueDesc, FieldAccessRule> fieldWriteRules = new HashMap<>();
+    Map<ClassMethodUniqueDesc, MethodAccessRule> methodAccessRules = new HashMap<>();
+    Map<ClassFieldUniqueDesc, FieldAccessRule> fieldAccessRules = new HashMap<>();
 
     @Setter
     private Accessor parent;
@@ -45,7 +44,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
     }
 
     public void addMethod(String owner, AsmMethod method) throws CannotCompileException, BadBytecode, NotFoundException {
-        MethodAccessorRule rule = null;
+        MethodAccessRule rule = null;
         if (method.isStatic()) {
             rule = invokerStatic(owner, method);
         } else if (method.isPrivate()) {
@@ -55,20 +54,24 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
         } else if (parent == null) { // 继承来的但是没有父accessor, 就生成方法调用
             rule = invokeSpecial(owner, method);
         }
-        this.methodAccessorRules.put(ClassMethodUniqueDesc.of(owner, method.getMethodName(), method.getDesc()), rule);
+        this.methodAccessRules.put(ClassMethodUniqueDesc.of(owner, method.getMethodName(), method.getDesc()), rule);
     }
 
     public void addField(String owner, AsmField filed) throws CannotCompileException, BadBytecode, NotFoundException {
-        this.fieldReadRules.put(ClassFieldUniqueDesc.of(owner, filed.getFieldName(), filed.getDesc()), getField(owner, filed));
-        if (!filed.isFinal()) {
-            this.fieldWriteRules.put(ClassFieldUniqueDesc.of(owner, filed.getFieldName(), filed.getDesc()), setField(owner, filed));
+        String getter = getField(owner, filed);
+        String setter = setField(owner, filed);
+        if (getter == null && setter == null) {
+
+        } else {
+            this.fieldAccessRules.put(ClassFieldUniqueDesc.of(owner, filed.getFieldName(), filed.getDesc()),
+                    FieldAccessRule.forwardToMethod(filed.isStatic(), this.getClassName(), getter, setter));
         }
     }
 
     /**
      *
      */
-    private MethodAccessorRule invokerStatic(String owner, AsmMethod method) throws CannotCompileException, BadBytecode, NotFoundException {
+    private MethodAccessRule invokerStatic(String owner, AsmMethod method) throws CannotCompileException, BadBytecode, NotFoundException {
         if (method.isPrivate()) {
             String methodName = method.getMethodName();
             Type methodType = Type.getMethodType(method.getDesc());
@@ -87,12 +90,12 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
                         bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", methodType.getDescriptor());
                         areturn(bytecode, methodType.getReturnType());
                     });
-            return MethodAccessorRule.forward(true, this.getClassName(), methodName, method.getDesc());
+            return MethodAccessRule.forward(true, this.getClassName(), methodName, method.getDesc());
         }
-        return MethodAccessorRule.direct();
+        return MethodAccessRule.direct();
     }
 
-    private MethodAccessorRule invokerVirtual(String owner, AsmMethod method) throws CannotCompileException {
+    private MethodAccessRule invokerVirtual(String owner, AsmMethod method) throws CannotCompileException {
         String methodName = method.getMethodName();
         Type methodType = Type.getMethodType(method.getDesc());
         String rType = methodType.getReturnType().getClassName();
@@ -104,11 +107,11 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
         String body = (rType.equals("void")?"":"return ("+rType+")")+
                 "(("+owner+") this$0)."+methodName+"("+String.join(",", argVars)+");";
         this.defineMethod(declare+"{"+body+"}");
-        return MethodAccessorRule.forward(false, this.getClassName(), methodName, method.getDesc());
+        return MethodAccessRule.forward(false, this.getClassName(), methodName, method.getDesc());
     }
 
 
-    private MethodAccessorRule invokeSpecial(String owner, AsmMethod method) throws CannotCompileException, BadBytecode, NotFoundException {
+    private MethodAccessRule invokeSpecial(String owner, AsmMethod method) throws CannotCompileException, BadBytecode, NotFoundException {
         String methodName = method.getMethodName();
         Type methodType = Type.getMethodType(method.getDesc());
         String rType = methodType.getReturnType().getClassName();
@@ -128,7 +131,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
                     bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", AsmUtil.addArgsDesc(methodType.getDescriptor(), this$0, true));
                     areturn(bytecode, methodType.getReturnType());
                 });
-        return MethodAccessorRule.forward(false, this.getClassName(), newMethodName, method.getDesc());
+        return MethodAccessRule.forward(false, this.getClassName(), newMethodName, method.getDesc());
     }
 
     /**
@@ -138,13 +141,13 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
      * @param asmField
      * @throws CannotCompileException
      */
-    private FieldAccessRule getField(String owner, AsmField asmField) throws CannotCompileException, BadBytecode, NotFoundException {
+    private String getField(String owner, AsmField asmField) throws CannotCompileException, BadBytecode, NotFoundException {
         Type fieldType = Type.getType(asmField.getDesc());
         String type = fieldType.getClassName();
         String name = asmField.getFieldName();
 
-        String getMethodName = owner.replace('.', '_')+Accessor.FIELD_GETTER_PREFIX+name;
-        String declare = "public "+(asmField.isStatic()?"static ":"")+type+" "+getMethodName+"()";
+        String getter = owner.replace('.', '_')+Accessor.FIELD_GETTER_PREFIX+name;
+        String declare = "public "+(asmField.isStatic()?"static ":"")+type+" "+getter+"()";
         if (asmField.isPrivate()) {
             String mhVar = name+"_getter_mh_"+COUNTER.getAndIncrement();
             super.defineField("private static final MethodHandle "+mhVar+"=LOOKUP."+(asmField.isStatic()?"findStaticGetter":"findGetter")+"("+owner+".class, \""+name+"\", "+fieldType.getClassName()+".class);")
@@ -163,9 +166,9 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
         } else if (!asmField.isStatic()) {
             super.defineMethod(declare+"{ return "+("(("+this$0+") this$0)."+name)+"; }");
         } else {
-            return FieldAccessRule.direct();
+            return null;
         }
-        return FieldAccessRule.forwardToMethod(asmField.isStatic(), this.getClassName(), getMethodName, "()"+fieldType.getDescriptor());
+        return getter;
     }
 
     /**
@@ -176,13 +179,13 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
      * @param asmField
      * @throws CannotCompileException
      */
-    private FieldAccessRule setField(String owner, AsmField asmField) throws CannotCompileException, BadBytecode, NotFoundException {
+    private String setField(String owner, AsmField asmField) throws CannotCompileException, BadBytecode, NotFoundException {
         Type fieldType = Type.getType(asmField.getDesc());
         String type = fieldType.getClassName();
         String name = asmField.getFieldName();
 
-        String setMethodName = owner.replace('.', '_')+Accessor.FIELD_SETTER_PREFIX+name;
-        String declare = "public "+(asmField.isStatic()?"static ":"")+"void "+setMethodName+"("+type+" arg)";
+        String setter = owner.replace('.', '_')+Accessor.FIELD_SETTER_PREFIX+name;
+        String declare = "public "+(asmField.isStatic()?"static ":"")+"void "+setter+"("+type+" arg)";
         if (asmField.isPrivate()) {
             String mhVar = name+"_set_mh_"+COUNTER.getAndIncrement();
             super.defineField("private static final MethodHandle "+mhVar+"=LOOKUP."+(asmField.isStatic()?"findStaticSetter":"findSetter")+"("+owner+".class, \""+name+"\", "+fieldType.getClassName()+".class);")
@@ -202,9 +205,9 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
         } else if (!asmField.isStatic()) {
             super.defineMethod(declare+"{(("+owner+") this$0)."+name+"=arg;}");
         } else {
-            return FieldAccessRule.direct();
+            return null;
         }
-        return FieldAccessRule.forwardToMethod(asmField.isStatic(), this.getClassName(), setMethodName, "("+fieldType.getDescriptor()+")V");
+        return setter;
     }
 
     public String getThis$0holder() {
@@ -221,14 +224,13 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
     }
 
     /**
-     *
      * @param bytecode      字节码
      * @param i             参数起始的局部变量表索引, 静态从0开始, 实例方法从1开始
      * @param argumentTypes 参数
      */
     private static void loadArgs(Bytecode bytecode, int i, Type[] argumentTypes) {
         for (Type argumentType : argumentTypes) {
-            bytecode.add(argumentType.getOpcode(Opcodes.ILOAD), i);
+            bytecode.add(argumentType.getOpcode(Opcode.ILOAD), i);
             if (argumentType.getSort() == Type.DOUBLE || argumentType.getSort() == Type.LONG) i++;
             i++;
         }
@@ -241,15 +243,14 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
     }
 
     private static void areturn(Bytecode bytecode, Type rType) {
-        bytecode.add(rType.getOpcode(Opcodes.IRETURN));
+        bytecode.add(rType.getOpcode(Opcode.IRETURN));
     }
 
     public Accessor toAccessor() {
         Accessor accessor = new Accessor();
         accessor.ownerClass = this$0;
-        accessor.methodAccessorRules = methodAccessorRules;
-        accessor.fieldReadRules = fieldReadRules;
-        accessor.fieldWriteRules = fieldWriteRules;
+        accessor.methodAccessRules = methodAccessRules;
+        accessor.fieldAccessRules = fieldAccessRules;
         accessor.parent = parent;
         accessor.definition = AsmUtil.readClass(this.toByteArray());
         return accessor;

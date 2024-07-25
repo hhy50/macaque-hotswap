@@ -53,8 +53,8 @@ public class CompatibilityModeAccessorUtilV2 {
             collectAccessibleFields(clazzDefinition, javassistClassBuilder, superAccessor);
             collectSuperMember(clazzDefinition, javassistClassBuilder, superAccessor);
 
-            CompatibilityModeClassLoader.loadClass(javassistClassBuilder.getClassName(), javassistClassBuilder.toByteArray());
             Accessor accessor = javassistClassBuilder.toAccessor();
+            CompatibilityModeClassLoader.loadClass(javassistClassBuilder.getClassName(), accessor.getDefinition().getBytecode());
             LOADED.put(className, accessor);
             return accessor;
         } catch (Exception e) {

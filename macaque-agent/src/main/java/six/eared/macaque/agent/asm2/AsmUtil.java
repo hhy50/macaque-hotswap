@@ -148,7 +148,7 @@ public class AsmUtil {
     public static AbstractInsnNode getPrevStackInsn(int n, AbstractInsnNode current) {
         AbstractInsnNode prev = current;
         while (n > 0) {
-            prev = getPrev(prev);
+            prev = getPrevValid(prev);
             if (prev instanceof MethodInsnNode) {
                 int invoke = prev.getOpcode();
                 String invokeName = ((MethodInsnNode) prev).name;
@@ -172,7 +172,7 @@ public class AsmUtil {
      * @param current
      * @return
      */
-    public static AbstractInsnNode getPrev(AbstractInsnNode current) {
+    public static AbstractInsnNode getPrevValid(AbstractInsnNode current) {
         AbstractInsnNode prev = current;
         while (prev instanceof LineNumberNode || prev instanceof LabelNode) {
             prev = prev.getPrevious();

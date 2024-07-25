@@ -3,7 +3,7 @@ package six.eared.macaque.agent.accessor;
 import org.objectweb.asm.tree.InsnList;
 import six.eared.macaque.common.util.ClassUtil;
 
-public interface MethodAccessorRule {
+public interface MethodAccessRule {
 
     /**
      * 访问
@@ -25,11 +25,11 @@ public interface MethodAccessorRule {
      * @param targetDesc
      * @return
      */
-    static MethodAccessorRule forward(boolean isStatic, String targetOwner, String targetMethodName, String targetDesc) {
+    static MethodAccessRule forward(boolean isStatic, String targetOwner, String targetMethodName, String targetDesc) {
         return new MethodForwardAccess(isStatic, ClassUtil.className2path(targetOwner), targetMethodName, targetDesc);
     }
 
-    static MethodAccessorRule direct() {
+    static MethodAccessRule direct() {
         return MethodDirectAccess.INSTANCE;
     }
 }

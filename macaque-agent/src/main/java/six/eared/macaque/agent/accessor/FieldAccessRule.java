@@ -23,8 +23,8 @@ public interface FieldAccessRule {
      * @param targetDesc
      * @return
      */
-    static FieldAccessRule forwardToMethod(boolean isStatic, String targetOwner, String targetMethodName, String targetDesc) {
-        return new FieldForwardMethodAccess(isStatic, ClassUtil.className2path(targetOwner), targetMethodName, targetDesc);
+    static FieldAccessRule forwardToMethod(boolean isStatic, String targetClass, String getter, String setter) {
+        return new FieldForwardMethodAccess(isStatic, ClassUtil.className2path(targetClass), getter, setter);
     }
 
     static FieldAccessRule direct() {

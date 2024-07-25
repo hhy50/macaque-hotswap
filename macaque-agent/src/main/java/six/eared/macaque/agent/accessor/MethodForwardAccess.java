@@ -1,13 +1,13 @@
 package six.eared.macaque.agent.accessor;
 
 
-import javassist.bytecode.Opcode;
 import lombok.Data;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 @Data
-public class MethodForwardAccess implements MethodAccessorRule {
+public class MethodForwardAccess implements MethodAccessRule {
     private final boolean isStatic;
     private final String targetOwner;
     private final String targetMethodName;
@@ -22,7 +22,7 @@ public class MethodForwardAccess implements MethodAccessorRule {
 
     @Override
     public void access(InsnList insnList, int opcode, String owner, String name, String desc, boolean isInterface) {
-        opcode = isStatic?Opcode.INVOKESTATIC:Opcode.INVOKEVIRTUAL;
+        opcode = isStatic?Opcodes.INVOKESTATIC:Opcodes.INVOKEVIRTUAL;
         insnList.add(new MethodInsnNode(opcode, targetOwner, targetMethodName, targetDesc, false));
     }
 }
