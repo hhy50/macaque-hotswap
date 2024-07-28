@@ -110,29 +110,34 @@ public class CompatibilityModeAccessorUtilV2 {
     private static void collectSuperMember(ClazzDefinition definition, AccessorClassBuilder accessorBuilder, Accessor superAccessor) throws IOException, ClassNotFoundException, CannotCompileException, BadBytecode, NotFoundException {
         // 收集父类中所有可以访问到的方法
         ClazzDefinition superClassDefinition = AsmUtil.readOriginClass(definition.getSuperClassName());
+        doCollectSuperMember(accessorBuilder, superClassDefinition);
+
+        if (superAccessor == null) {
+            String superClass = superClassDefinition.getSuperClassName();
+            while (superClass != null) {
+                superClassDefinition = AsmUtil.readOriginClass(superClass);
+                doCollectSuperMember(accessorBuilder, superClassDefinition);
+                superClass = superClassDefinition.getSuperClassName();
+            }
+        }
+        // default method in interface class
+        if (Environment.getJdkVersion() > 7) {
+
+        }
+    }
+
+    private static void doCollectSuperMember(AccessorClassBuilder accessorBuilder, ClazzDefinition superClassDefinition) throws NotFoundException, CannotCompileException, BadBytecode {
         for (AsmMethod superMethod : superClassDefinition.getAsmMethods()) {
             if (superMethod.isConstructor() || superMethod.isClinit() || superMethod.isPrivate()) {
                 continue;
             }
             accessorBuilder.addMethod(superClassDefinition.getClassName(), superMethod);
         }
-        if (superAccessor == null) {
-            String superClass = superClassDefinition.getSuperClassName();
-            while (superClass != null) {
-                superClassDefinition = AsmUtil.readOriginClass(superClass);
-                for (AsmMethod superMethod : superClassDefinition.getAsmMethods()) {
-                    if (superMethod.isConstructor() || superMethod.isClinit() || superMethod.isPrivate()) {
-                        continue;
-                    }
-                    accessorBuilder.addMethod(superClassDefinition.getClassName(), superMethod);
-                }
-                superClass = superClassDefinition.getSuperClassName();
+        for (AsmField superField : superClassDefinition.getAsmFields()) {
+            if (superField.isPrivate()) {
+                continue;
             }
-        }
-
-        // default method in interface class
-        if (Environment.getJdkVersion() > 7) {
-
+            accessorBuilder.addField(superClassDefinition.getClassName(), superField);
         }
     }
 
