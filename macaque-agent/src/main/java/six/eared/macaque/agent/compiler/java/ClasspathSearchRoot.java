@@ -29,7 +29,7 @@ public class ClasspathSearchRoot implements SearchRoot {
                 return Arrays.stream(files).map((item) -> {
                             String className = item.getName().substring(0, item.getName()
                                     .lastIndexOf('.'));
-                            return new JavaSourceFileObject(item.toURI(), packageName + "." + className, JavaFileObject.Kind.CLASS);
+                            return new JavaClassFileObject(item.toURI(), packageName + "." + className, JavaFileObject.Kind.CLASS);
                         }
                 ).collect(Collectors.toList());
             }

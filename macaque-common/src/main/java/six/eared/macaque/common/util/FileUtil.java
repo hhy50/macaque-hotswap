@@ -1,7 +1,6 @@
 package six.eared.macaque.common.util;
 
 import six.eared.macaque.common.exceptions.FileIOException;
-import six.eared.macaque.common.jps.PID;
 
 import java.io.*;
 
@@ -42,6 +41,10 @@ public class FileUtil {
      * @param bytes
      */
     public static void writeBytes(File file, byte[] bytes) {
+        File parent = file.getParentFile();
+        if (!parent.exists()) {
+            parent.mkdirs();
+        }
         try (FileOutputStream outputStream = new FileOutputStream(file)) {
             outputStream.write(bytes, 0, bytes.length);
             outputStream.flush();
@@ -123,7 +126,7 @@ public class FileUtil {
     public static String getFileName(String fileName) {
         int index = fileName.lastIndexOf("/");
         if (index != -1) {
-            fileName = fileName.substring(index + 1);
+            fileName = fileName.substring(index+1);
         }
         index = fileName.lastIndexOf(".");
         if (index != -1) {
@@ -134,18 +137,24 @@ public class FileUtil {
 
     /**
      * 获取当前进程自己的临时目录
+     *
      * @return
      */
     public static String getProcessTmpPath() {
         if (TMP_DIR == null) {
-            String tmpdir = System.getProperty("java.io.tmpdir");
-            if (StringUtil.isEmpty(tmpdir)) {
-                tmpdir = System.getProperty("user.home") + separator + "tmp" + separator;
+            String userDir = System.getProperty("user.dir");
+            if (new File(userDir+"/build").exists()) {
+                userDir+="/build";
+            } else {
+                userDir += "/tmp";
+                File tmpFile = new File(userDir);
+                if (!tmpFile.exists()) {
+                    tmpFile.mkdirs();
+                }
             }
-            tmpdir += separator + "macaque" + separator;
-            TMP_DIR = tmpdir;
+            TMP_DIR = userDir;
         }
-        return String.format("%s/%s", TMP_DIR, PID.getCurrentPid());
+        return TMP_DIR;
     }
 
     /**

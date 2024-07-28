@@ -22,7 +22,7 @@ public class BindMethodWriter extends MethodNode {
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String desc) {
-        if (owner.contains("macaque$")) {
+        if (owner.contains("$macaque$")) {
             super.visitFieldInsn(opcode, owner, name, desc);
             return;
         }

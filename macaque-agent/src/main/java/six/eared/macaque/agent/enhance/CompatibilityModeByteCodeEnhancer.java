@@ -148,7 +148,7 @@ public class CompatibilityModeByteCodeEnhancer {
         }
         classIncrementUpdate.setEnhancedByteCode(classWriter.toByteArray());
         if (Environment.isDebug()) {
-            FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath() + "/" + ClassUtil.toSimpleName(classIncrementUpdate.getClassName()) + ".class"),
+            FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/compatibility/"+ClassUtil.toSimpleName(classIncrementUpdate.getClassName())+".class"),
                     classIncrementUpdate.getEnhancedByteCode());
         }
     }

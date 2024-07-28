@@ -9,8 +9,8 @@ public class JavaSourceStringObject extends SimpleJavaFileObject {
 
     private final String src;
 
-    public JavaSourceStringObject(String name, String src) {
-        super(URI.create("string:///" +name+".java"), Kind.SOURCE);
+    public JavaSourceStringObject(String fileName, String src) {
+        super(URI.create("string:///" +fileName), Kind.SOURCE);
         this.src = src;
     }
 

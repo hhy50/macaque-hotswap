@@ -13,7 +13,7 @@ public class CompatibilityModeClassLoader {
     public synchronized static void loadClass(String className, byte[] bytes) {
         if (Environment.isDebug()) {
             FileUtil.writeBytes(
-                    new File(FileUtil.getProcessTmpPath() + File.separator + ClassUtil.toSimpleName(className) + ".class"),
+                    new File(FileUtil.getProcessTmpPath()+"/compatibility/"+ClassUtil.toSimpleName(className)+".class"),
                     bytes);
         }
 

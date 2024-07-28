@@ -9,18 +9,18 @@ import javax.tools.JavaFileObject;
 import java.io.*;
 import java.net.URI;
 
-public class JavaSourceFileObject implements JavaFileObject {
+public class JavaClassFileObject implements JavaFileObject {
     private final URI uri;
     private final String className;
     private final Kind kind;
 
-    public JavaSourceFileObject(File file) {
+    public JavaClassFileObject(File file) {
         this.uri = file.toURI();
         this.kind = DynamicJavaFileManager.getKind(file.getName());
         this.className = FileUtil.getFileName(file.getName());
     }
 
-    public JavaSourceFileObject(URI uri, String className, Kind kind) {
+    public JavaClassFileObject(URI uri, String className, Kind kind) {
         this.uri = uri;
         this.kind = kind;
         this.className = className;

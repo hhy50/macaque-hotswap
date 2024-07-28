@@ -79,7 +79,7 @@ public class ClassLoaderSearchRoot implements SearchRoot {
                     String binaryName = name.replaceAll("/", ".");
                     binaryName = binaryName.replaceAll(CLASS_FILE_EXTENSION + "$", "");
 
-                    result.add(new JavaSourceFileObject(uri, binaryName, JavaFileObject.Kind.CLASS));
+                    result.add(new JavaClassFileObject(uri, binaryName, JavaFileObject.Kind.CLASS));
                 }
             }
         } catch (Exception e) {
@@ -95,7 +95,7 @@ public class ClassLoaderSearchRoot implements SearchRoot {
             return Arrays.stream(files).map(item -> {
                 String className = packageName + "." + item.getName()
                         .replaceAll(CLASS_FILE_EXTENSION + "$", "");
-                return new JavaSourceFileObject(item.toURI(), className, JavaFileObject.Kind.CLASS);
+                return new JavaClassFileObject(item.toURI(), className, JavaFileObject.Kind.CLASS);
             }).collect(Collectors.toList());
         }
         return Collections.emptyList();
@@ -171,7 +171,7 @@ public class ClassLoaderSearchRoot implements SearchRoot {
             }
             if (this.packages.containsKey(packageName)) {
                 return packages.get(packageName).stream().map(item -> {
-                    return new JavaSourceFileObject(item.getUri(), item.getClassName(), JavaFileObject.Kind.CLASS);
+                    return new JavaClassFileObject(item.getUri(), item.getClassName(), JavaFileObject.Kind.CLASS);
                 }).collect(Collectors.toList());
             }
             return Collections.emptyList();
