@@ -31,6 +31,7 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         this.classRootPath = classRootPath != null ? new HashSet<>(classRootPath) : new HashSet<>();
         this.processorPaths = new HashSet<>();
 
+        // 添加macaque自己引入的注解处理器, 比如 lombok
         addProcessorPath(DynamicJavaFileManager.class.getProtectionDomain().getCodeSource().getLocation());
     }
 

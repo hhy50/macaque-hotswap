@@ -7,6 +7,7 @@ import com.sun.tools.attach.VirtualMachine;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
+import six.eared.macaque.agent.enhance.ClazzDataDefinition;
 import six.eared.macaque.agent.javassist.JavaSsistUtil;
 import six.eared.macaque.common.ExtPropertyName;
 import six.eared.macaque.common.jps.PID;
@@ -24,11 +25,18 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Env {
     static final Map<String, Class> PRELOADED = new HashMap<>();
 
     static {
+        attach();
+        preload();
+    }
+
+    private static void attach() {
         URL resource = Env.class.getClassLoader().getResource("macaque-agent-lightweight.jar");
         try {
             VirtualMachine attach = VirtualMachine.attach(String.valueOf(PID.getCurrentPid()));
@@ -45,7 +53,9 @@ public class Env {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    public static void preload() {
         try {
             Enumeration<URL> preloads = Env.class.getClassLoader().getResources("preload");
             while (preloads.hasMoreElements()) {
@@ -54,17 +64,14 @@ public class Env {
                 if (!preloadDir.exists()) {
                     break;
                 }
+                Map<String, byte[]> javaSources = new HashMap<>();
                 for (String item : preloadDir.list((dir, name) -> name.endsWith(".java"))) {
-                    for (byte[] clazzData : compileToClass(item, FileUtil.readBytes(preloadDir.getPath() + File.separator + item))) {
-                        ClazzDefinition clazzDefinition = AsmUtil.readClass(clazzData);
-                        Class<?> clazz = (Class<?>) ReflectUtil.invokeMethod(ClassLoader.getSystemClassLoader(),
-                                "defineClass", clazzDefinition.getClassName(), clazzData, 0, clazzData.length);
-                        try (InputStream arrayIn = new ByteArrayInputStream(clazzData)) {
-                            JavaSsistUtil.POOL.makeClass(arrayIn);
-                        }
-                        PRELOADED.put(clazzDefinition.getClassName(), clazz);
-                        System.out.printf("preload class: %s\n", clazz.getName());
-                    }
+                    javaSources.put(item, FileUtil.readBytes(preloadDir.getPath()+File.separator+item));
+                }
+                Map<String, ClazzDataDefinition> definitions = compileToClass(javaSources).stream().map(AsmUtil::readClass)
+                        .collect(Collectors.toMap(ClazzDefinition::getClassName, Function.identity()));
+                for (Map.Entry<String, ClazzDataDefinition> definitionEntry : definitions.entrySet()) {
+                    loadClass(definitions, definitionEntry.getKey(), definitionEntry.getValue());
                 }
             }
         } catch (Exception e) {
@@ -72,11 +79,34 @@ public class Env {
         }
     }
 
+    public static void loadClass(Map<String, ClazzDataDefinition> definitions, String className, ClazzDataDefinition definition) throws IOException {
+        if (PRELOADED.containsKey(className)) return;
+        if (definition.getSuperClassName() != null
+                && !definition.getSuperClassName().equals("java.lang.Object")
+                && definitions.containsKey(definition.getSuperClassName())) {
+            loadClass(definitions, definition.getSuperClassName(), definitions.get(definition.getSuperClassName()));
+        }
+
+        byte[] bytecode = definition.getBytecode();
+        Class<?> clazz = (Class<?>) ReflectUtil.invokeMethod(ClassLoader.getSystemClassLoader(),
+                "defineClass", className, bytecode, 0, bytecode.length);
+        try (InputStream arrayIn = new ByteArrayInputStream(bytecode)) {
+            JavaSsistUtil.POOL.makeClass(arrayIn);
+        }
+        PRELOADED.put(className, clazz);
+        System.out.printf("preload class: %s\n", clazz.getName());
+    }
+
     public static List<byte[]> compileToClass(String fileName, byte[] sourceCode) {
         JavaSourceCompiler javaSourceCompiler = JavaSourceCompiler.getInstance();
         Map<String, byte[]> javaSource = new HashMap<>();
         javaSource.put(fileName, sourceCode);
         return javaSourceCompiler.compile(javaSource);
+    }
+
+    public static List<byte[]> compileToClass(Map<String, byte[]> javaSources) {
+        JavaSourceCompiler javaSourceCompiler = JavaSourceCompiler.getInstance();
+        return javaSourceCompiler.compile(javaSources);
     }
 
     public static Object newInstance(String className, Object... args) {

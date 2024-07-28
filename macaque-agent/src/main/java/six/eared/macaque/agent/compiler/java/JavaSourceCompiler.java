@@ -90,6 +90,10 @@ public class JavaSourceCompiler implements Compiler {
         }
     }
 
+    public void addClassSearchRoot(SearchRoot root) {
+        this.classPathRoots.add(root);
+    }
+
 
     /**
      * 获取编译器
@@ -106,11 +110,7 @@ public class JavaSourceCompiler implements Compiler {
                 }
             }
         }
-        try {
-            return new JavaSourceCompiler();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return INSTANCE;
     }
 
     /**
@@ -148,8 +148,6 @@ public class JavaSourceCompiler implements Compiler {
         for (Map.Entry<String, byte[]> entry : entries) {
             String fileName = entry.getKey();
             byte[] bytes = entry.getValue();
-//            File tmpFile = FileUtil.createTmpFile("compile" + File.separator + fileName, bytes);
-//            javaFileObjects.add(new JavaSourceFileObject(tmpFile));
             javaFileObjects.add(new JavaSourceStringObject(fileName, new String(bytes)));
         }
         DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();

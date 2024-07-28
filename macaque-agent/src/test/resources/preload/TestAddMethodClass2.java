@@ -1,16 +1,11 @@
 package six.eared.macaque.agent.test;
 
-public class TestAddMethodClass2 {
+import six.eared.macaque.agent.test.case1.TestAddMethodClass;
 
-    public String test1() {
-        return "test1";
-    }
+/**
+ * 1. 读取并修改父类字段
+ */
+public class TestAddMethodClass2 extends TestAddMethodClass {
 
-    public String test2() {
-        return "test2";
-    }
 
-    public static String staticMethod(String str1, String str2, String str3) {
-        return str1+str2+str3;
-    }
 }

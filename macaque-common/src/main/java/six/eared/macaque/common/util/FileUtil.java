@@ -4,8 +4,6 @@ import six.eared.macaque.common.exceptions.FileIOException;
 
 import java.io.*;
 
-import static java.io.File.separator;
-
 public class FileUtil {
 
     private static String TMP_DIR = null;
