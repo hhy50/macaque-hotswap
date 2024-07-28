@@ -64,6 +64,9 @@ public class TestAddMethod extends Env {
         Assert.assertEquals("arg1=1,arg2=2", invoke(INSTANCE, "test2"));
     }
 
+    /**
+     * 测试新增简单的静态方法
+     */
     @Test
     public void testAddStaticMethod() {
         byte[] bytes = compileToClass("TestAddMethodClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
@@ -74,6 +77,21 @@ public class TestAddMethod extends Env {
 
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
         Assert.assertEquals("_newStaticMethod", invoke(INSTANCE, "test2"));
+    }
+
+    /**
+     * 测试新增静态方法， 新方法里面调用私有的静态方法
+     */
+    @Test
+    public void testAddStaticMethod2() {
+        byte[] bytes = compileToClass("TestAddMethodClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
+                .getResourceAsStream("compatibility/add/AddStaticMethod2.java"))).get(0);
+
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        Assert.assertEquals("test3_newStaticMethod", invoke(INSTANCE, "test2"));
+
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        Assert.assertEquals("test3_newStaticMethod", invoke(INSTANCE, "test2"));
     }
 
     @Test
