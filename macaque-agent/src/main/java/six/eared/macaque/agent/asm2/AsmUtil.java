@@ -77,8 +77,7 @@ public class AsmUtil {
     }
 
     public static AsmClassBuilder defineClass(int access, String className, String superName, String[] interfaces, String sign) {
-        return new AsmClassBuilder()
-                .defineClass(access, className, superName, interfaces, sign);
+        return new AsmClassBuilder(access, className, superName, interfaces, sign);
     }
 
     public static void areturn(MethodVisitor writer, Type rType) {

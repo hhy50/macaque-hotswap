@@ -21,17 +21,13 @@ public class AsmClassBuilder {
 
     private ClassWriter classWriter = new ClassWriter(0);
 
-    public AsmClassBuilder() {
-
-    }
-
-    public AsmClassBuilder defineClass(int access, String className, String superName, String[] interfaces, String signature) {
+    public AsmClassBuilder(int access, String className, String superName, String[] interfaces, String signature) {
         this.classWriter.visit(Opcodes.V1_8, access, ClassUtil.className2path(className), signature,
                 superName != null ? ClassUtil.className2path(superName) : "java/lang/Object", interfaces);
         this.className = className;
         this.superClassName = superName;
-        return this;
     }
+
 
     public AsmClassBuilder defineField(int access, String fieldName, String fieldDesc, String fieldSignature, Object value) {
         this.classWriter.visitField(access, fieldName, fieldDesc, fieldSignature, value);
