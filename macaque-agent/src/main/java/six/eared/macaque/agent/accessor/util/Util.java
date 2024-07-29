@@ -10,9 +10,13 @@ public class Util {
 
     @SneakyThrows
     public static MethodHandles.Lookup lookup(Class callerClass) {
-        Constructor constructor = MethodHandles.Lookup.class.getDeclaredConstructors()[0];
-        constructor.setAccessible(true);
-        return (MethodHandles.Lookup) constructor.newInstance(callerClass);
+        for (Constructor<?> constructor : MethodHandles.Lookup.class.getDeclaredConstructors()) {
+            if (constructor.getParameterCount() == 1) {
+                constructor.setAccessible(true);
+                return (MethodHandles.Lookup) constructor.newInstance(callerClass);
+            }
+        }
+        return null;
     }
 
     public static Object wrapping(Object obj) {
