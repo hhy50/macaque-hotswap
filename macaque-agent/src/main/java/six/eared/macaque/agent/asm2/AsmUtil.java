@@ -125,13 +125,6 @@ public class AsmUtil {
     /**
      * 访问器入栈
      */
-    public static void accessorStore(MethodVisitor writer, String accessorDesc) {
-        writer.visitTypeInsn(Opcodes.NEW, accessorDesc);
-        writer.visitInsn(Opcodes.DUP);
-        writer.visitVarInsn(Opcodes.ALOAD, 0);
-        writer.visitMethodInsn(Opcodes.INVOKESPECIAL, accessorDesc, "<init>", "(Ljava/lang/Object;)V", false);
-    }
-
     public static void accessorStore(InsnList instList, String accessorDesc) {
         instList.add(new TypeInsnNode(Opcodes.NEW, accessorDesc));
         instList.add(new InsnNode(Opcodes.DUP));

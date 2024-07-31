@@ -82,11 +82,11 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
             String argsTypeDeclare = Arrays.stream(args).map(type -> type.getClassName()+".class").collect(Collectors.joining(","));
             String argsVarDeclare = IntStream.range(0, args.length).mapToObj(i -> args[i].getClassName()+" "+argVars[i]).collect(Collectors.joining(","));
 
-            super.defineField("private static final MethodHandle "+mhVar+" = LOOKUP.findStatic("+this$0+".class,\""+methodName+"\", MethodType.methodType("+rType+".class,new Class[]{"+argsTypeDeclare+"}));")
+            super.defineField("private static final MethodHandle "+mhVar+" = LOOKUP.findStatic("+owner+".class,\""+methodName+"\", MethodType.methodType("+rType+".class,new Class[]{"+argsTypeDeclare+"}));")
                     .defineMethod("public static "+rType+" "+methodName+"("+argsVarDeclare+") { throw new RuntimeException(\"not impl\"); }", (bytecode) -> {
                         // return (rType) mh.invoke(args...);
                         bytecode.addGetstatic(this.getClassName(), mhVar, "Ljava/lang/invoke/MethodHandle;");
-                        loadArgs(bytecode, 1, args);
+                        loadArgs(bytecode, 0, args);
                         bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", methodType.getDescriptor());
                         areturn(bytecode, methodType.getReturnType());
                     });

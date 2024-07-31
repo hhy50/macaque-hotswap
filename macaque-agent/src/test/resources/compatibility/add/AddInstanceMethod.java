@@ -17,6 +17,10 @@ public class TestAddMethodClass {
         return "test3";
     }
 
+    private static String testStaic(String a, String b, String c) {
+        return a+b+c;
+    }
+
     /**
      * new method
      *
