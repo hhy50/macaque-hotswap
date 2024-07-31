@@ -86,7 +86,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
                     .defineMethod("public static "+rType+" "+methodName+"("+argsVarDeclare+") { throw new RuntimeException(\"not impl\"); }", (bytecode) -> {
                         // return (rType) mh.invoke(args...);
                         bytecode.addGetstatic(this.getClassName(), mhVar, "Ljava/lang/invoke/MethodHandle;");
-                        loadArgs(bytecode, 0, args);
+                        loadArgs(bytecode, true, args);
                         bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", methodType.getDescriptor());
                         areturn(bytecode, methodType.getReturnType());
                     });
@@ -127,7 +127,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
                     // return (rType) mh.invoke(this$0, args...);
                     bytecode.addGetstatic(this.getClassName(), mhVar, "Ljava/lang/invoke/MethodHandle;");
                     loadThis$0(bytecode, getThis$0holder(), this$0);
-                    loadArgs(bytecode, 1, args);
+                    loadArgs(bytecode, false, args);
                     bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", AsmUtil.addArgsDesc(methodType.getDescriptor(), this$0, true));
                     areturn(bytecode, methodType.getReturnType());
                 });
@@ -198,7 +198,7 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
                             loadThis$0(bytecode, getThis$0holder(), this$0);
                             dynamicDesc = AsmUtil.addArgsDesc(dynamicDesc, this$0, true);
                         }
-                        loadArgs(bytecode, 0, new Type[]{fieldType});
+                        loadArgs(bytecode, asmField.isStatic(), new Type[]{fieldType});
                         bytecode.addInvokevirtual("java/lang/invoke/MethodHandle", "invoke", dynamicDesc);
                         areturn(bytecode, Type.VOID_TYPE);
                     });
@@ -228,7 +228,8 @@ public class AccessorClassBuilder extends JavassistClassBuilder {
      * @param i             参数起始的局部变量表索引, 静态从0开始, 实例方法从1开始
      * @param argumentTypes 参数
      */
-    private static void loadArgs(Bytecode bytecode, int i, Type[] argumentTypes) {
+    private static void loadArgs(Bytecode bytecode, boolean isStatic, Type[] argumentTypes) {
+        int i = isStatic ? 0 : 1;
         for (Type argumentType : argumentTypes) {
             bytecode.add(argumentType.getOpcode(Opcode.ILOAD), i);
             if (argumentType.getSort() == Type.DOUBLE || argumentType.getSort() == Type.LONG) i++;
