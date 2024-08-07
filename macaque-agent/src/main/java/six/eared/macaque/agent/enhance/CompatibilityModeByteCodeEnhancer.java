@@ -113,7 +113,8 @@ public class CompatibilityModeByteCodeEnhancer {
     private static void generateNewByteCode(ClassIncrementUpdate classIncrementUpdate) throws ByteCodeConvertException {
         ClazzDefinition originClass = classIncrementUpdate.getOriginDefinition();
 
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES|ClassWriter.COMPUTE_MAXS);
+        ClassWriter classWriter = new ClassWriter(0);
+//        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES|ClassWriter.COMPUTE_MAXS);
         classWriter.visit(originClass.getClassVersion(), originClass.getModifiers() | Opcodes.ACC_OPEN,
                 ClassUtil.className2path(originClass.getClassName()), originClass.getSign(), ClassUtil.className2path(originClass.getSuperClassName()),
                 Arrays.stream(originClass.getInterfaces()).map(ClassUtil::className2path).toArray(String[]::new));
@@ -130,10 +131,12 @@ public class CompatibilityModeByteCodeEnhancer {
             MethodVisitor methodWrite = classWriter.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(),
                     method.getMethodSign(), method.getExceptions());
             MethodUpdateInfo mi = classIncrementUpdate.getMethod(method.getMethodName(), method.getDesc());
-            if (mi == null || mi.getAsmMethod().isStatic() ^ method.isStatic()) {
+            if (mi == null) {
+                if (method.isClinit() || method.isConstructor()) {
+                    AsmUtil.areturn(methodWrite, Type.getMethodType(method.getDesc()).getReturnType());
+                    continue;
+                }
                 // 将类上面需要删除的方法， 删掉
-                int lvblen = AsmUtil.calculateLvbOffset(method.isStatic(), Type.getArgumentTypes(method.getDesc()));
-                methodWrite.visitMaxs(3, lvblen);
                 AsmUtil.throwNoSuchMethod(methodWrite, method.getMethodName());
                 continue;
             } else if (mi.getAsmMethod().isStatic() ^ method.isStatic()) {

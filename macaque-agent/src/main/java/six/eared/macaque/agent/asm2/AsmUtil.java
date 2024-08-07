@@ -105,6 +105,7 @@ public class AsmUtil {
         write.visitLdcInsn(methodName);
         write.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/NoSuchMethodError", "<init>", "(Ljava/lang/String;)V", false);
         write.visitInsn(Opcodes.ATHROW);
+        write.visitMaxs(3, 0);
     }
 
     /**
