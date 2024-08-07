@@ -83,9 +83,7 @@ public class CompatibilityModeAccessorUtil {
                 .defineClass(Opcodes.ACC_PUBLIC, accessorName, superAccessorName, null, null)
                 .defineConstruct(Opcodes.ACC_PUBLIC, new String[]{"java.lang.Object"}, null, null)
                 .accept(visitor -> {
-                    visitor.visitMaxs(2, 2);
                     boolean containSupper = superAccessorName != null;
-
                     if (!containSupper) {
                         // this$0 = {outClassObj}
                         visitor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -129,8 +127,6 @@ public class CompatibilityModeAccessorUtil {
          */
         classBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V", null, null)
                 .accept(visitor -> {
-                    visitor.visitMaxs(5, 2);
-
                     // Constructor<?> constructor = MethodHandles.Lookup.class.getDeclaredConstructors()[0];
                     visitor.visitLdcInsn(Type.getType("Ljava/lang/invoke/MethodHandles$Lookup;"));
                     visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Class", "getDeclaredConstructors",
@@ -268,8 +264,6 @@ public class CompatibilityModeAccessorUtil {
                                        AsmMethod asmMethod) {
         Type methodType = Type.getMethodType(asmMethod.getDesc());
         Type[] argumentTypes = methodType.getArgumentTypes();
-        int lvbOffset = calculateLvbOffset(false, argumentTypes);
-        visitor.visitMaxs(lvbOffset + 2, lvbOffset);
 
         visitor.visitVarInsn(Opcodes.ALOAD, 0);
         visitor.visitFieldInsn(Opcodes.GETFIELD, ClassUtil.className2path(this0holder), "this$0", "Ljava/lang/Object;");
@@ -303,8 +297,6 @@ public class CompatibilityModeAccessorUtil {
 
         // locals = this(1) + args + type + mh
         int lvbOffset = calculateLvbOffset(asmMethod.isStatic(), argumentTypes);
-        visitor.visitMaxs(lvbOffset + 4, lvbOffset + 2);
-
         adaptType(visitor, methodType.getReturnType());
         for (int i = 0; i < argumentTypes.length; i++) {
             if (i == 0) {

@@ -113,7 +113,7 @@ public class CompatibilityModeByteCodeEnhancer {
     private static void generateNewByteCode(ClassIncrementUpdate classIncrementUpdate) throws ByteCodeConvertException {
         ClazzDefinition originClass = classIncrementUpdate.getOriginDefinition();
 
-        ClassWriter classWriter = new ClassWriter(0);
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES|ClassWriter.COMPUTE_MAXS);
         classWriter.visit(originClass.getClassVersion(), originClass.getModifiers() | Opcodes.ACC_OPEN,
                 ClassUtil.className2path(originClass.getClassName()), originClass.getSign(), ClassUtil.className2path(originClass.getSuperClassName()),
                 Arrays.stream(originClass.getInterfaces()).map(ClassUtil::className2path).toArray(String[]::new));

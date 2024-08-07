@@ -10,11 +10,16 @@ public class TestAddMethodClass {
     }
 
     public String test2() {
+        System.out.println(test4());
         return test4();
     }
 
     private String test3(String a) {
         return "test3";
+    }
+
+    private String test4(String a) {
+        return "";
     }
 
     private static String test3() {
@@ -34,6 +39,6 @@ public class TestAddMethodClass {
         field1 = "1234";
         field2 = "5678";
         field3 = "90";
-        return (String) field1+field2+test1()+test3("")+field3;
+        return (String) field1+field2+test1()+test3("")+test4("")+field3;
     }
 }

@@ -41,8 +41,7 @@ public class InvokeCodeConvertor extends MethodNode {
 
     @Override
     public void visitEnd() {
-        int minStack = maxArglen + (accessorLoad ? 3 : 0);
-        this.maxStack = Math.max(minStack, maxStack);
+        super.visitMaxs(0, 0);
         super.visitEnd();
         this.accept(write);
     }
