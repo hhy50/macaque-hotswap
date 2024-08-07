@@ -8,6 +8,8 @@ import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassFieldUniqueDesc;
 import six.eared.macaque.agent.asm2.ClassMethodUniqueDesc;
 import six.eared.macaque.agent.enhance.ClazzDataDefinition;
+import six.eared.macaque.agent.enhance.MethodBindInfo;
+import six.eared.macaque.agent.enhance.MethodBindManager;
 import six.eared.macaque.common.util.ClassUtil;
 
 import java.util.Map;
@@ -56,7 +58,10 @@ public class Accessor {
         }
         MethodAccessRule accessRule = findMethodAccessRule(ClassMethodUniqueDesc.of(ClassUtil.classpath2name(owner), name, desc));
         if (accessRule == null) {
-            accessRule = MethodAccessRule.direct();
+            // 判断访问的方法是否是新方法
+            MethodBindInfo bindInfo = MethodBindManager.getBindInfo(ClassUtil.classpath2name(owner), name, desc, opcode == Opcodes.INVOKESTATIC);
+            if (bindInfo != null) accessRule = bindInfo.getAccessRule(true);
+            else accessRule = MethodAccessRule.direct();
         }
         accessRule.access(insnList, opcode, owner, name, desc, false);
     }
@@ -82,16 +87,5 @@ public class Accessor {
         return insn instanceof VarInsnNode
                 && insn.getOpcode() == Opcodes.ALOAD
                 && ((VarInsnNode) insn).var == 0;
-    }
-
-    private String findAccessorClass(String owner) {
-        String accessorOwner = ClassUtil.className2path(this.ownerClass);
-        if (accessorOwner.equals(owner)) {
-            return ClassUtil.className2path(getClassName());
-        }
-        if (parent == null) {
-            return null;
-        }
-        return parent.findAccessorClass(owner);
     }
 }

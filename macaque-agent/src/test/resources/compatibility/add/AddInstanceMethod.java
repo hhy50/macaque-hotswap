@@ -13,6 +13,10 @@ public class TestAddMethodClass {
         return test4();
     }
 
+    private String test3(String a) {
+        return "test3";
+    }
+
     private static String test3() {
         return "test3";
     }
@@ -30,6 +34,6 @@ public class TestAddMethodClass {
         field1 = "1234";
         field2 = "5678";
         field3 = "90";
-        return (String) field1+field2+test1()+test3()+field3;
+        return (String) field1+field2+test1()+test3("")+field3;
     }
 }

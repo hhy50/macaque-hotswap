@@ -30,6 +30,7 @@ public class MethodBindManager {
         methodBindInfo.setBindClass(bindClassName);
         methodBindInfo.setBindMethod(bindMethodName);
         methodBindInfo.setBindMethodDesc(method.isStatic()?method.getDesc():AsmUtil.addArgsDesc(method.getDesc(), accessorName, true));
+        methodBindInfo.setStatic(method.isStatic());
         methodBindInfo.setAccessorClass(accessorName);
         methodBindInfo.setVisitorCaller(new AsmMethodVisitorCaller());
 
