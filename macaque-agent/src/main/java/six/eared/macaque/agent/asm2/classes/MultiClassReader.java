@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.asm2.classes;
 
 import org.objectweb.asm.ClassReader;
+import six.eared.macaque.agent.asm2.ClassReaderUtil;
 import six.eared.macaque.agent.enhance.ClazzDataDefinition;
 
 import java.util.Arrays;
@@ -36,8 +37,10 @@ public class MultiClassReader implements Iterable<ClazzDataDefinition> {
         public ClazzDataDefinition next() {
             ClassReader classReader = new ClassReader(multiClassData, pos, multiClassData.length);
             classReader.accept(visitor, 0);
-            visitor.setByteCode(Arrays.copyOfRange(multiClassData, pos, classReader.endOffset));
-            pos = classReader.endOffset;
+
+            int endOffset = ClassReaderUtil.getEndOffset(classReader);
+            visitor.setByteCode(Arrays.copyOfRange(multiClassData, pos, endOffset));
+            pos = endOffset;
             return visitor.getDefinition();
         }
     }
