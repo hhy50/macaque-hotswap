@@ -1,7 +1,5 @@
 package six.eared.macaque.agent.enhance;
 
-import javassist.CannotCompileException;
-import javassist.NotFoundException;
 import org.objectweb.asm.*;
 import six.eared.macaque.agent.accessor.Accessor;
 import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtilV2;
@@ -30,8 +28,7 @@ import java.util.List;
 
 public class CompatibilityModeByteCodeEnhancer {
 
-    public static List<ClassIncrementUpdate> enhance(List<ClazzDataDefinition> definitions) throws IOException, ClassNotFoundException,
-            NotFoundException, CannotCompileException {
+    public static List<ClassIncrementUpdate> enhance(List<ClazzDataDefinition> definitions) throws Exception {
 
         List<ClassIncrementUpdate> changedClass = new ArrayList<>();
         for (ClazzDataDefinition definition : definitions) {
