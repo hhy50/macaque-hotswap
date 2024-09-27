@@ -1,9 +1,10 @@
 package six.eared.macaque.agent.enhance;
 
+import io.github.hhy50.linker.asm.AsmClassBuilder;
 import org.objectweb.asm.*;
 import six.eared.macaque.agent.accessor.Accessor;
 import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtilV2;
-import six.eared.macaque.agent.asm2.AsmClassBuilder;
+import six.eared.macaque.agent.asm2.AsmClassBuilderExt;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
@@ -89,10 +90,10 @@ public class CompatibilityModeByteCodeEnhancer {
                 AsmClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
                         .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
                                 bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
-                                newMethod.getExceptions(), newMethod.getMethodSign())
-                        .accept(bindMethodWriter::write)
+                                newMethod.getExceptions())
+                        .accept(body -> bindMethodWriter.write(body.getWriter()))
                         .end();
-                ClazzDataDefinition bindClazzDefinition = classBuilder.toDefinition();
+                ClazzDataDefinition bindClazzDefinition = AsmClassBuilderExt.toDefinition(classBuilder);
                 if (bindInfo.isLoaded()) {
                     classUpdateInfo.addCorrelationClasses(CorrelationEnum.METHOD_BIND, bindClazzDefinition);
                 } else {

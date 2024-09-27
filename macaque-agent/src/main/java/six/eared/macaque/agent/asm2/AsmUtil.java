@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.asm2;
 
+import io.github.hhy50.linker.asm.AsmClassBuilder;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;

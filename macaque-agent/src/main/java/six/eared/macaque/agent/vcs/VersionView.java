@@ -32,12 +32,4 @@ public class VersionView {
             this.definitions.add(definition);
         }
     }
-
-    public VersionViewStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(VersionViewStatus status) {
-        this.status = status;
-    }
 }

@@ -1,9 +1,7 @@
 package six.eared.macaque.agent.accessor;
 
-import javassist.CannotCompileException;
-import javassist.Modifier;
-import javassist.NotFoundException;
-import javassist.bytecode.BadBytecode;
+import io.github.hhy50.linker.generate.bytecode.vars.ObjectVar;
+import org.objectweb.asm.Opcodes;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
@@ -12,7 +10,6 @@ import six.eared.macaque.agent.enhance.AccessorClassNameGenerator;
 import six.eared.macaque.agent.enhance.CompatibilityModeClassLoader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
-import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.StringUtil;
 
 import java.io.IOException;
@@ -48,13 +45,13 @@ public class CompatibilityModeAccessorUtilV2 {
                 }
             }
 
-            AccessorClassBuilder javassistClassBuilder = generateAccessorClass(clazzDefinition.getClassName(), accessorName, superAccessor);
-            collectAccessibleMethods(clazzDefinition, javassistClassBuilder, superAccessor);
-            collectAccessibleFields(clazzDefinition, javassistClassBuilder, superAccessor);
-            collectSuperMember(clazzDefinition, javassistClassBuilder, superAccessor);
+            AccessorClassBuilder accessorClassBuilder = generateAccessorClass(clazzDefinition.getClassName(), accessorName, superAccessor);
+            collectAccessibleMethods(clazzDefinition, accessorClassBuilder, superAccessor);
+            collectAccessibleFields(clazzDefinition, accessorClassBuilder, superAccessor);
+            collectSuperMember(clazzDefinition, accessorClassBuilder, superAccessor);
 
-            Accessor accessor = javassistClassBuilder.toAccessor();
-            CompatibilityModeClassLoader.loadClass(javassistClassBuilder.getClassName(), accessor.getDefinition().getBytecode());
+            Accessor accessor = accessorClassBuilder.toAccessor();
+            CompatibilityModeClassLoader.loadClass(accessorClassBuilder.getClassName(), accessor.getDefinition().getBytecode());
             LOADED.put(className, accessor);
             return accessor;
         } catch (Exception e) {
@@ -68,17 +65,18 @@ public class CompatibilityModeAccessorUtilV2 {
      * @param accessorName
      * @return
      */
-    private static AccessorClassBuilder generateAccessorClass(String className, String accessorName, Accessor parentAccessor) throws NotFoundException, CannotCompileException {
+    private static AccessorClassBuilder generateAccessorClass(String className, String accessorName, Accessor parentAccessor) {
         boolean containSupper = parentAccessor != null;
-        AccessorClassBuilder accessorBuilder = AccessorClassBuilder.builder(Modifier.PUBLIC, accessorName,
-                containSupper ? parentAccessor.getClassName() : null, null);
+        AccessorClassBuilder accessorBuilder = new AccessorClassBuilder(accessorName, containSupper ? parentAccessor.getClassName() : null, null);
+        accessorBuilder.setThis$0(className)
+                .setParent(parentAccessor);
+
         if (!containSupper) {
-            accessorBuilder.defineField("public java.lang.Object this$0;");
+            accessorBuilder.defineField(Opcodes.ACC_PUBLIC, "this$0", ObjectVar.TYPE, null, null);
         }
-        accessorBuilder.defineField("public static final MethodHandles$Lookup LOOKUP = Util.lookup("+className+".class);")
-                .defineConstructor(String.format("public %s(Object this$0) { %s }", ClassUtil.toSimpleName(accessorName), containSupper?"super(this$0);":"this.this$0=this$0;"));
-        accessorBuilder.setParent(parentAccessor);
-        accessorBuilder.setThis$0(className);
+
+        // 生成链接器
+//        accessorBuilder.defineField(Opcodes.ACC_PUBLIC|Opcodes.ACC_STATIC|Opcodes.ACC_FINAL, "static_linker", ObjectVar.TYPE, null, null);
         return accessorBuilder;
     }
 
@@ -107,7 +105,7 @@ public class CompatibilityModeAccessorUtilV2 {
         }
     }
 
-    private static void collectSuperMember(ClazzDefinition definition, AccessorClassBuilder accessorBuilder, Accessor superAccessor) throws IOException, ClassNotFoundException, CannotCompileException, BadBytecode, NotFoundException {
+    private static void collectSuperMember(ClazzDefinition definition, AccessorClassBuilder accessorBuilder, Accessor superAccessor) throws IOException, ClassNotFoundException {
         // 收集父类中所有可以访问到的方法
         ClazzDefinition superClassDefinition = AsmUtil.readOriginClass(definition.getSuperClassName());
         doCollectSuperMember(accessorBuilder, superClassDefinition);
@@ -126,7 +124,7 @@ public class CompatibilityModeAccessorUtilV2 {
         }
     }
 
-    private static void doCollectSuperMember(AccessorClassBuilder accessorBuilder, ClazzDefinition superClassDefinition) throws NotFoundException, CannotCompileException, BadBytecode {
+    private static void doCollectSuperMember(AccessorClassBuilder accessorBuilder, ClazzDefinition superClassDefinition) {
         for (AsmMethod superMethod : superClassDefinition.getAsmMethods()) {
             if (superMethod.isConstructor() || superMethod.isClinit() || superMethod.isPrivate()) {
                 continue;
