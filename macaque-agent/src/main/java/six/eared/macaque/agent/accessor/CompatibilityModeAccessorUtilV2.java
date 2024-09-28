@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.accessor;
 
+import io.github.hhy50.linker.asm.AsmClassBuilder;
 import io.github.hhy50.linker.generate.bytecode.vars.ObjectVar;
 import org.objectweb.asm.Opcodes;
 import six.eared.macaque.agent.asm2.AsmField;
@@ -50,8 +51,10 @@ public class CompatibilityModeAccessorUtilV2 {
             collectAccessibleFields(clazzDefinition, accessorClassBuilder, superAccessor);
             collectSuperMember(clazzDefinition, accessorClassBuilder, superAccessor);
 
-            Accessor accessor = accessorClassBuilder.toAccessor();
-            CompatibilityModeClassLoader.loadClass(accessorClassBuilder.getClassName(), accessor.getDefinition().getBytecode());
+            Accessor accessor = accessorClassBuilder.end().toAccessor();
+            AsmClassBuilder linker = accessorClassBuilder.getLinkerClassBuilder().end();
+            CompatibilityModeClassLoader.loadClass(linker.getClassName(), linker.toBytecode());
+            CompatibilityModeClassLoader.loadClass(accessorClassBuilder.getClassName(), accessorClassBuilder.toBytecode());
             LOADED.put(className, accessor);
             return accessor;
         } catch (Exception e) {

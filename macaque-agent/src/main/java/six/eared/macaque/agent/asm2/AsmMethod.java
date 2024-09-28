@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.asm2;
 
 
+import io.github.hhy50.linker.define.MethodDescriptor;
 import lombok.Data;
 import org.objectweb.asm.Opcodes;
 
@@ -49,6 +50,10 @@ public class AsmMethod {
     @Override
     public int hashCode() {
         return Objects.hash(methodName, desc);
+    }
+
+    public MethodDescriptor toMd() {
+        return MethodDescriptor.of(null, methodName, desc);
     }
 
     public static final class AsmMethodBuilder {

@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class AsmUtil {
+public class AsmUtil extends io.github.hhy50.linker.asm.AsmUtil {
 
     /**
      * Thread Unsafe
@@ -81,49 +81,6 @@ public class AsmUtil {
         return new AsmClassBuilder(access, className, superName, interfaces, sign);
     }
 
-    public static void areturn(MethodVisitor writer, Type rType) {
-        if (rType.getSort() == Type.VOID) {
-            writer.visitInsn(Opcodes.RETURN);
-        } else {
-            writer.visitInsn(rType.getOpcode(Opcodes.IRETURN));
-        }
-    }
-
-    public static String toTypeDesc(String className) {
-        return "L" + ClassUtil.className2path(className) + ";";
-    }
-
-    public static String addArgsDesc(String methodDesc, String newArg, boolean header) {
-        String delimiter = header ? "\\(" : "\\)";
-        String[] split = methodDesc.split(delimiter);
-        split[0] += AsmUtil.toTypeDesc(newArg);
-        return header ? ("(" + split[0] + split[1]) : (split[0] + ")" + split[1]);
-    }
-
-    public static void throwNoSuchMethod(MethodVisitor write, String methodName) {
-        write.visitTypeInsn(Opcodes.NEW, "java/lang/NoSuchMethodError");
-        write.visitInsn(Opcodes.DUP);
-        write.visitLdcInsn(methodName);
-        write.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/NoSuchMethodError", "<init>", "(Ljava/lang/String;)V", false);
-        write.visitInsn(Opcodes.ATHROW);
-        write.visitMaxs(3, 0);
-    }
-
-    /**
-     * 计算本地变量表长度
-     *
-     * @param argumentTypes
-     * @return
-     */
-    public static int calculateLvbOffset(boolean isStatic, Type[] argumentTypes) {
-        int lvbLen = isStatic ? 0 : 1; // this
-        for (Type argumentType : argumentTypes) {
-            int setup = argumentType.getSort() == Type.DOUBLE || argumentType.getSort() == Type.LONG ? 2 : 1;
-            lvbLen += setup;
-        }
-        return lvbLen;
-    }
-
     /**
      * 访问器入栈
      */
@@ -172,5 +129,12 @@ public class AsmUtil {
             prev = prev.getPrevious();
         }
         return prev;
+    }
+
+    public static String addArgsDesc(String methodDesc, String newArg, boolean header) {
+        String delimiter = header ? "\\(" : "\\)";
+        String[] split = methodDesc.split(delimiter);
+        split[0] += AsmUtil.toTypeDesc(newArg);
+        return header ? ("(" + split[0] + split[1]) : (split[0] + ")" + split[1]);
     }
 }
