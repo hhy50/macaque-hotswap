@@ -4,6 +4,7 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
+import io.github.hhy50.linker.LinkerFactory;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
@@ -30,7 +31,12 @@ public class Env {
 
     static {
         attach();
+        setEnv();
         preload();
+    }
+
+    private static void setEnv() {
+        LinkerFactory.setOutputPath(FileUtil.getProcessTmpPath()+"/linker-output");
     }
 
     private static void attach() {

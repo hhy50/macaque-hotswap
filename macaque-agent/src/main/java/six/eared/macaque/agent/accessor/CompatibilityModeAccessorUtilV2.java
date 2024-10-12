@@ -1,8 +1,6 @@
 package six.eared.macaque.agent.accessor;
 
 import io.github.hhy50.linker.asm.AsmClassBuilder;
-import io.github.hhy50.linker.generate.bytecode.vars.ObjectVar;
-import org.objectweb.asm.Opcodes;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
@@ -51,7 +49,7 @@ public class CompatibilityModeAccessorUtilV2 {
             collectAccessibleFields(clazzDefinition, accessorClassBuilder, superAccessor);
             collectSuperMember(clazzDefinition, accessorClassBuilder, superAccessor);
 
-            Accessor accessor = accessorClassBuilder.end().toAccessor();
+            Accessor accessor = ((AccessorClassBuilder) accessorClassBuilder.end()).toAccessor();
             AsmClassBuilder linker = accessorClassBuilder.getLinkerClassBuilder().end();
             CompatibilityModeClassLoader.loadClass(linker.getClassName(), linker.toBytecode());
             CompatibilityModeClassLoader.loadClass(accessorClassBuilder.getClassName(), accessorClassBuilder.toBytecode());
@@ -70,16 +68,12 @@ public class CompatibilityModeAccessorUtilV2 {
      */
     private static AccessorClassBuilder generateAccessorClass(String className, String accessorName, Accessor parentAccessor) {
         boolean containSupper = parentAccessor != null;
-        AccessorClassBuilder accessorBuilder = new AccessorClassBuilder(accessorName, containSupper ? parentAccessor.getClassName() : null, null);
+        AccessorClassBuilder accessorBuilder = new AccessorClassBuilder(accessorName, containSupper?parentAccessor.getClassName():null, null);
+        if (!containSupper) {
+            accessorBuilder.defineThis$0();
+        }
         accessorBuilder.setThis$0(className)
                 .setParent(parentAccessor);
-
-        if (!containSupper) {
-            accessorBuilder.defineField(Opcodes.ACC_PUBLIC, "this$0", ObjectVar.TYPE, null, null);
-        }
-
-        // 生成链接器
-//        accessorBuilder.defineField(Opcodes.ACC_PUBLIC|Opcodes.ACC_STATIC|Opcodes.ACC_FINAL, "static_linker", ObjectVar.TYPE, null, null);
         return accessorBuilder;
     }
 
