@@ -18,9 +18,9 @@ public interface FieldAccessRule {
     /**
      * 对字段的访问转移到具体方法上
      * @param isStatic
-     * @param targetOwner
-     * @param targetMethodName
-     * @param targetDesc
+     * @param targetClass
+     * @param getter
+     * @param setter
      * @return
      */
     static FieldAccessRule forwardToMethod(boolean isStatic, String targetClass, String getter, String setter) {

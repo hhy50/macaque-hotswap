@@ -81,7 +81,7 @@ public class AsmUtil extends io.github.hhy50.linker.asm.AsmUtil {
     }
 
     public static AsmClassBuilder defineClass(int access, String className, String superName, String[] interfaces, String sign) {
-        return new AsmClassBuilder(access, className, superName, interfaces, sign);
+        return new AsmClassBuilder(0, access, className, superName, interfaces, sign);
     }
 
     /**

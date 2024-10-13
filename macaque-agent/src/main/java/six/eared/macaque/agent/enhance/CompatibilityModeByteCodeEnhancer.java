@@ -1,7 +1,11 @@
 package six.eared.macaque.agent.enhance;
 
 import io.github.hhy50.linker.asm.AsmClassBuilder;
-import org.objectweb.asm.*;
+import io.github.hhy50.linker.asm.MethodBuilder;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import six.eared.macaque.agent.accessor.Accessor;
 import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtilV2;
 import six.eared.macaque.agent.asm2.AsmClassBuilderExt;
@@ -22,7 +26,6 @@ import six.eared.macaque.common.util.FileUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -110,23 +113,19 @@ public class CompatibilityModeByteCodeEnhancer {
      */
     private static void generateNewByteCode(ClassIncrementUpdate classIncrementUpdate) throws ByteCodeConvertException {
         ClazzDefinition originClass = classIncrementUpdate.getOriginDefinition();
-
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES|ClassWriter.COMPUTE_MAXS);
-        classWriter.visit(originClass.getClassVersion(), originClass.getModifiers() | Opcodes.ACC_OPEN,
-                ClassUtil.className2path(originClass.getClassName()), originClass.getSign(), ClassUtil.className2path(originClass.getSuperClassName()),
-                Arrays.stream(originClass.getInterfaces()).map(ClassUtil::className2path).toArray(String[]::new));
-
-        // TODO annotation
-
+        AsmClassBuilder classBuilder = new AsmClassBuilder(originClass.getModifiers() | Opcodes.ACC_OPEN,
+                originClass.getClassName(),
+                originClass.getSuperClassName(),
+                originClass.getInterfaces(),
+                originClass.getSign());
         for (AsmField field : originClass.getAsmFields()) {
-            classWriter.visitField(field.getModifier(), field.getFieldName(), field.getDesc(),
-                    field.getFieldSign(), field.getValue());
+            classBuilder.defineField(field.getModifier(), field.getFieldName(), Type.getType(field.getDesc()), field.getFieldSign(), field.getValue());
             FieldUpdateInfo fi = classIncrementUpdate.getField(field.getFieldName(), field.getDesc());
             classIncrementUpdate.remove(fi);
         }
         for (AsmMethod method : originClass.getAsmMethods()) {
-            MethodVisitor methodWrite = classWriter.visitMethod(method.getModifier(), method.getMethodName(), method.getDesc(),
-                    method.getMethodSign(), method.getExceptions());
+            MethodBuilder methodBuilder = classBuilder.defineMethod(method.getModifier(), method.getMethodName(), method.getDesc(), method.getExceptions());
+            MethodVisitor methodWrite = methodBuilder.getMethodBody().getWriter();
             MethodUpdateInfo mi = classIncrementUpdate.getMethod(method.getMethodName(), method.getDesc());
             if (mi == null || mi.getAsmMethod().isStatic() ^ method.isStatic()) {
                 if (method.isClinit() || method.isConstructor()) {
@@ -134,6 +133,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 } else {
                     // 将类上面需要删除的方法， 删掉
                     AsmUtil.throwNoSuchMethod(methodWrite, method.getMethodName());
+                    methodBuilder.getMethodBody().end();
                 }
                 continue;
             } else if (mi.getAsmMethod().isStatic() ^ method.isStatic()) {
@@ -146,7 +146,7 @@ public class CompatibilityModeByteCodeEnhancer {
             visitorCaller.accept(new InvokeCodeConvertor(method, methodWrite));
             classIncrementUpdate.remove(mi);
         }
-        classIncrementUpdate.setEnhancedByteCode(classWriter.toByteArray());
+        classIncrementUpdate.setEnhancedByteCode(classBuilder.toBytecode());
         if (Environment.isDebug()) {
             FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/compatibility/"+ClassUtil.toSimpleName(classIncrementUpdate.getClassName())+".class"),
                     classIncrementUpdate.getEnhancedByteCode());

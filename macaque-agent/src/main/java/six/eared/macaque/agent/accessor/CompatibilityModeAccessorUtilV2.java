@@ -69,9 +69,6 @@ public class CompatibilityModeAccessorUtilV2 {
     private static AccessorClassBuilder generateAccessorClass(String className, String accessorName, Accessor parentAccessor) {
         boolean containSupper = parentAccessor != null;
         AccessorClassBuilder accessorBuilder = new AccessorClassBuilder(accessorName, containSupper?parentAccessor.getClassName():null, null);
-        if (!containSupper) {
-            accessorBuilder.defineThis$0();
-        }
         accessorBuilder.setThis$0(className)
                 .setParent(parentAccessor);
         return accessorBuilder;
