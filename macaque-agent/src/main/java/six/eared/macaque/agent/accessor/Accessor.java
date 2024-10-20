@@ -16,13 +16,12 @@ import java.util.Map;
 
 
 public class Accessor {
-    public static final String FIELD_GETTER_PREFIX = "$macaque$get$field$";
-    public static final String FIELD_SETTER_PREFIX = "$macaque$set$field$";
+    public static final String FIELD_GETTER_PREFIX = "macaque$get$field$";
+    public static final String FIELD_SETTER_PREFIX = "macaque$set$field$";
 
     /**
      * 表示当前的访问器属于哪个类的
      */
-    String ownerClass;
     Map<ClassMethodUniqueDesc, MethodAccessRule> methodAccessRules;
     Map<ClassFieldUniqueDesc, FieldAccessRule> fieldAccessRules;
     @Getter

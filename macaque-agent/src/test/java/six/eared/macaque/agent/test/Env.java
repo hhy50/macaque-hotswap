@@ -4,20 +4,18 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
+import io.github.hhy50.linker.LinkerFactory;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.compiler.java.JavaSourceCompiler;
 import six.eared.macaque.agent.enhance.ClazzDataDefinition;
-import six.eared.macaque.agent.javassist.JavaSsistUtil;
 import six.eared.macaque.common.ExtPropertyName;
 import six.eared.macaque.common.jps.PID;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.ReflectUtil;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -33,7 +31,12 @@ public class Env {
 
     static {
         attach();
+        setEnv();
         preload();
+    }
+
+    private static void setEnv() {
+        LinkerFactory.setOutputPath(FileUtil.getProcessTmpPath()+"/linker-output");
     }
 
     private static void attach() {
@@ -90,9 +93,9 @@ public class Env {
         byte[] bytecode = definition.getBytecode();
         Class<?> clazz = (Class<?>) ReflectUtil.invokeMethod(ClassLoader.getSystemClassLoader(),
                 "defineClass", className, bytecode, 0, bytecode.length);
-        try (InputStream arrayIn = new ByteArrayInputStream(bytecode)) {
-            JavaSsistUtil.POOL.makeClass(arrayIn);
-        }
+//        try (InputStream arrayIn = new ByteArrayInputStream(bytecode)) {
+//            JavaSsistUtil.POOL.makeClass(arrayIn);
+//        }
         PRELOADED.put(className, clazz);
         System.out.printf("preload class: %s\n", clazz.getName());
     }
