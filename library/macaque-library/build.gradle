@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'six.eared.macaque'
-version = 'unspecified'
+version = projectVersion
 
 repositories {
     mavenCentral()

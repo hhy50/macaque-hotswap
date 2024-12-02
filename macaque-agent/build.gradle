@@ -14,12 +14,13 @@ dependencies {
     implementation project(':macaque-mbean')
     implementation project(':macaque-common')
     implementation project(':library:macaque-library')
-    implementation project(':library:macaque-mybatis')
-    implementation project(':library:macaque-spring')
     implementation 'org.ow2.asm:asm:9.3'
     implementation 'org.ow2.asm:asm-tree:9.3'
     implementation 'org.projectlombok:lombok:1.18.24'
     implementation 'io.github.hhy50:reflect-linker:1.0.6'
+    implementation('com.taobao.arthas:arthas-vmtool:4.0.3') {
+        exclude group: 'com.taobao.arthas', module: 'arthas-common'
+    }
     testImplementation 'junit:junit:4.13.1'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 }
@@ -28,10 +29,20 @@ test {
     useJUnit()
 }
 
-
 shadowJar {
     dependencies {
         exclude 'tools.jar'
+    }
+    def libs = allLibrary()
+    libs.collect { File libDir ->
+        def modName = ":library:${libDir.name}"
+        dependsOn "${modName}:compileJava"
+        from ("${project(modName).buildDir}/classes/java/main/") {
+            into '/'
+        }
+        from ("${project(modName).buildDir}/classes/java/main/") {
+            into '/'
+        }
     }
 
     archiveBaseName = 'agent'
@@ -81,4 +92,11 @@ task lightwidhtJar(type: Jar, dependsOn: compileJava) {
                 'Manifest-Version': "${projectVersion}"
         )
     }
+}
+
+File[] allLibrary() {
+    def modulesDir = new File(project.parent.projectDir, 'library')
+    return modulesDir.listFiles({
+        it.isDirectory() && it.name != 'macaque-library'
+    } as FileFilter)
 }
