@@ -36,11 +36,11 @@ shadowJar {
     def libs = allLibrary()
     libs.collect { File libDir ->
         def modName = ":library:${libDir.name}"
-        dependsOn "${modName}:compileJava"
+        dependsOn "${modName}:jar"
         from ("${project(modName).buildDir}/classes/java/main/") {
             into '/'
         }
-        from ("${project(modName).projectDir}/src/main/resources/") {
+        from ("${project(modName).buildDir}/resources/main") {
             into '/'
         }
     }

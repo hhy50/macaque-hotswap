@@ -1,27 +1,14 @@
 package six.eared.macaque.agent.spi;
 
 
+import lombok.Data;
+
+@Data
 public class LibraryDefinition {
 
     private String name;
 
     private Class<?> clazz;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Class<?> getClazz() {
-        return clazz;
-    }
-
-    public void setClazz(Class<?> clazz) {
-        this.clazz = clazz;
-    }
 
     @Override
     public String toString() {

@@ -1,5 +1,6 @@
 package six.eared.macaque.agent.spi;
 
+import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.hotswap.handler.FileHookHandler;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.ReflectUtil;
@@ -16,6 +17,7 @@ import java.net.URLConnection;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 public class LibrarySpiLoader {
 
@@ -27,7 +29,12 @@ public class LibrarySpiLoader {
     }
 
     public static void loadLibraries() throws Exception {
-        for (LibraryDefinition library : findLibrary()) {
+        List<LibraryDefinition> libraries = findLibrary();
+        if (Environment.isDebug()) {
+            System.out.println("load spiLibrary: "
+                    + libraries.stream().map(LibraryDefinition::getName).collect(Collectors.joining(", ")));
+        }
+        for (LibraryDefinition library : libraries) {
             Library libraryAnnotation = library.getClazz().getAnnotation(Library.class);
             if (libraryAnnotation != null) {
                 for (Class<? extends HotswapHook> hook : libraryAnnotation.hooks()) {

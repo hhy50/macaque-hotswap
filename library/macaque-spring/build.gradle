@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'java-library'
 }
 
 group = 'six.eared.macaque'
@@ -14,4 +13,3 @@ dependencies {
     compileOnly project(":library:macaque-library")
     compileOnly project(":macaque-agent")
 }
-
