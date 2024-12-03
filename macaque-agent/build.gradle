@@ -21,8 +21,11 @@ dependencies {
     implementation('com.taobao.arthas:arthas-vmtool:4.0.3') {
         exclude group: 'com.taobao.arthas', module: 'arthas-common'
     }
-    testImplementation 'junit:junit:4.13.1'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation project(':library:macaque-mybatis')
+    testImplementation project(':library:macaque-spring')
 }
 
 test {
@@ -37,10 +40,10 @@ shadowJar {
     libs.collect { File libDir ->
         def modName = ":library:${libDir.name}"
         dependsOn "${modName}:jar"
-        from ("${project(modName).buildDir}/classes/java/main/") {
+        from("${project(modName).buildDir}/classes/java/main/") {
             into '/'
         }
-        from ("${project(modName).buildDir}/resources/main") {
+        from("${project(modName).buildDir}/resources/main") {
             into '/'
         }
     }
