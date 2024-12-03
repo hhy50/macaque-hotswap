@@ -40,7 +40,7 @@ shadowJar {
         from ("${project(modName).buildDir}/classes/java/main/") {
             into '/'
         }
-        from ("${project(modName).buildDir}/classes/java/main/") {
+        from ("${project(modName).projectDir}/src/main/resources/") {
             into '/'
         }
     }
