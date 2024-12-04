@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'java-library'
     id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
@@ -10,19 +11,20 @@ repositories {
 }
 
 dependencies {
-    implementation files("${System.getProperty('java.home')}/../lib/tools.jar")
+    compileOnly files("${System.getProperty('java.home')}/../lib/tools.jar")
     implementation project(':macaque-mbean')
     implementation project(':macaque-common')
     implementation project(':library:macaque-library')
-    implementation 'org.ow2.asm:asm:9.3'
-    implementation 'org.ow2.asm:asm-tree:9.3'
-    implementation 'org.projectlombok:lombok:1.18.24'
-    implementation 'io.github.hhy50:reflect-linker:1.0.6'
-    implementation('com.taobao.arthas:arthas-vmtool:4.0.3') {
+    api 'org.ow2.asm:asm:9.3'
+    api 'org.ow2.asm:asm-tree:9.3'
+    api 'org.projectlombok:lombok:1.18.24'
+    api 'io.github.hhy50:reflect-linker:1.0.6'
+    api('com.taobao.arthas:arthas-vmtool:4.0.3') {
         exclude group: 'com.taobao.arthas', module: 'arthas-common'
     }
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
+    testImplementation files("${System.getProperty('java.home')}/../lib/tools.jar")
     testImplementation 'junit:junit:4.13.1'
     testImplementation project(':library:macaque-mybatis')
     testImplementation project(':library:macaque-spring')
@@ -33,9 +35,6 @@ test {
 }
 
 shadowJar {
-    dependencies {
-        exclude 'tools.jar'
-    }
     def libs = allLibrary()
     libs.collect { File libDir ->
         def modName = ":library:${libDir.name}"
