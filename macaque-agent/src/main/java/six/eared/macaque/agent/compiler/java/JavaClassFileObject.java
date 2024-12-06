@@ -47,7 +47,7 @@ public class JavaClassFileObject implements JavaFileObject {
     }
 
     public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-        return new String(FileUtil.readBytes(uri.getPath()));
+        return new String(FileUtil.readFile(uri.getPath()));
     }
 
     public Writer openWriter() throws IOException {

@@ -2,36 +2,63 @@ package six.eared.macaque.mybatis;
 
 
 import io.github.hhy50.linker.LinkerFactory;
-import lombok.SneakyThrows;
+import io.github.hhy50.linker.annotations.Method;
+import io.github.hhy50.linker.annotations.Target;
+import io.github.hhy50.linker.exceptions.LinkerException;
 import six.eared.macaque.agent.tool.VmToolExt;
 import six.eared.macaque.library.hook.HotswapHook;
 import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 import six.eared.macaque.mbean.rmi.RmiResult;
+import six.eared.macaque.mybatis.mapping.MybatisConfigure;
 
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.events.XMLEvent;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 public class MybatisXmlListener implements HotswapHook {
 
-    @SneakyThrows
     @Override
     public RmiResult executeBefore(HotSwapRmiData rmiData) {
-        byte[] xmlData = rmiData.getFileData();
-//        try (ByteArrayInputStream in = new ByteArrayInputStream(xmlData)) {
-//            XMLReader xmlReader = XMLReaderFactory.createXMLReader();
-//            xmlReader.parse(new InputSource(in));
-//            String namespace = (String) xmlReader.getProperty("namespace");
-//
-//        } catch (IOException | SAXException e) {
-//            throw new RuntimeException(e);
-//        }
-//        return RmiResult.success();
+        if (!rmiData.getFileType().equals("xml")) {
+            return null;
+        }
+        if (!isMapperXml(rmiData.getFileData())) {
+            return null;
+        }
 
-//        VmTool instance = VmTool.getInstance();
-//        VmTool instance = VmTool.getInstance("/Users/hanhaiyang/IdeaProjects/macaque-hotswap/macaque-agent/build/resources/main/libArthasJniLibrary.dylib");
         Object[] configureObjs = VmToolExt.getInstanceByName("org.apache.ibatis.session.Configuration");
         for (Object configureObj : configureObjs) {
-            replaceXml(LinkerFactory.createLinker(MybatisConfigure.class, configureObj), xmlData);
+            try {
+                replaceXml(LinkerFactory.createLinker(MybatisConfigure.class, configureObj), rmiData.getFileData());
+            } catch (LinkerException e) {
+                throw new RuntimeException(e);
+            }
         }
         return null;
+    }
+
+    private boolean isMapperXml(byte[] xmlData) {
+        boolean hasMapperDoc = false;
+        try (InputStream in = new ByteArrayInputStream(xmlData)) {
+            XMLEventReader reader = XMLInputFactory.newInstance()
+                    .createXMLEventReader(in);
+            while (reader.hasNext()) {
+                XMLEvent next = reader.nextEvent();
+                if (next.getClass().getSimpleName().equals("StartElementEvent")
+                        && LinkerFactory.createLinker(StartElementEvent.class, next)
+                        .getName().equals(QName.valueOf("mapper"))
+                ) {
+                   hasMapperDoc = true;
+                   break;
+                }
+            }
+        } catch (Exception e) {
+
+        }
+        return hasMapperDoc;
     }
 
     private void replaceXml(MybatisConfigure configure, byte[] xmlData) {
@@ -44,5 +71,11 @@ public class MybatisXmlListener implements HotswapHook {
     @Override
     public RmiResult executeAfter(HotSwapRmiData rmiData, RmiResult result, Throwable error) {
         return null;
+    }
+
+    @Target.Bind("com.sun.xml.internal.stream.events.StartElementEvent")
+    static interface StartElementEvent {
+        @Method.Name("getName")
+        public QName getName();
     }
 }

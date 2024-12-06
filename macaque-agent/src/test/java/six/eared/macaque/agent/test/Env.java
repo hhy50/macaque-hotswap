@@ -69,7 +69,7 @@ public class Env {
                 }
                 Map<String, byte[]> javaSources = new HashMap<>();
                 for (String item : preloadDir.list((dir, name) -> name.endsWith(".java"))) {
-                    javaSources.put(item, FileUtil.readBytes(preloadDir.getPath()+File.separator+item));
+                    javaSources.put(item, FileUtil.readFile(preloadDir.getPath()+File.separator+item));
                 }
                 Map<String, ClazzDataDefinition> definitions = compileToClass(javaSources).stream().map(AsmUtil::readClass)
                         .collect(Collectors.toMap(ClazzDefinition::getClassName, Function.identity()));

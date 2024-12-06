@@ -14,7 +14,7 @@ public class FileUtil {
      * @param filepath
      * @return
      */
-    public static byte[] readBytes(String filepath) {
+    public static byte[] readFile(String filepath) {
         File file = new File(filepath);
         if (!file.exists()) {
             return null;
