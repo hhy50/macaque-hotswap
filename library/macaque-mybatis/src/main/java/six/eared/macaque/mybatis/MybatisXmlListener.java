@@ -4,16 +4,20 @@ package six.eared.macaque.mybatis;
 import io.github.hhy50.linker.LinkerFactory;
 import io.github.hhy50.linker.annotations.Method;
 import io.github.hhy50.linker.annotations.Target;
+import io.github.hhy50.linker.define.provider.DefaultTargetProviderImpl;
 import io.github.hhy50.linker.exceptions.LinkerException;
 import six.eared.macaque.agent.tool.VmToolExt;
+import six.eared.macaque.common.util.ReflectUtil;
 import six.eared.macaque.library.hook.HotswapHook;
 import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 import six.eared.macaque.mbean.rmi.RmiResult;
 import six.eared.macaque.mybatis.mapping.MybatisConfigure;
+import six.eared.macaque.mybatis.mapping.XMLMapperBuilder;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.XMLEvent;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -25,14 +29,15 @@ public class MybatisXmlListener implements HotswapHook {
         if (!rmiData.getFileType().equals("xml")) {
             return null;
         }
-        if (!isMapperXml(rmiData.getFileData())) {
+        String namespace = null;
+        if ((namespace = getNamespace(rmiData.getFileData())) == null) {
             return null;
         }
 
         Object[] configureObjs = VmToolExt.getInstanceByName("org.apache.ibatis.session.Configuration");
         for (Object configureObj : configureObjs) {
             try {
-                replaceXml(LinkerFactory.createLinker(MybatisConfigure.class, configureObj), rmiData.getFileData());
+                replaceXml(LinkerFactory.createLinker(MybatisConfigure.class, configureObj), namespace, rmiData.getFileData());
             } catch (LinkerException e) {
                 throw new RuntimeException(e);
             }
@@ -40,32 +45,46 @@ public class MybatisXmlListener implements HotswapHook {
         return null;
     }
 
-    private boolean isMapperXml(byte[] xmlData) {
-        boolean hasMapperDoc = false;
+    private String getNamespace(byte[] xmlData) {
         try (InputStream in = new ByteArrayInputStream(xmlData)) {
             XMLEventReader reader = XMLInputFactory.newInstance()
                     .createXMLEventReader(in);
             while (reader.hasNext()) {
                 XMLEvent next = reader.nextEvent();
-                if (next.getClass().getSimpleName().equals("StartElementEvent")
-                        && LinkerFactory.createLinker(StartElementEvent.class, next)
-                        .getName().equals(QName.valueOf("mapper"))
-                ) {
-                   hasMapperDoc = true;
-                   break;
+                if (next.getClass().getSimpleName().equals("StartElementEvent")) {
+                    StartElementEvent mapperEvent = LinkerFactory.createLinker(StartElementEvent.class, next);
+                    if (mapperEvent.getName().equals(QName.valueOf("mapper"))) {
+                        Attribute attr = (Attribute) mapperEvent.getAttributeByName(QName.valueOf("namespace"));
+                        if (attr != null) {
+                            return attr.getValue();
+                        }
+                    }
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
-        return hasMapperDoc;
+        return null;
     }
 
-    private void replaceXml(MybatisConfigure configure, byte[] xmlData) {
-
-    }
-
-    private void doReplaceXml(MybatisConfigure linker) {
+    private void replaceXml(MybatisConfigure configure, String namespace, byte[] xmlData) {
+        try (InputStream in = new ByteArrayInputStream(xmlData)) {
+            Object o = ReflectUtil.newInstance(Class.forName("org.apache.ibatis.builder.xml.XMLMapperBuilder"),
+                    in,
+                    ((DefaultTargetProviderImpl) configure).getTarget(),
+                    "mybatis/mapper/UserMapper.xml",
+                    configure.getSqlFragments(),
+                    namespace);
+            LinkerFactory.createLinker(XMLMapperBuilder.class, o)
+                    .parse();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+//        XMLMapperBuilder xmlParser = new XMLMapperBuilder(resource,
+//                configuration,
+//                xmlResource,
+//                configuration.getSqlFragments(),
+//                type.getName());
     }
 
     @Override
@@ -77,5 +96,8 @@ public class MybatisXmlListener implements HotswapHook {
     static interface StartElementEvent {
         @Method.Name("getName")
         public QName getName();
+
+        @Method.Name("getAttributeByName")
+        Object getAttributeByName(QName name);
     }
 }

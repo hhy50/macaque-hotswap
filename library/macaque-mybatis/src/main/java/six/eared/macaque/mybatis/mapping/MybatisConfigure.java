@@ -20,4 +20,7 @@ public interface MybatisConfigure {
     @Method.InvokeSuper
     @Method.Name("mappedStatements.put")
     MybatisStatement getStatement(String id);
+
+    @Method.Name("getSqlFragments")
+    Object getSqlFragments();
 }

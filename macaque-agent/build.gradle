@@ -27,6 +27,7 @@ dependencies {
     testImplementation files("${System.getProperty('java.home')}/../lib/tools.jar")
     testImplementation 'junit:junit:4.13.1'
     testImplementation project(':library:macaque-mybatis')
+    testImplementation 'org.mybatis:mybatis:3.5.8'
     testImplementation project(':library:macaque-spring')
 }
 
