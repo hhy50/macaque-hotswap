@@ -42,7 +42,7 @@ public class MybatisXmlListener implements HotswapHook {
                 throw new RuntimeException(e);
             }
         }
-        return null;
+        return RmiResult.success();
     }
 
     private String getNamespace(byte[] xmlData) {
