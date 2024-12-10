@@ -15,10 +15,12 @@ public class TestUpdateSqlStatement extends six.eared.macaque.agent.test.Env  {
 
     private ClassHotSwapHandler classHotSwapHandler = new ClassHotSwapHandler();
 
+    private SqlSessionFactory sqlSessionFactory;
+
     public TestUpdateSqlStatement() throws IOException {
         try (InputStream is = TestUpdateSqlStatement.class.getClassLoader()
                 .getResourceAsStream("mybatis/mybatis-config.xml");) {
-            SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(is);
+            sqlSessionFactory = new SqlSessionFactoryBuilder().build(is);
         }
     }
 
@@ -27,5 +29,6 @@ public class TestUpdateSqlStatement extends six.eared.macaque.agent.test.Env  {
         classHotSwapHandler.handlerRequest(new HotSwapRmiData("xml",
                 FileUtil.is2bytes(TestUpdateSqlStatement.class.getClassLoader().getResourceAsStream("mybatis/UserMapper.xml.1")),
                 Collections.emptyMap()));
+
     }
 }

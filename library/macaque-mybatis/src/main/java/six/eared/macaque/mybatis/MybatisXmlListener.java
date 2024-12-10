@@ -54,7 +54,7 @@ public class MybatisXmlListener implements HotswapHook {
                 if (next.getClass().getSimpleName().equals("StartElementEvent")) {
                     StartElementEvent mapperEvent = LinkerFactory.createLinker(StartElementEvent.class, next);
                     if (mapperEvent.getName().equals(QName.valueOf("mapper"))) {
-                        Attribute attr = (Attribute) mapperEvent.getAttributeByName(QName.valueOf("namespace"));
+                        Attribute attr = mapperEvent.getAttributeByName(QName.valueOf("namespace"));
                         if (attr != null) {
                             return attr.getValue();
                         }
@@ -98,6 +98,6 @@ public class MybatisXmlListener implements HotswapHook {
         public QName getName();
 
         @Method.Name("getAttributeByName")
-        Object getAttributeByName(QName name);
+        Attribute getAttributeByName(QName name);
     }
 }
