@@ -18,7 +18,7 @@ public class VmToolExt {
             libPath = System.getenv("macaque.arthas.lib");
         }
         if (libPath != null) {
-            String osName = System.getProperty("os.name");
+            String osName = System.getProperty("os.name").toLowerCase();
             String libName = "libArthasJniLibrary-x64.dll";
             if (osName.startsWith("linux")) {
                 libName = "libArthasJniLibrary-x64.so";

@@ -8,4 +8,8 @@
         <result column="user_id" property="userId" />
     </resultMap>
 
+    <select id="getById" resultMap="BaseResultMap">
+        select 1
+    </select>
+
 </mapper>
