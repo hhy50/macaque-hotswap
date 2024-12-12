@@ -1,13 +1,15 @@
 package six.eared.macaque.agent.vcs;
 
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import six.eared.macaque.common.util.DateUtil;
 
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Data
+@Getter
+@Setter
 public class VersionDescriptor implements Comparable<VersionDescriptor> {
 
     private static final AtomicInteger INCREMENTOR = new AtomicInteger(0);
