@@ -27,7 +27,7 @@ public class TestUpdateSqlStatement extends six.eared.macaque.agent.test.Env  {
 
     @Test
     public void test1() {
-        RmiResult result = classHotSwapHandler.handlerRequest(new HotSwapRmiData("xml",
+        RmiResult result = classHotSwapHandler.handlerRequest(new HotSwapRmiData("UserMapper.xml", "xml",
                 FileUtil.is2bytes(TestUpdateSqlStatement.class.getClassLoader().getResourceAsStream("mybatis/UserMapper.xml.1")),
                 Collections.emptyMap()));
         if (!result.isSuccess()) {
