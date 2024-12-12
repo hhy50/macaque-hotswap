@@ -6,6 +6,7 @@ import org.junit.Test;
 import six.eared.macaque.agent.hotswap.handler.ClassHotSwapHandler;
 import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.mbean.rmi.HotSwapRmiData;
+import six.eared.macaque.mbean.rmi.RmiResult;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,9 +27,11 @@ public class TestUpdateSqlStatement extends six.eared.macaque.agent.test.Env  {
 
     @Test
     public void test1() {
-        classHotSwapHandler.handlerRequest(new HotSwapRmiData("xml",
+        RmiResult result = classHotSwapHandler.handlerRequest(new HotSwapRmiData("xml",
                 FileUtil.is2bytes(TestUpdateSqlStatement.class.getClassLoader().getResourceAsStream("mybatis/UserMapper.xml.1")),
                 Collections.emptyMap()));
-
+        if (!result.isSuccess()) {
+            throw new RuntimeException(result.getMessage());
+        }
     }
 }

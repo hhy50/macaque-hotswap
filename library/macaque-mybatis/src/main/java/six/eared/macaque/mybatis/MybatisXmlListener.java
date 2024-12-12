@@ -5,8 +5,8 @@ import io.github.hhy50.linker.LinkerFactory;
 import io.github.hhy50.linker.annotations.Method;
 import io.github.hhy50.linker.annotations.Target;
 import io.github.hhy50.linker.define.provider.DefaultTargetProviderImpl;
-import io.github.hhy50.linker.exceptions.LinkerException;
 import six.eared.macaque.agent.tool.VmToolExt;
+import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.common.util.ReflectUtil;
 import six.eared.macaque.library.hook.HotswapHook;
 import six.eared.macaque.mbean.rmi.HotSwapRmiData;
@@ -38,8 +38,8 @@ public class MybatisXmlListener implements HotswapHook {
         for (Object configureObj : configureObjs) {
             try {
                 replaceXml(LinkerFactory.createLinker(MybatisConfigure.class, configureObj), namespace, rmiData.getFileData());
-            } catch (LinkerException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                return RmiResult.error(e.getMessage());
             }
         }
         return RmiResult.success();
@@ -67,24 +67,19 @@ public class MybatisXmlListener implements HotswapHook {
         return null;
     }
 
-    private void replaceXml(MybatisConfigure configure, String namespace, byte[] xmlData) {
+    private void replaceXml(MybatisConfigure configure, String namespace, byte[] xmlData) throws MapperReplaceException {
         try (InputStream in = new ByteArrayInputStream(xmlData)) {
             Object o = ReflectUtil.newInstance(Class.forName("org.apache.ibatis.builder.xml.XMLMapperBuilder"),
                     in,
                     ((DefaultTargetProviderImpl) configure).getTarget(),
-                    "mybatis/mapper/UserMapper.xml",
+                    String.format("/macaque/%s/UserMapper.xml", VersionChainTool.getActiveVersionView().getVersion().getNumber()),
                     configure.getSqlFragments(),
                     namespace);
             LinkerFactory.createLinker(XMLMapperBuilder.class, o)
                     .parse();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new MapperReplaceException(e.getMessage());
         }
-//        XMLMapperBuilder xmlParser = new XMLMapperBuilder(resource,
-//                configuration,
-//                xmlResource,
-//                configuration.getSqlFragments(),
-//                type.getName());
     }
 
     @Override

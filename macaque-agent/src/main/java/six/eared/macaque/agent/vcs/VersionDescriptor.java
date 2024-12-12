@@ -1,11 +1,13 @@
 package six.eared.macaque.agent.vcs;
 
 
+import lombok.Data;
 import six.eared.macaque.common.util.DateUtil;
 
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Data
 public class VersionDescriptor implements Comparable<VersionDescriptor> {
 
     private static final AtomicInteger INCREMENTOR = new AtomicInteger(0);
@@ -40,22 +42,6 @@ public class VersionDescriptor implements Comparable<VersionDescriptor> {
     @Override
     public int compareTo(VersionDescriptor o) {
         return 0;
-    }
-
-    public Integer getNumber() {
-        return number;
-    }
-
-    public void setNumber(Integer number) {
-        this.number = number;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
     }
 
     public static class VersionComparator implements Comparator<VersionDescriptor> {
