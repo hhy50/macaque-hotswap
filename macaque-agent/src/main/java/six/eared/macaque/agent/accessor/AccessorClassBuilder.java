@@ -3,7 +3,6 @@ package six.eared.macaque.agent.accessor;
 import io.github.hhy50.linker.asm.AsmClassBuilder;
 import io.github.hhy50.linker.asm.MethodBuilder;
 import io.github.hhy50.linker.define.MethodDescriptor;
-import io.github.hhy50.linker.generate.MethodBody;
 import io.github.hhy50.linker.generate.bytecode.action.Actions;
 import io.github.hhy50.linker.generate.bytecode.action.LdcLoadAction;
 import io.github.hhy50.linker.generate.bytecode.action.MethodInvokeAction;
