@@ -22,7 +22,6 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import static six.eared.macaque.mybatis.MybatisLibraryConfiguration.patchStrictMap;
 
 public class MybatisXmlMapperHandler implements HotswapHook {
 
@@ -37,9 +36,6 @@ public class MybatisXmlMapperHandler implements HotswapHook {
         }
 
         Object[] configureObjs = VmToolExt.getInstanceByName("org.apache.ibatis.session.Configuration");
-        if (configureObjs.length > 0) {
-            patchStrictMap();
-        }
         for (Object configureObj : configureObjs) {
             try {
                 replaceXml(LinkerFactory.createLinker(MybatisConfigure.class, configureObj), namespace, rmiData.getFileName(), rmiData.getFileData());
@@ -74,14 +70,13 @@ public class MybatisXmlMapperHandler implements HotswapHook {
 
     private void replaceXml(MybatisConfigure configure, String namespace, String fileName, byte[] xmlData) throws MapperReplaceException {
         try (InputStream in = new ByteArrayInputStream(xmlData)) {
-            Object o = ReflectUtil.newInstance(Class.forName("org.apache.ibatis.builder.xml.XMLMapperBuilder"),
-                    in,
-                    ((DefaultTargetProviderImpl) configure).getTarget(),
-                    String.format("/macaque/%s/%s", VersionChainTool.getActiveVersionView().getVersion().getNumber(), fileName),
-                    configure.getSqlFragments(),
-                    namespace);
-            LinkerFactory.createLinker(XMLMapperBuilder.class, o)
-                    .parse();
+            XMLMapperBuilder xmlMapperBuilder = LinkerFactory.createStaticLinker(XMLMapperBuilder.class, configure.getClass().getClassLoader())
+                    .newInstance(in,
+                            configure,
+                            String.format("/macaque/%s/%s", VersionChainTool.getActiveVersionView().getVersion().getNumber(), fileName),
+                            configure.getSqlFragments(),
+                            namespace);
+            xmlMapperBuilder.parse();
         } catch (Exception e) {
             throw new MapperReplaceException(e.getMessage());
         }

@@ -30,8 +30,8 @@ public class Env {
     static final Map<String, Class> PRELOADED = new HashMap<>();
 
     static {
-        attach();
         setEnv();
+        attach();
         preload();
     }
 

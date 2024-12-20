@@ -1,5 +1,9 @@
 package six.eared.macaque.agent.spi;
 
+import io.github.hhy50.linker.LinkerFactory;
+import io.github.hhy50.linker.annotations.Runtime;
+import io.github.hhy50.linker.annotations.Static;
+import io.github.hhy50.linker.exceptions.LinkerException;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.hotswap.handler.FileHookHandler;
 import six.eared.macaque.common.util.FileUtil;
@@ -21,6 +25,12 @@ import java.util.stream.Collectors;
 
 public class LibrarySpiLoader {
 
+    @Runtime
+    interface LibraryClassLinker {
+        @Static
+        void init();
+    }
+
     private static final String PATH = "META-INF/Library/";
 
     public static <T> Iterator<T> loadService(Class<T> clazz) {
@@ -28,18 +38,31 @@ public class LibrarySpiLoader {
         return loader.iterator();
     }
 
-    public static void loadLibraries() throws Exception {
+    public synchronized static void loadLibraries() throws Exception {
         List<LibraryDefinition> libraries = findLibrary();
         if (Environment.isDebug()) {
             System.out.println("load spiLibrary: "
                     + libraries.stream().map(LibraryDefinition::getName).collect(Collectors.joining(", ")));
         }
         for (LibraryDefinition library : libraries) {
+            execInit(library);
             Library libraryAnnotation = library.getClazz().getAnnotation(Library.class);
             if (libraryAnnotation != null) {
                 for (Class<? extends HotswapHook> hook : libraryAnnotation.hooks()) {
                     FileHookHandler.registerHook(ReflectUtil.newInstance(hook));
                 }
+            }
+        }
+    }
+
+    private static void execInit(LibraryDefinition library) {
+        try {
+            LibraryClassLinker linker = LinkerFactory.createStaticLinker(LibraryClassLinker.class, library.getClazz());
+            linker.init();
+        } catch (Exception e) {
+            if (e instanceof LinkerException || e instanceof NoSuchMethodException) return;
+            if (Environment.isDebug()) {
+                System.out.println("exec library '" + library.getName() + "' init error: " + e.getMessage());
             }
         }
     }

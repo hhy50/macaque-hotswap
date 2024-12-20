@@ -32,7 +32,6 @@ public class AccessorClassBuilder extends AsmClassBuilder {
 
     private Accessor parent;
     private String this$0;
-    private MethodBody init;
     @Getter
     private AsmClassBuilder linkerClassBuilder;
     private Map<ClassMethodUniqueDesc, MethodAccessRule> methodAccessRules = new HashMap<>();
@@ -51,7 +50,7 @@ public class AccessorClassBuilder extends AsmClassBuilder {
 
         Type linkerType = AsmUtil.getType(linkerClassBuilder.getClassName());
         this.defineField(Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC, STATIC_LINKER_FIELD_NAME, linkerType, null, null)
-                .store(getClinit(), new MethodInvokeAction(MethodDescriptor.LINKER_FACTORY_CREATE_LINKER).setArgs(
+                .store(getClinit(), new MethodInvokeAction(MethodDescriptor.LINKER_FACTORY_CREATE_STATIC_LINKER_CLASSLOADER).setArgs(
                         LdcLoadAction.of(linkerType),
                         new MethodInvokeAction(MethodDescriptor.GET_CLASS_LOADER).setInstance(LdcLoadAction.of(AsmUtil.getType(className)))
                 ));
