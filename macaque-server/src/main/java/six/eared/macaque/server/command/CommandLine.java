@@ -3,6 +3,7 @@ package six.eared.macaque.server.command;
 import six.eared.macaque.common.util.ReflectUtil;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +39,16 @@ public class CommandLine {
     }
 
     public <T> T toObject(Class<T> clazz) {
-        T obj = ReflectUtil.createInstance(clazz);
+        T obj = null;
+        try {
+            obj = ReflectUtil.newInstance(clazz);
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
 
         // TODO: 嵌套对象解析 obj.children.field
         for (Field field : ReflectUtil.getDeclaredFields(clazz)) {

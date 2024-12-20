@@ -22,16 +22,6 @@ public class ReflectUtil {
         return clazz.getDeclaredMethods();
     }
 
-    public static <T> T createInstance(Class<T> clazz) {
-        T t = null;
-        try {
-            t = clazz.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return t;
-    }
-
     @SuppressWarnings("unchecked")
     public static <T> T newInstance(Class<T> clazz, Object... args) throws InstantiationException, IllegalAccessException, InvocationTargetException {
         if (args.length == 0) {

@@ -1,13 +1,13 @@
 package six.eared.macaque.agent.spi;
 
 import io.github.hhy50.linker.LinkerFactory;
+import io.github.hhy50.linker.annotations.Method;
 import io.github.hhy50.linker.annotations.Runtime;
 import io.github.hhy50.linker.annotations.Static;
 import io.github.hhy50.linker.exceptions.LinkerException;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.hotswap.handler.FileHookHandler;
 import six.eared.macaque.common.util.FileUtil;
-import six.eared.macaque.common.util.ReflectUtil;
 import six.eared.macaque.library.annotation.Library;
 import six.eared.macaque.library.hook.HotswapHook;
 
@@ -31,6 +31,11 @@ public class LibrarySpiLoader {
         void init();
     }
 
+    interface Hook extends HotswapHook {
+        @Method.Constructor
+        Hook newInstance();
+    }
+
     private static final String PATH = "META-INF/Library/";
 
     public static <T> Iterator<T> loadService(Class<T> clazz) {
@@ -49,7 +54,7 @@ public class LibrarySpiLoader {
             Library libraryAnnotation = library.getClazz().getAnnotation(Library.class);
             if (libraryAnnotation != null) {
                 for (Class<? extends HotswapHook> hook : libraryAnnotation.hooks()) {
-                    FileHookHandler.registerHook(ReflectUtil.newInstance(hook));
+                    FileHookHandler.registerHook(LinkerFactory.createStaticLinker(Hook.class, hook).newInstance());
                 }
             }
         }
@@ -62,7 +67,7 @@ public class LibrarySpiLoader {
         } catch (Exception e) {
             if (e instanceof LinkerException || e instanceof NoSuchMethodException) return;
             if (Environment.isDebug()) {
-                System.out.println("exec library '" + library.getName() + "' init error: " + e.getMessage());
+                System.out.println("exec library '"+library.getName()+"' init error: "+e.getMessage());
             }
         }
     }
@@ -112,7 +117,7 @@ public class LibrarySpiLoader {
                     LibraryDefinition definition = null;
                     try (InputStream is = jarFile.getInputStream(entry)) {
                         String[] split = relativePath.split("/");
-                        definition = createDefinition(split[split.length - 1], is);
+                        definition = createDefinition(split[split.length-1], is);
                     }
                     if (definition != null) libraries.add(definition);
                 }
