@@ -12,9 +12,8 @@ repositories {
 
 dependencies {
     compileOnly files("${System.getProperty('java.home')}/../lib/tools.jar")
-    implementation project(':macaque-mbean')
-    implementation project(':macaque-common')
-    implementation project(':library:macaque-library')
+    api project(':macaque-mbean')
+    api project(':macaque-common')
     api 'org.ow2.asm:asm:9.3'
     api 'org.ow2.asm:asm-tree:9.3'
     api 'org.projectlombok:lombok:1.18.24'

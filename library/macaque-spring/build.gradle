@@ -10,6 +10,5 @@ repositories {
 }
 
 dependencies {
-    compileOnly project(":library:macaque-library")
     compileOnly project(":macaque-agent")
 }
