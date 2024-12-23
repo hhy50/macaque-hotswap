@@ -7,7 +7,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.accessor.Accessor;
-import six.eared.macaque.agent.accessor.CompatibilityModeAccessorUtilV2;
+import six.eared.macaque.agent.accessor.AccessorUtil;
 import six.eared.macaque.agent.asm2.AsmClassBuilderExt;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
@@ -89,18 +89,20 @@ public class CompatibilityModeByteCodeEnhancer {
                 if (bindInfo == null) {
                     throw new EnhanceException("not method bind info");
                 }
-                BindMethodWriter bindMethodWriter = new BindMethodWriter(newMethod, classUpdateInfo.getAccessor());
+                BindMethodWriter bindMethodWriter = new BindMethodWriter(classUpdateInfo.getAccessor());
+                newMethod.getVisitorCaller().accept(bindMethodWriter);
+
                 AsmClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
                         .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
                                 bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
                                 newMethod.getExceptions())
-                        .accept(body -> bindMethodWriter.write(body.getWriter()))
+                        .accept(body -> bindMethodWriter.accept(body.getWriter()))
                         .end();
                 ClazzDataDefinition bindClazzDefinition = AsmClassBuilderExt.toDefinition(classBuilder);
                 if (bindInfo.isLoaded()) {
                     classUpdateInfo.addCorrelationClasses(CorrelationEnum.METHOD_BIND, bindClazzDefinition);
                 } else {
-                    CompatibilityModeClassLoader.loadClass(bindInfo.getBindClass(), bindClazzDefinition.getBytecode());
+                    EnhanceBytecodeClassLoader.loadClass(bindInfo.getBindClass(), bindClazzDefinition.getBytecode());
                     bindInfo.setLoaded(true);
                 }
                 iterator.remove();
@@ -161,7 +163,7 @@ public class CompatibilityModeByteCodeEnhancer {
     private static Accessor createAccessor(String className) {
         // 计算深度
         int deepth = 3;
-        Accessor accessor = CompatibilityModeAccessorUtilV2.createAccessor(className, new AccessorClassNameGenerator(), deepth);
+        Accessor accessor = AccessorUtil.createAccessor(className, new AccessorClassNameGenerator(), deepth);
         return accessor;
     }
 }

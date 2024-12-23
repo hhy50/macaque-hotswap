@@ -3,7 +3,6 @@ package six.eared.macaque.agent.enhance;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.ClassMethodUniqueDesc;
-import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +31,26 @@ public class MethodBindManager {
         methodBindInfo.setBindMethodDesc(method.isStatic()?method.getDesc():AsmUtil.addArgsDesc(method.getDesc(), accessorName, true));
         methodBindInfo.setStatic(method.isStatic());
         methodBindInfo.setAccessorClass(accessorName);
-        methodBindInfo.setVisitorCaller(new AsmMethodVisitorCaller());
+
+        putBindInfo(clazzName, bindMethodName, method.getDesc(), method.isStatic(), methodBindInfo);
+        return methodBindInfo;
+    }
+
+    public static MethodBindInfo createPatchedBindInfo(String clazzName, AsmMethod method, String accessorName) {
+        MethodBindInfo bindInfo = getBindInfo(clazzName, method.getMethodName(), method.getDesc(), method.isStatic());
+        if (bindInfo != null) {
+            return bindInfo;
+        }
+
+        String bindMethodName = method.getMethodName();
+        String bindClassName = CLASS_NAME_GENERATOR.generate(clazzName, bindMethodName);
+
+        MethodBindInfo methodBindInfo = new MethodBindInfo();
+        methodBindInfo.setBindClass(bindClassName);
+        methodBindInfo.setBindMethod(bindMethodName);
+        methodBindInfo.setBindMethodDesc(method.isStatic()?method.getDesc():AsmUtil.addArgsDesc(method.getDesc(), accessorName, true));
+        methodBindInfo.setStatic(method.isStatic());
+        methodBindInfo.setAccessorClass(accessorName);
 
         putBindInfo(clazzName, bindMethodName, method.getDesc(), method.isStatic(), methodBindInfo);
         return methodBindInfo;

@@ -1,23 +1,38 @@
 package six.eared.macaque.agent.enhance;
 
 
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.MethodNode;
 import six.eared.macaque.agent.accessor.Accessor;
-import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
+import six.eared.macaque.common.util.ClassUtil;
 
 
 public class BindMethodWriter extends MethodNode {
 
-    private MethodUpdateInfo method;
-
     private Accessor accessor;
 
-    public BindMethodWriter(MethodUpdateInfo method, Accessor accessor) {
+    public BindMethodWriter(Accessor accessor) {
         super(Opcodes.ASM9);
-        this.method = method;
         this.accessor = accessor;
+    }
+
+    @Override
+    public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int index) {
+
+    }
+
+    @Override
+    public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
+        if ((this.access & Opcodes.ACC_STATIC) == 0 && type == Opcodes.F_FULL) {
+            local[0] = ClassUtil.className2path(accessor.getClassName());
+        }
+        super.visitFrame(type, numLocal, local, numStack, stack);
+    }
+
+    @Override
+    public void visitLineNumber(int line, Label start) {
+
     }
 
     @Override
@@ -36,11 +51,5 @@ public class BindMethodWriter extends MethodNode {
             return;
         }
         accessor.accessMethod(this.instructions, opcode, owner, name, desc);
-    }
-
-    public void write(MethodVisitor writer) {
-        AsmMethodVisitorCaller visitorCaller = this.method.getVisitorCaller();
-        visitorCaller.accept(this);
-        this.accept(writer);
     }
 }

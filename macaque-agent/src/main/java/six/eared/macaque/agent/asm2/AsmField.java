@@ -29,6 +29,16 @@ public class AsmField {
         return (modifier & Opcodes.ACC_FINAL) > 0;
     }
 
+    public boolean isPublicForSub() {
+        if ((this.modifier & Opcodes.ACC_PUBLIC) > 0) {
+            return true;
+        }
+        if ((this.modifier & Opcodes.ACC_PROTECTED) > 0) {
+            return true;
+        }
+        return false;
+    }
+
     public static final class AsmFieldBuilder {
         private int modifier;
         private String fieldName;

@@ -58,4 +58,18 @@ public class ClassUtil {
         charArray[0] -= 32;
         return new String(charArray);
     }
+
+    public static boolean isSystemClass(String className) {
+        if (className.startsWith("java.") || className.startsWith("javax.") || className.startsWith("sun.")) {
+            return true;
+        }
+        if (className.contains(".internal.") || className.contains(".reflect.") || className.contains(".lang.")
+                || className.contains(".io.") || className.contains(".net.")) {
+            return true;
+        }
+        if (className.contains("java$") || className.contains("javax$") || className.contains("sun$")) {
+            return true;
+        }
+        return false;
+    }
 }

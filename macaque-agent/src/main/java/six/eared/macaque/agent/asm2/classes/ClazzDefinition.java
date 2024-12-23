@@ -13,6 +13,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -79,7 +80,7 @@ public abstract class ClazzDefinition implements Cloneable {
             this.classVersion = Opcodes.V1_8;
             this.modifiers = toAsmOpcode(clazz.getModifiers());
             this.className = clazz.getName();
-            this.superClassName = clazz.getSuperclass().getName();
+            this.superClassName = Optional.ofNullable(clazz.getSuperclass()).map(Class::getName).orElse(null);
             this.interfaces = Arrays.stream(clazz.getInterfaces()).map(Class::getName).toArray(String[]::new);
 
             for (Method method : clazz.getDeclaredMethods()) {

@@ -176,5 +176,10 @@ public class ClassLoaderSearchRoot implements SearchRoot {
             }
             return Collections.emptyList();
         }
+
+        @Override
+        public String toString() {
+            return jarUri;
+        }
     }
 }

@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Setter
 public class VersionDescriptor implements Comparable<VersionDescriptor> {
 
-    private static final AtomicInteger INCREMENTOR = new AtomicInteger(0);
+    private static final AtomicInteger VERSION_INCREMENTOR = new AtomicInteger(0);
 
     private Integer number;
 
@@ -20,7 +20,7 @@ public class VersionDescriptor implements Comparable<VersionDescriptor> {
 
     public static VersionDescriptor incrementVersion() {
         VersionDescriptor vd = new VersionDescriptor();
-        vd.setNumber(INCREMENTOR.incrementAndGet());
+        vd.setNumber(VERSION_INCREMENTOR.incrementAndGet());
         vd.setDate(DateUtil.nowString());
         return vd;
     }

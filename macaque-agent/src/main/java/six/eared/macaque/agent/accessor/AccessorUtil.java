@@ -6,7 +6,7 @@ import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.enhance.AccessorClassNameGenerator;
-import six.eared.macaque.agent.enhance.CompatibilityModeClassLoader;
+import six.eared.macaque.agent.enhance.EnhanceBytecodeClassLoader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
 import six.eared.macaque.common.util.StringUtil;
@@ -14,11 +14,11 @@ import six.eared.macaque.common.util.StringUtil;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import static six.eared.macaque.common.util.ClassUtil.isSystemClass;
 
 
-public class CompatibilityModeAccessorUtilV2 {
-    private static final AtomicInteger COUNTER = new AtomicInteger(1);
+public class AccessorUtil {
 
     private static final Map<String, Accessor> LOADED = new HashMap<>();
 
@@ -51,8 +51,8 @@ public class CompatibilityModeAccessorUtilV2 {
 
             Accessor accessor = ((AccessorClassBuilder) accessorClassBuilder.end()).toAccessor();
             AsmClassBuilder linker = accessorClassBuilder.getLinkerClassBuilder().end();
-            CompatibilityModeClassLoader.loadClass(linker.getClassName(), linker.toBytecode());
-            CompatibilityModeClassLoader.loadClass(accessorClassBuilder.getClassName(), accessorClassBuilder.toBytecode());
+            EnhanceBytecodeClassLoader.loadClass(linker.getClassName(), linker.toBytecode());
+            EnhanceBytecodeClassLoader.loadClass(accessorClassBuilder.getClassName(), accessorClassBuilder.toBytecode());
             LOADED.put(className, accessor);
             return accessor;
         } catch (Exception e) {
@@ -68,7 +68,7 @@ public class CompatibilityModeAccessorUtilV2 {
      */
     private static AccessorClassBuilder generateAccessorClass(String className, String accessorName, Accessor parentAccessor) {
         boolean containSupper = parentAccessor != null;
-        AccessorClassBuilder accessorBuilder = new AccessorClassBuilder(accessorName, containSupper?parentAccessor.getClassName():null, null);
+        AccessorClassBuilder accessorBuilder = new AccessorClassBuilder(accessorName, containSupper ? parentAccessor.getClassName() : null, null);
         accessorBuilder.setThis$0(className)
                 .setParent(parentAccessor);
         return accessorBuilder;
@@ -120,31 +120,17 @@ public class CompatibilityModeAccessorUtilV2 {
 
     private static void doCollectSuperMember(AccessorClassBuilder accessorBuilder, ClazzDefinition superClassDefinition) {
         for (AsmMethod superMethod : superClassDefinition.getAsmMethods()) {
-            if (superMethod.isConstructor() || superMethod.isClinit() || superMethod.isPrivate()) {
+            if (superMethod.isConstructor() || superMethod.isClinit()) {
                 continue;
             }
-            accessorBuilder.addMethod(superClassDefinition.getClassName(), superMethod);
+            if (superMethod.isPublicForSub()) {
+                accessorBuilder.addMethod(superClassDefinition.getClassName(), superMethod);
+            }
         }
         for (AsmField superField : superClassDefinition.getAsmFields()) {
-            if (superField.isPrivate()) {
-                continue;
+            if (superField.isPublicForSub()) {
+                accessorBuilder.addField(superClassDefinition.getClassName(), superField);
             }
-            accessorBuilder.addField(superClassDefinition.getClassName(), superField);
         }
-    }
-
-
-    public static boolean isSystemClass(String className) {
-        if (className.startsWith("java.") || className.startsWith("javax.") || className.startsWith("sun.")) {
-            return true;
-        }
-        if (className.contains(".internal.") || className.contains(".reflect.") || className.contains(".lang.")
-                || className.contains(".io.") || className.contains(".net.")) {
-            return true;
-        }
-        if (className.contains("java$") || className.contains("javax$") || className.contains("sun$")) {
-            return true;
-        }
-        return false;
     }
 }

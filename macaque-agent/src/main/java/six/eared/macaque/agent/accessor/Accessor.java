@@ -56,6 +56,9 @@ public class Accessor {
             }
         }
         MethodAccessRule accessRule = findMethodAccessRule(ClassMethodUniqueDesc.of(ClassUtil.classpath2name(owner), name, desc));
+        if (accessRule == null && opcode == Opcodes.INVOKEVIRTUAL) {
+            accessRule = findMethodVirtual(name, desc);
+        }
         if (accessRule == null) {
             // 判断访问的方法是否是新方法
             MethodBindInfo bindInfo = MethodBindManager.getBindInfo(ClassUtil.classpath2name(owner), name, desc, opcode == Opcodes.INVOKESTATIC);
@@ -63,6 +66,16 @@ public class Accessor {
             else accessRule = MethodAccessRule.direct();
         }
         accessRule.access(insnList, opcode, owner, name, desc, false);
+    }
+
+    private MethodAccessRule findMethodVirtual(String name, String desc) {
+        for (Map.Entry<ClassMethodUniqueDesc, MethodAccessRule> method : methodAccessRules.entrySet()) {
+            ClassMethodUniqueDesc key = method.getKey();
+            if (key.getName().equals(name) && key.getDesc().equals(desc)) {
+                return method.getValue();
+            }
+        }
+        return null;
     }
 
     public void accessField(InsnList insnList, int opcode, String owner, String name, String type) {

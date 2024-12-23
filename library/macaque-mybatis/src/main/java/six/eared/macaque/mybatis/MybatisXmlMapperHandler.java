@@ -4,6 +4,7 @@ package six.eared.macaque.mybatis;
 import io.github.hhy50.linker.LinkerFactory;
 import io.github.hhy50.linker.annotations.Method;
 import io.github.hhy50.linker.annotations.Target;
+import six.eared.macaque.agent.enhance.ClassEnhancer;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.tool.VmToolExt;
 import six.eared.macaque.agent.vcs.VersionChainTool;
@@ -52,6 +53,8 @@ public class MybatisXmlMapperHandler implements HotswapHook {
     }
 
     private void makeSurePatched(ClassLoader cl) throws ClassNotFoundException, IOException, UnmodifiableClassException {
+        ClassEnhancer.enhance(cl.getClass());
+
         String cn = "org.apache.ibatis.session.Configuration$StrictMap";
         Class<?> strictMapClass = cl.loadClass(cn);
         if (patchedStrictMaps.contains(strictMapClass)) {

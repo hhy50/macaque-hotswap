@@ -17,6 +17,7 @@ import six.eared.macaque.common.util.InstrumentationUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -36,18 +37,26 @@ public class AsmUtil extends io.github.hhy50.linker.asm.AsmUtil {
      * @throws ClassNotFoundException
      */
     public static ClazzDefinition readOriginClass(String className) throws ClassNotFoundException, IOException {
-        try (InputStream is = ClassLoader.getSystemResourceAsStream(ClassUtil.className2path(className)+".class");) {
-            if (is != null) {
-                return AsmUtil.readClass(FileUtil.is2bytes(is));
+        if (!ClassUtil.isSystemClass(className)) {
+            try (InputStream is = ClassLoader.getSystemResourceAsStream(ClassUtil.className2path(className)+".class");) {
+                if (is != null) {
+                    return AsmUtil.readClass(FileUtil.is2bytes(is));
+                }
+            } catch (IOException e) {
+                if (Environment.isDebug()) {
+                    System.out.println("findLastView error");
+                    e.printStackTrace();
+                }
+                throw e;
             }
-        } catch (IOException e) {
-            if (Environment.isDebug()) {
-                System.out.println("findLastView error");
-                e.printStackTrace();
-            }
-            throw e;
         }
-        Set<Class<?>> loadedClass = InstrumentationUtil.findLoadedClass(Environment.getInst(), className);
+        Set<Class<?>> loadedClass = new HashSet<>();
+        try {
+            loadedClass.add(Class.forName(className));
+        } catch (Throwable ignore) {
+            loadedClass = InstrumentationUtil.findLoadedClass(Environment.getInst(), className);
+        }
+
         if (CollectionUtil.isNotEmpty(loadedClass)) {
             Class<?> clazz = loadedClass.iterator().next();
             return new ClazzDefinition.InMemory(clazz);

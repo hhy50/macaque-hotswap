@@ -149,7 +149,7 @@ public class AccessorClassBuilder extends AsmClassBuilder {
 
         super.defineMethod(Opcodes.ACC_PUBLIC | (Opcodes.ACC_STATIC & asmField.getModifier()), getter, methodDesc, null)
                 .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), getterName, methodDesc))
-                        .setInstance(Members.ofLoad(asmField.isStatic()?STATIC_LINKER_FIELD_NAME:LINKER_FIELD_NAME))
+                        .setInstance(Members.ofLoad(asmField.isStatic() ? STATIC_LINKER_FIELD_NAME : LINKER_FIELD_NAME))
                         .setArgs(Args.loadArgs())
                         .thenReturn()
                 );
@@ -162,7 +162,7 @@ public class AccessorClassBuilder extends AsmClassBuilder {
         String methodDesc = "("+asmField.getDesc()+")V";
         super.defineMethod(Opcodes.ACC_PUBLIC | (Opcodes.ACC_STATIC & asmField.getModifier()), setter, methodDesc, null)
                 .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), setterName, methodDesc))
-                        .setInstance(Members.ofLoad(asmField.isStatic()?STATIC_LINKER_FIELD_NAME:LINKER_FIELD_NAME))
+                        .setInstance(Members.ofLoad(asmField.isStatic() ? STATIC_LINKER_FIELD_NAME : LINKER_FIELD_NAME))
                         .setArgs(Args.loadArgs())
                         .thenReturn()
                 );

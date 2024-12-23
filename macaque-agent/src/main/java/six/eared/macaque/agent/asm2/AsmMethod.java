@@ -39,6 +39,16 @@ public class AsmMethod {
         return this.methodName.equals("<clinit>");
     }
 
+    public boolean isPublicForSub() {
+        if ((this.modifier & Opcodes.ACC_PUBLIC) > 0) {
+            return true;
+        }
+        if ((this.modifier & Opcodes.ACC_PROTECTED) > 0) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

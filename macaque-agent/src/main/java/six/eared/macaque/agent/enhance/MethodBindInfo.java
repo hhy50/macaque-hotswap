@@ -3,7 +3,6 @@ package six.eared.macaque.agent.enhance;
 import lombok.Data;
 import six.eared.macaque.agent.accessor.MethodAccessRule;
 import six.eared.macaque.agent.accessor.NewMethodAccessRule;
-import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 
 import java.util.Objects;
 
@@ -35,8 +34,6 @@ public class MethodBindInfo implements Cloneable {
      * 是否是静态方法
      */
     private boolean isStatic;
-
-    private AsmMethodVisitorCaller visitorCaller;
 
     /**
      * 是否加载
