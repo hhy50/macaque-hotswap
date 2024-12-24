@@ -46,12 +46,12 @@ public class Accessor {
         return null;
     }
 
-    public void accessMethod(InsnList insnList, int opcode, String owner, String name, String desc) {
+    public void accessMethod(InsnList insnList, int opcode, String owner, String name, String desc, boolean isInterface) {
         if (opcode != Opcodes.INVOKESTATIC) {
             // 非静态需要判断操作的变量是否是 slot[0]
             AbstractInsnNode insn = AsmUtil.getPrevStackInsn(Type.getArgumentTypes(desc).length, AsmUtil.getPrevValid(insnList.getLast()));
             if (!isAload0(insn)) {
-                insnList.add(new MethodInsnNode(opcode, owner, name, desc, false));
+                insnList.add(new MethodInsnNode(opcode, owner, name, desc, isInterface));
                 return;
             }
         }
@@ -65,7 +65,7 @@ public class Accessor {
             if (bindInfo != null) accessRule = bindInfo.getAccessRule(true);
             else accessRule = MethodAccessRule.direct();
         }
-        accessRule.access(insnList, opcode, owner, name, desc, false);
+        accessRule.access(insnList, opcode, owner, name, desc, isInterface);
     }
 
     private MethodAccessRule findMethodVirtual(String name, String desc) {
