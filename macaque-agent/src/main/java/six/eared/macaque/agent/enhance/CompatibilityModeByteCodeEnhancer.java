@@ -2,7 +2,6 @@ package six.eared.macaque.agent.enhance;
 
 import io.github.hhy50.linker.asm.AsmClassBuilder;
 import io.github.hhy50.linker.asm.MethodBuilder;
-import io.github.hhy50.linker.generate.MethodBody;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -95,11 +94,11 @@ public class CompatibilityModeByteCodeEnhancer {
                 }
 
                 BindMethodWriter bindMethodWriter = (BindMethodWriter) newMethod.getVisitorCaller();
-                AsmClassBuilder classBuilder = new AsmClassBuilder(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null);
-                MethodBody methodBody = classBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-                        bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
-                        newMethod.getExceptions()).getMethodBody();
-                bindMethodWriter.accept(methodBody.getWriter());
+                AsmClassBuilder classBuilder = new AsmClassBuilder(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
+                        .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+                                bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
+                                newMethod.getExceptions())
+                        .acceptWithEnd(body -> bindMethodWriter.accept(body.getWriter()));
 
                 ClazzDataDefinition bindClazzDefinition = AsmClassBuilderExt.toDefinition(classBuilder);
                 if (bindInfo.isLoaded()) {

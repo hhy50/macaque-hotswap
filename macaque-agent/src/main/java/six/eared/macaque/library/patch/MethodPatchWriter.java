@@ -73,7 +73,7 @@ class PatchedMethodUpdater extends BindMethodWriter {
 
         this.bindClassBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
                         bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(), null)
-                .accept(body -> PatchedMethodUpdater.this.accept(body.getWriter()));
+                .acceptWithEnd(body -> PatchedMethodUpdater.this.accept(body.getWriter()));
         this.bindClassBuilder.end();
         this.bindInfo.setLoaded(true);
 
