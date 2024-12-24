@@ -20,4 +20,9 @@ public class AsmMethodVisitorCaller extends MethodNode {
         return this.instructions == null
                 || this.instructions.size() == 0;
     }
+
+    @Override
+    public void visitMaxs(int maxStack, int maxLocals) {
+
+    }
 }

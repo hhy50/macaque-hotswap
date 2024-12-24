@@ -2,6 +2,7 @@ package six.eared.macaque.agent.enhance;
 
 import io.github.hhy50.linker.asm.AsmClassBuilder;
 import io.github.hhy50.linker.asm.MethodBuilder;
+import io.github.hhy50.linker.generate.MethodBody;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -56,11 +57,14 @@ public class CompatibilityModeByteCodeEnhancer {
             @Override
             public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
                 AsmMethod asmMethod = definition.getMethod(name, desc);
-                MethodUpdateInfo methodUpdateInfo = new MethodUpdateInfo(asmMethod, new AsmMethodVisitorCaller());
+                MethodUpdateInfo methodUpdateInfo = new MethodUpdateInfo(asmMethod);
                 if (!originDefinition.hasMethod(asmMethod)) {
                     MethodBindInfo bindInfo = MethodBindManager
                             .createMethodBindInfo(definition.getClassName(), asmMethod, accessor.getClassName());
                     methodUpdateInfo.setBindInfo(bindInfo);
+                    methodUpdateInfo.setVisitorCaller(new BindMethodWriter(accessor));
+                } else {
+                    methodUpdateInfo.setVisitorCaller(new AsmMethodVisitorCaller());
                 }
                 incrementUpdate.addMethod(methodUpdateInfo);
                 return methodUpdateInfo.getVisitorCaller();
@@ -89,15 +93,14 @@ public class CompatibilityModeByteCodeEnhancer {
                 if (bindInfo == null) {
                     throw new EnhanceException("not method bind info");
                 }
-                BindMethodWriter bindMethodWriter = new BindMethodWriter(classUpdateInfo.getAccessor());
-                newMethod.getVisitorCaller().accept(bindMethodWriter);
 
-                AsmClassBuilder classBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
-                        .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-                                bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
-                                newMethod.getExceptions())
-                        .accept(body -> bindMethodWriter.accept(body.getWriter()))
-                        .end();
+                BindMethodWriter bindMethodWriter = (BindMethodWriter) newMethod.getVisitorCaller();
+                AsmClassBuilder classBuilder = new AsmClassBuilder(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null);
+                MethodBody methodBody = classBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+                        bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
+                        newMethod.getExceptions()).getMethodBody();
+                bindMethodWriter.accept(methodBody.getWriter());
+
                 ClazzDataDefinition bindClazzDefinition = AsmClassBuilderExt.toDefinition(classBuilder);
                 if (bindInfo.isLoaded()) {
                     classUpdateInfo.addCorrelationClasses(CorrelationEnum.METHOD_BIND, bindClazzDefinition);
@@ -141,7 +144,7 @@ public class CompatibilityModeByteCodeEnhancer {
             } else if (mi.getAsmMethod().isStatic() ^ method.isStatic()) {
                 continue;
             }
-            AsmMethodVisitorCaller visitorCaller = mi.getVisitorCaller();
+            AsmMethodVisitorCaller visitorCaller = (AsmMethodVisitorCaller) mi.getVisitorCaller();
             if (visitorCaller == null || visitorCaller.isEmpty()) {
                 throw new ByteCodeConvertException("no bytecode found");
             }

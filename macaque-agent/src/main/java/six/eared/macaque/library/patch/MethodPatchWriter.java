@@ -3,6 +3,7 @@ package six.eared.macaque.library.patch;
 
 import io.github.hhy50.linker.asm.AsmClassBuilder;
 import io.github.hhy50.linker.define.MethodDescriptor;
+import io.github.hhy50.linker.generate.bytecode.utils.Methods;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -60,7 +61,9 @@ class PatchedMethodUpdater extends BindMethodWriter {
 
     protected PatchedMethodUpdater(MethodBindInfo bindInfo, Accessor accessor) {
         super(accessor);
-        this.bindClassBuilder = AsmUtil.defineClass(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null);
+        this.bindClassBuilder = new AsmClassBuilder(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), Object.class.getName(), null, null)
+                .defineConstruct(Opcodes.ACC_PUBLIC)
+                .intercept(Methods.invokeSuper().thenReturn());
         this.bindInfo = bindInfo;
     }
 
@@ -70,19 +73,19 @@ class PatchedMethodUpdater extends BindMethodWriter {
 
         this.bindClassBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
                         bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(), null)
-                .accept(body -> this.accept(body.getWriter()))
-                .end();
+                .accept(body -> PatchedMethodUpdater.this.accept(body.getWriter()));
         this.bindClassBuilder.end();
         this.bindInfo.setLoaded(true);
 
-        byte[] bytecode = this.bindClassBuilder.toBytecode();
-        Class<?> aClass = EnhanceBytecodeClassLoader.loadClass(this.bindInfo.getBindClass(), bytecode);
-        FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/patched/"+ClassUtil.toSimpleName(bindClassBuilder.getClassName())+".class"),
-                bytecode);
         try {
+            byte[] bytecode = this.bindClassBuilder.toBytecode();
+            FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/patched/"+ClassUtil.toSimpleName(bindClassBuilder.getClassName())+".class"),
+                    bytecode);
+            Class<?> aClass = EnhanceBytecodeClassLoader.loadClass(this.bindInfo.getBindClass(), bytecode);
             aClass.newInstance();
         } catch (Throwable e) {
             e.printStackTrace();
+            System.exit(-1);
         }
     }
 }

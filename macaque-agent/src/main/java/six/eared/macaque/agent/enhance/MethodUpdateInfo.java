@@ -4,8 +4,8 @@ package six.eared.macaque.agent.enhance;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.objectweb.asm.tree.MethodNode;
 import six.eared.macaque.agent.asm2.AsmMethod;
-import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 
 @Data
 @AllArgsConstructor
@@ -13,11 +13,10 @@ import six.eared.macaque.agent.asm2.classes.AsmMethodVisitorCaller;
 public class MethodUpdateInfo {
     private AsmMethod asmMethod;
     private MethodBindInfo bindInfo;
-    private AsmMethodVisitorCaller visitorCaller;
+    private MethodNode visitorCaller;
 
-    public MethodUpdateInfo(AsmMethod asmMethod, AsmMethodVisitorCaller visitorCaller) {
+    public MethodUpdateInfo(AsmMethod asmMethod) {
         this.asmMethod = asmMethod;
-        this.visitorCaller = visitorCaller;
     }
 
     public String getMethodName() {

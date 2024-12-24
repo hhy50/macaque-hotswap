@@ -50,6 +50,11 @@ public class BindMethodWriter extends MethodNode {
             super.visitMethodInsn(opcode, owner, name, desc, isInterface);
             return;
         }
-        accessor.accessMethod(this.instructions, opcode, owner, name, desc);
+        accessor.accessMethod(this.instructions, opcode, owner, name, desc, isInterface);
+    }
+
+    @Override
+    public void visitMaxs(int maxStack, int maxLocals) {
+
     }
 }
