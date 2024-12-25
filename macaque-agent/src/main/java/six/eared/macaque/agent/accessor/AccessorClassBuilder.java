@@ -3,9 +3,11 @@ package six.eared.macaque.agent.accessor;
 import io.github.hhy50.linker.asm.AsmClassBuilder;
 import io.github.hhy50.linker.asm.MethodBuilder;
 import io.github.hhy50.linker.define.MethodDescriptor;
+import io.github.hhy50.linker.define.provider.DefaultTargetProviderImpl;
 import io.github.hhy50.linker.generate.bytecode.action.Actions;
 import io.github.hhy50.linker.generate.bytecode.action.LdcLoadAction;
 import io.github.hhy50.linker.generate.bytecode.action.MethodInvokeAction;
+import io.github.hhy50.linker.generate.bytecode.action.TypeCastAction;
 import io.github.hhy50.linker.generate.bytecode.utils.Args;
 import io.github.hhy50.linker.generate.bytecode.utils.Members;
 import io.github.hhy50.linker.generate.bytecode.utils.Methods;
@@ -18,6 +20,8 @@ import six.eared.macaque.common.util.Maps;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.github.hhy50.linker.generate.bytecode.action.LoadAction.LOAD0;
+
 
 public class AccessorClassBuilder extends AsmClassBuilder {
 
@@ -28,6 +32,7 @@ public class AccessorClassBuilder extends AsmClassBuilder {
     private static final String TARGET_BIND_ANNO = "Lio/github/hhy50/linker/annotations/Target$Bind;";
     private static final String LINKER_FIELD_NAME = "_linker";
     private static final String STATIC_LINKER_FIELD_NAME = "_static_linker";
+    public static final String GET_ORIGIN_MNAME = "getOrigin";
 
     private Accessor parent;
     private String this$0;
@@ -58,7 +63,14 @@ public class AccessorClassBuilder extends AsmClassBuilder {
 
     public AccessorClassBuilder setThis$0(String this$0) {
         this.this$0 = this$0;
-        this.linkerClassBuilder.addAnnotation(TARGET_BIND_ANNO, Maps.of("value", this$0));
+        Type this$0Type = Type.getType(AsmUtil.toTypeDesc(this$0));
+        this.linkerClassBuilder.addAnnotation(TARGET_BIND_ANNO, Maps.of("value", this$0))
+                .defineMethod(Opcodes.ACC_PUBLIC, GET_ORIGIN_MNAME, Type.getMethodDescriptor(this$0Type), null)
+                .intercept(Actions.multi(
+                        new MethodInvokeAction(MethodDescriptor.DEFAULT_PROVIDER_GET_TARGET)
+                                .setInstance(new TypeCastAction(LOAD0, Type.getType(DefaultTargetProviderImpl.class))),
+                        new TypeCastAction(Actions.stackTop(), this$0Type).thenReturn()
+                ));
         return this;
     }
 
@@ -88,6 +100,20 @@ public class AccessorClassBuilder extends AsmClassBuilder {
             rule = invokeInstance(owner, methodName, method);
         }
         this.methodAccessRules.put(ClassMethodUniqueDesc.of(owner, method.getMethodName(), method.getDesc()), rule);
+    }
+
+    public void addSuperMethod(String owner, AsmMethod method) {
+        // 如果父类A重写了父类B的方法C， 只需要把父类A的方法C保留起来就行
+        for (ClassMethodUniqueDesc descriptor : this.methodAccessRules.keySet()) {
+            if (descriptor.getClassName().equals(this$0)) {
+                continue;
+            }
+            if (descriptor.getName().equals(method.getMethodName())
+                    && descriptor.getDesc().equals(method.getDesc())) {
+                return;
+            }
+        }
+        addMethod(owner, method);
     }
 
     private MethodAccessRule invokeStatic(String owner, String methodName, AsmMethod method) {

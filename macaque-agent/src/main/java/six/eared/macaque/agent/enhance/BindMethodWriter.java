@@ -5,7 +5,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.MethodNode;
 import six.eared.macaque.agent.accessor.Accessor;
-import six.eared.macaque.common.util.ClassUtil;
 
 
 public class BindMethodWriter extends MethodNode {
@@ -24,14 +23,16 @@ public class BindMethodWriter extends MethodNode {
 
     @Override
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
-        if ((this.access & Opcodes.ACC_STATIC) == 0 && type == Opcodes.F_FULL) {
-            local[0] = ClassUtil.className2path(accessor.getClassName());
-        }
-        super.visitFrame(type, numLocal, local, numStack, stack);
+
     }
 
     @Override
     public void visitLineNumber(int line, Label start) {
+
+    }
+
+    @Override
+    public void visitMaxs(int maxStack, int maxLocals) {
 
     }
 
@@ -50,11 +51,7 @@ public class BindMethodWriter extends MethodNode {
             super.visitMethodInsn(opcode, owner, name, desc, isInterface);
             return;
         }
+        accessor.accessArgs(this.instructions, opcode, owner, name, desc, isInterface);
         accessor.accessMethod(this.instructions, opcode, owner, name, desc, isInterface);
-    }
-
-    @Override
-    public void visitMaxs(int maxStack, int maxLocals) {
-
     }
 }

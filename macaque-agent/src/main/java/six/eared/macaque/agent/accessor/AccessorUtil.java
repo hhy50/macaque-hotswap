@@ -78,7 +78,7 @@ public class AccessorUtil {
         try {
             // 收集自身全部的方法
             for (AsmMethod method : definition.getAsmMethods()) {
-                if (method.isConstructor() || method.isClinit()) {
+                if (method.isConstructor() || method.isClinit() || method.isSynthetic()) {
                     continue;
                 }
                 accessorBuilder.addMethod(definition.getClassName(), method);
@@ -120,11 +120,12 @@ public class AccessorUtil {
 
     private static void doCollectSuperMember(AccessorClassBuilder accessorBuilder, ClazzDefinition superClassDefinition) {
         for (AsmMethod superMethod : superClassDefinition.getAsmMethods()) {
-            if (superMethod.isConstructor() || superMethod.isClinit()) {
+            if (superMethod.isConstructor() || superMethod.isClinit()
+                    || superMethod.isSynthetic()) {
                 continue;
             }
             if (superMethod.isPublicForSub()) {
-                accessorBuilder.addMethod(superClassDefinition.getClassName(), superMethod);
+                accessorBuilder.addSuperMethod(superClassDefinition.getClassName(), superMethod);
             }
         }
         for (AsmField superField : superClassDefinition.getAsmFields()) {

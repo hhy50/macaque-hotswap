@@ -32,18 +32,14 @@ public class Accessor {
         return definition.getClassName();
     }
 
-    protected MethodAccessRule findMethodAccessRule(ClassMethodUniqueDesc uniqueDesc) {
-        MethodAccessRule rule = methodAccessRules.get(uniqueDesc);
-        if (rule != null) return rule;
-        if (parent != null) return parent.findMethodAccessRule(uniqueDesc);
-        return null;
-    }
+    public void accessArgs(InsnList insnList, int opcode, String owner, String name, String desc, boolean isInterface) {
+        AbstractInsnNode lastInst = insnList.getLast();
+        for (int i = 0; i < desc.length(); i++) {
+            AbstractInsnNode lastArg = AsmUtil.getPrevValid(insnList.getLast());
+            if (isAload0(lastArg)) {
 
-    protected FieldAccessRule findFieldAccessRule(ClassFieldUniqueDesc uniqueDesc) {
-        FieldAccessRule rule = fieldAccessRules.get(uniqueDesc);
-        if (rule != null) return rule;
-        if (parent != null) return parent.findFieldAccessRule(uniqueDesc);
-        return null;
+            }
+        }
     }
 
     public void accessMethod(InsnList insnList, int opcode, String owner, String name, String desc, boolean isInterface) {
@@ -68,16 +64,6 @@ public class Accessor {
         accessRule.access(insnList, opcode, owner, name, desc, isInterface);
     }
 
-    private MethodAccessRule findMethodVirtual(String name, String desc) {
-        for (Map.Entry<ClassMethodUniqueDesc, MethodAccessRule> method : methodAccessRules.entrySet()) {
-            ClassMethodUniqueDesc key = method.getKey();
-            if (key.getName().equals(name) && key.getDesc().equals(desc)) {
-                return method.getValue();
-            }
-        }
-        return null;
-    }
-
     public void accessField(InsnList insnList, int opcode, String owner, String name, String type) {
         if (opcode != Opcodes.GETSTATIC && opcode != Opcodes.PUTSTATIC) {
             // 非静态需要判断操作的变量是否是 slot[0]
@@ -94,6 +80,31 @@ public class Accessor {
         }
         accessRule.access(insnList, opcode, owner, name, type);
     }
+
+    private MethodAccessRule findMethodVirtual(String name, String desc) {
+        for (Map.Entry<ClassMethodUniqueDesc, MethodAccessRule> method : methodAccessRules.entrySet()) {
+            ClassMethodUniqueDesc key = method.getKey();
+            if (key.getName().equals(name) && key.getDesc().equals(desc)) {
+                return method.getValue();
+            }
+        }
+        return null;
+    }
+
+    protected MethodAccessRule findMethodAccessRule(ClassMethodUniqueDesc uniqueDesc) {
+        MethodAccessRule rule = methodAccessRules.get(uniqueDesc);
+        if (rule != null) return rule;
+        if (parent != null) return parent.findMethodAccessRule(uniqueDesc);
+        return null;
+    }
+
+    protected FieldAccessRule findFieldAccessRule(ClassFieldUniqueDesc uniqueDesc) {
+        FieldAccessRule rule = fieldAccessRules.get(uniqueDesc);
+        if (rule != null) return rule;
+        if (parent != null) return parent.findFieldAccessRule(uniqueDesc);
+        return null;
+    }
+
 
     private boolean isAload0(AbstractInsnNode insn) {
         return insn instanceof VarInsnNode

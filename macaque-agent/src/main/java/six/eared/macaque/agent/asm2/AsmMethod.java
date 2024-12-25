@@ -39,6 +39,10 @@ public class AsmMethod {
         return this.methodName.equals("<clinit>");
     }
 
+    public boolean isSynthetic() {
+        return (this.modifier & Opcodes.ACC_SYNTHETIC) > 0;
+    }
+
     public boolean isPublicForSub() {
         if ((this.modifier & Opcodes.ACC_PUBLIC) > 0) {
             return true;

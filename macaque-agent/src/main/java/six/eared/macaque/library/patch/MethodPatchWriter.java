@@ -81,8 +81,7 @@ class PatchedMethodUpdater extends BindMethodWriter {
             byte[] bytecode = this.bindClassBuilder.toBytecode();
             FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/patched/"+ClassUtil.toSimpleName(bindClassBuilder.getClassName())+".class"),
                     bytecode);
-            Class<?> aClass = EnhanceBytecodeClassLoader.loadClass(this.bindInfo.getBindClass(), bytecode);
-            aClass.newInstance();
+            EnhanceBytecodeClassLoader.loadClass(this.bindInfo.getBindClass(), bytecode);
         } catch (Throwable e) {
             e.printStackTrace();
             System.exit(-1);
