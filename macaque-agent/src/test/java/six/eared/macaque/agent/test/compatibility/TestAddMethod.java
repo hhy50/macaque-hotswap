@@ -40,17 +40,13 @@ public class TestAddMethod extends Env {
         Assert.assertEquals("12345678test1test390", invoke(INSTANCE, "test2"));
     }
 
-//    @Test
-//    public void testAddInstanceMethod2() throws Throwable {
-//        byte[] bytes = compileToClass("TestAddMethodClass2.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
-//                .getResourceAsStream("compatibility/add/AddInstanceMethod2.java"))).get(0);
-//
-//        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-//        Assert.assertEquals(invoke(INSTANCE, "test2"), "12345678test1test390");
-//
-//        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
-//        Assert.assertEquals(invoke(INSTANCE, "test2"), "12345678test1test390");
-//    }
+    @Test
+    public void testAddInstanceMethod2() throws Throwable {
+        byte[] bytes = compileToClass("TestAddMethodClass.java", FileUtil.is2bytes(TestAddMethod.class.getClassLoader()
+                .getResourceAsStream("compatibility/add/AddInstanceMethod2.java"))).get(0);
+        classHotSwapHandler.handlerRequest(new HotSwapRmiData("class", bytes, compatibilityMode()));
+        Assert.assertNotNull(invoke(INSTANCE, "test2"));
+    }
 
     @Test
     public void testAddInstanceMethodWithParams() {

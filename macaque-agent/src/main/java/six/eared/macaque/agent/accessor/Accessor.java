@@ -2,9 +2,9 @@ package six.eared.macaque.agent.accessor;
 
 import lombok.Getter;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.*;
-import six.eared.macaque.agent.asm2.AsmUtil;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.MethodInsnNode;
 import six.eared.macaque.agent.asm2.ClassFieldUniqueDesc;
 import six.eared.macaque.agent.asm2.ClassMethodUniqueDesc;
 import six.eared.macaque.agent.enhance.ClazzDataDefinition;
@@ -14,10 +14,13 @@ import six.eared.macaque.common.util.ClassUtil;
 
 import java.util.Map;
 
+import static six.eared.macaque.agent.accessor.AccessorClassBuilder.GET_ORIGIN_MNAME;
+
 
 public class Accessor {
     public static final String FIELD_GETTER_PREFIX = "macaque$get$field$";
     public static final String FIELD_SETTER_PREFIX = "macaque$set$field$";
+    public String this$0;
 
     /**
      * 表示当前的访问器属于哪个类的
@@ -32,25 +35,14 @@ public class Accessor {
         return definition.getClassName();
     }
 
-    public void accessArgs(InsnList insnList, int opcode, String owner, String name, String desc, boolean isInterface) {
-        AbstractInsnNode lastInst = insnList.getLast();
-        for (int i = 0; i < desc.length(); i++) {
-            AbstractInsnNode lastArg = AsmUtil.getPrevValid(insnList.getLast());
-            if (isAload0(lastArg)) {
-
-            }
-        }
+    public void accessSelf(InsnList instructions, AbstractInsnNode load0) {
+        instructions.insert(load0,
+                new MethodInsnNode(Opcodes.INVOKEVIRTUAL, ClassUtil.className2path(definition.getClassName()),
+                        GET_ORIGIN_MNAME, "()L"+ClassUtil.className2path(this$0)+";")
+        );
     }
 
     public void accessMethod(InsnList insnList, int opcode, String owner, String name, String desc, boolean isInterface) {
-        if (opcode != Opcodes.INVOKESTATIC) {
-            // 非静态需要判断操作的变量是否是 slot[0]
-            AbstractInsnNode insn = AsmUtil.getPrevStackInsn(Type.getArgumentTypes(desc).length, AsmUtil.getPrevValid(insnList.getLast()));
-            if (!isAload0(insn)) {
-                insnList.add(new MethodInsnNode(opcode, owner, name, desc, isInterface));
-                return;
-            }
-        }
         MethodAccessRule accessRule = findMethodAccessRule(ClassMethodUniqueDesc.of(ClassUtil.classpath2name(owner), name, desc));
         if (accessRule == null && opcode == Opcodes.INVOKEVIRTUAL) {
             accessRule = findMethodVirtual(name, desc);
@@ -65,15 +57,6 @@ public class Accessor {
     }
 
     public void accessField(InsnList insnList, int opcode, String owner, String name, String type) {
-        if (opcode != Opcodes.GETSTATIC && opcode != Opcodes.PUTSTATIC) {
-            // 非静态需要判断操作的变量是否是 slot[0]
-            AbstractInsnNode insn = AsmUtil.getPrevStackInsn(opcode==Opcodes.PUTFIELD?1:0, AsmUtil.getPrevValid(insnList.getLast()));
-            if (!isAload0(insn)) {
-                insnList.add(new FieldInsnNode(opcode, owner, name, type));
-                return;
-            }
-        }
-
         FieldAccessRule accessRule = findFieldAccessRule(ClassFieldUniqueDesc.of(ClassUtil.classpath2name(owner), name, type));
         if (accessRule == null) {
             accessRule = FieldAccessRule.direct();
@@ -103,12 +86,5 @@ public class Accessor {
         if (rule != null) return rule;
         if (parent != null) return parent.findFieldAccessRule(uniqueDesc);
         return null;
-    }
-
-
-    private boolean isAload0(AbstractInsnNode insn) {
-        return insn instanceof VarInsnNode
-                && insn.getOpcode() == Opcodes.ALOAD
-                && ((VarInsnNode) insn).var == 0;
     }
 }

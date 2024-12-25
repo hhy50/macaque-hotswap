@@ -128,6 +128,17 @@ public class AsmUtil extends io.github.hhy50.linker.asm.AsmUtil {
     }
 
     /**
+     *
+     * @param insn
+     * @return
+     */
+    public static boolean isAload0(AbstractInsnNode insn) {
+        return insn instanceof VarInsnNode
+                && insn.getOpcode() == Opcodes.ALOAD
+                && ((VarInsnNode) insn).var == 0;
+    }
+
+    /**
      * 获取上一条指令
      * @param current
      * @return

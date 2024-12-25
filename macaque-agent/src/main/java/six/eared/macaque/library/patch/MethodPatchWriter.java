@@ -60,7 +60,7 @@ class PatchedMethodUpdater extends BindMethodWriter {
     private final AsmClassBuilder bindClassBuilder;
 
     protected PatchedMethodUpdater(MethodBindInfo bindInfo, Accessor accessor) {
-        super(accessor);
+        super(bindInfo, accessor);
         this.bindClassBuilder = new AsmClassBuilder(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), Object.class.getName(), null, null)
                 .defineConstruct(Opcodes.ACC_PUBLIC)
                 .intercept(Methods.invokeSuper().thenReturn());

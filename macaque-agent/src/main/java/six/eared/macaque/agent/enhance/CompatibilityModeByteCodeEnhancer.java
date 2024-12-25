@@ -61,7 +61,7 @@ public class CompatibilityModeByteCodeEnhancer {
                     MethodBindInfo bindInfo = MethodBindManager
                             .createMethodBindInfo(definition.getClassName(), asmMethod, accessor.getClassName());
                     methodUpdateInfo.setBindInfo(bindInfo);
-                    methodUpdateInfo.setVisitorCaller(new BindMethodWriter(accessor));
+                    methodUpdateInfo.setVisitorCaller(new BindMethodWriter(bindInfo, accessor));
                 } else {
                     methodUpdateInfo.setVisitorCaller(new AsmMethodVisitorCaller());
                 }

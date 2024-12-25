@@ -64,13 +64,21 @@ public class AccessorClassBuilder extends AsmClassBuilder {
     public AccessorClassBuilder setThis$0(String this$0) {
         this.this$0 = this$0;
         Type this$0Type = Type.getType(AsmUtil.toTypeDesc(this$0));
+        String methodType = Type.getMethodDescriptor(this$0Type);
         this.linkerClassBuilder.addAnnotation(TARGET_BIND_ANNO, Maps.of("value", this$0))
-                .defineMethod(Opcodes.ACC_PUBLIC, GET_ORIGIN_MNAME, Type.getMethodDescriptor(this$0Type), null)
+                .defineMethod(Opcodes.ACC_PUBLIC, GET_ORIGIN_MNAME, methodType, null)
                 .intercept(Actions.multi(
                         new MethodInvokeAction(MethodDescriptor.DEFAULT_PROVIDER_GET_TARGET)
                                 .setInstance(new TypeCastAction(LOAD0, Type.getType(DefaultTargetProviderImpl.class))),
                         new TypeCastAction(Actions.stackTop(), this$0Type).thenReturn()
                 ));
+
+        Type linkerType = AsmUtil.getType(linkerClassBuilder.getClassName());
+        super.defineMethod(Opcodes.ACC_PUBLIC, GET_ORIGIN_MNAME, methodType, null)
+                .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), GET_ORIGIN_MNAME, methodType))
+                        .setInstance(Members.ofLoad(LINKER_FIELD_NAME))
+                        .thenReturn()
+                );
         return this;
     }
 
@@ -197,6 +205,7 @@ public class AccessorClassBuilder extends AsmClassBuilder {
 
     public Accessor toAccessor() {
         Accessor accessor = new Accessor();
+        accessor.this$0 = this$0;
         accessor.parent = parent;
         accessor.fieldAccessRules = fieldAccessRules;
         accessor.methodAccessRules = methodAccessRules;
