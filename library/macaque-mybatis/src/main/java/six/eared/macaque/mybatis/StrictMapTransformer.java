@@ -42,7 +42,7 @@ public class StrictMapTransformer implements ClassFileTransformer {
                                 .methodName(name)
                                 .desc(descriptor)
                                 .build();
-                        methodVisitor = MethodPatchWriter.patchMethod(ClassUtil.classpath2name(classPath), methodVisitor, asmMethod,
+                        methodVisitor = MethodPatchWriter.patchMethod(loader, ClassUtil.classpath2name(classPath), methodVisitor, asmMethod,
                                 MethodDescriptor.of(StrictMapTransformer.class.getDeclaredMethod("put", Map.class, Object.class, Object.class)));
                     } catch (Exception e) {
                         if (Environment.isDebug()) {

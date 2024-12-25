@@ -12,6 +12,7 @@ import six.eared.macaque.agent.accessor.AccessorUtil;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.enhance.*;
+import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.FileUtil;
 
@@ -21,7 +22,7 @@ import static org.objectweb.asm.Opcodes.IRETURN;
 
 public class MethodPatchWriter {
 
-    public static MethodVisitor patchMethod(String className, MethodVisitor mv, AsmMethod asmMethod,
+    public static MethodVisitor patchMethod(ClassLoader loader, String className, MethodVisitor mv, AsmMethod asmMethod,
                                             MethodDescriptor delegationMd) {
         Accessor accessor = AccessorUtil.createAccessor(className, new AccessorClassNameGenerator(), 1);
         MethodBindInfo bindInfo = MethodBindManager.createPatchedBindInfo(
@@ -35,7 +36,7 @@ public class MethodPatchWriter {
 
         // 生成调用“委托方法”的字节码
         invokeDelegationMethod(mv, asmMethod, delegationMd);
-        return new PatchedMethodUpdater(bindInfo, accessor);
+        return new PatchedMethodUpdater(loader, bindInfo, accessor);
     }
 
     private static void invokeDelegationMethod(MethodVisitor mv, AsmMethod asmMethod, MethodDescriptor delegationMd) {
@@ -55,12 +56,13 @@ public class MethodPatchWriter {
 }
 
 class PatchedMethodUpdater extends BindMethodWriter {
-
+    private final ClassLoader loader;
     private final MethodBindInfo bindInfo;
     private final AsmClassBuilder bindClassBuilder;
 
-    protected PatchedMethodUpdater(MethodBindInfo bindInfo, Accessor accessor) {
+    protected PatchedMethodUpdater(ClassLoader loader, MethodBindInfo bindInfo, Accessor accessor) {
         super(bindInfo, accessor);
+        this.loader = loader;
         this.bindClassBuilder = new AsmClassBuilder(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), Object.class.getName(), null, null)
                 .defineConstruct(Opcodes.ACC_PUBLIC)
                 .intercept(Methods.invokeSuper().thenReturn());
@@ -79,9 +81,11 @@ class PatchedMethodUpdater extends BindMethodWriter {
 
         try {
             byte[] bytecode = this.bindClassBuilder.toBytecode();
-            FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/patched/"+ClassUtil.toSimpleName(bindClassBuilder.getClassName())+".class"),
-                    bytecode);
-            EnhanceBytecodeClassLoader.loadClass(this.bindInfo.getBindClass(), bytecode);
+            if (Environment.isDebug()) {
+                FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/patched/"+ClassUtil.toSimpleName(bindClassBuilder.getClassName())+".class"),
+                        bytecode);
+            }
+            EnhanceBytecodeClassLoader.loadClass(this.loader, this.bindInfo.getBindClass(), bytecode);
         } catch (Throwable e) {
             e.printStackTrace();
             System.exit(-1);
