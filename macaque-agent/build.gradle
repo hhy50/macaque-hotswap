@@ -35,6 +35,8 @@ test {
 }
 
 shadowJar {
+    exclude 'six/eared/macaque/preload/**'
+
     def libs = allLibrary()
     libs.collect { File libDir ->
         def modName = ":library:${libDir.name}"
@@ -47,14 +49,12 @@ shadowJar {
         }
     }
 
-    exclude 'six/eared/macaque/preload/**'
-
     archiveBaseName = 'agent'
     archiveVersion = ''
     archiveClassifier = null
 }
 
-task preloadJar(type: Jar) {
+task preloadJar(type: Jar, dependsOn: shadowJar) {
     from 'build/classes/java/main'
     include 'six/eared/macaque/preload/**'
     archiveBaseName = "preload"
