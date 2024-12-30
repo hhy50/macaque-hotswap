@@ -5,13 +5,13 @@ import java.io.*;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.file.Files;
+import java.util.jar.JarFile;
 
 /**
  * 探针主类
  */
 public class AgentMain {
-
-    private static final String BOOT_JAR = "lib/agent.jar";
 
     private static boolean START_FLAG = false;
 
@@ -29,13 +29,14 @@ public class AgentMain {
         if (!START_FLAG) {
             Class<?> bootstrapClass = null;
             try {
-                File agentJar = getAgentJar();
-                if (agentJar == null) {
-                    return;
-                }
+                File agentJar = getTempJar("lib/agent.jar");
+                File preloadJar = getTempJar("lib/preload.jar");
+
                 // 加载引导类
                 ClassLoader classLoader = getClassLoader(agentJar.toURI().toURL());
                 bootstrapClass = classLoader.loadClass("six.eared.macaque.agent.AgentBootstrap");
+
+                inst.appendToBootstrapClassLoaderSearch(new JarFile(preloadJar));
             } catch (Exception e) {
                 System.out.println("load AgentBootstrap.class error");
                 e.printStackTrace();
@@ -54,11 +55,11 @@ public class AgentMain {
         }
     }
 
-    private static File getAgentJar() throws IOException {
-        File file = new File(System.getProperty("java.io.tmpdir"), "macaque-agent.jar");
-        try (InputStream in = AgentMain.class.getClassLoader().getResourceAsStream(BOOT_JAR);
-             OutputStream out = new FileOutputStream(file);) {
-            byte[] buffer = new byte[4 * 1024];
+    private static File getTempJar(String innerJarName) throws IOException {
+        File file = new File(System.getProperty("java.io.tmpdir"), "macaque"+File.pathSeparator+innerJarName);
+        try (InputStream in = AgentMain.class.getClassLoader().getResourceAsStream(innerJarName);
+             OutputStream out = Files.newOutputStream(file.toPath())) {
+            byte[] buffer = new byte[4*1024];
             int bytesRead = -1;
             while ((bytesRead = in.read(buffer)) > 0) {
                 out.write(buffer, 0, bytesRead);

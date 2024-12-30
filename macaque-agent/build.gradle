@@ -54,17 +54,19 @@ shadowJar {
     archiveClassifier = null
 }
 
-task preloadJar(type: Jar, dependsOn: shadowJar) {
+task preloadJar(type: Jar) {
+    mustRunAfter shadowJar
+
     from 'build/classes/java/main'
     include 'six/eared/macaque/preload/**'
     archiveBaseName = "preload"
 }
 
-task release(type: Jar) {
-    from(shadowJar) {
+task release(type: Jar, dependsOn: [shadowJar, preloadJar]) {
+    from("${project.buildDir}/libs/agent.jar") {
         into('lib/')
     }
-    from(preloadJar) {
+    from("${project.buildDir}/libs/preload.jar") {
         into('lib/')
     }
     from('build/classes/java/main/six/eared/macaque/agent/loader/') {
