@@ -47,16 +47,26 @@ shadowJar {
         }
     }
 
+    exclude 'six/eared/macaque/preload/**'
+
     archiveBaseName = 'agent'
     archiveVersion = ''
     archiveClassifier = null
+}
+
+task preloadJar(type: Jar) {
+    from 'build/classes/java/main'
+    include 'six/eared/macaque/preload/**'
+    archiveBaseName = "preload"
 }
 
 task release(type: Jar) {
     from(shadowJar) {
         into('lib/')
     }
-
+    from(preloadJar) {
+        into('lib/')
+    }
     from('build/classes/java/main/six/eared/macaque/agent/loader/') {
         into('six/eared/macaque/agent/loader')
     }
@@ -75,6 +85,7 @@ task release(type: Jar) {
 
     doLast {
         delete file("${project.buildDir}/libs/agent.jar")
+        delete file("${project.buildDir}/libs/preload.jar")
     }
 }
 
