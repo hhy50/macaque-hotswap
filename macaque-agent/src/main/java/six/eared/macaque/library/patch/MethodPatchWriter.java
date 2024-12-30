@@ -4,17 +4,18 @@ package six.eared.macaque.library.patch;
 import io.github.hhy50.linker.asm.AsmClassBuilder;
 import io.github.hhy50.linker.define.MethodDescriptor;
 import io.github.hhy50.linker.generate.bytecode.utils.Methods;
+import io.github.hhy50.linker.generate.bytecode.vars.ObjectVar;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.accessor.Accessor;
 import six.eared.macaque.agent.accessor.AccessorUtil;
 import six.eared.macaque.agent.asm2.AsmMethod;
-import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.enhance.*;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.FileUtil;
+import six.eared.macaque.preload.PatchedInvocation;
 
 import java.io.File;
 
@@ -35,19 +36,39 @@ public class MethodPatchWriter {
         }
 
         // 生成调用“委托方法”的字节码
-        invokeDelegationMethod(mv, asmMethod, delegationMd);
+        invokeDelegationMethod(mv, asmMethod, bindInfo.getBindClass(), accessor.getClassName(), delegationMd);
         return new PatchedMethodUpdater(loader, bindInfo, accessor);
     }
 
-    private static void invokeDelegationMethod(MethodVisitor mv, AsmMethod asmMethod, MethodDescriptor delegationMd) {
+    private static void invokeDelegationMethod(MethodVisitor mv, AsmMethod asmMethod, String patchedClass, String accessor,
+                                               MethodDescriptor delegationMd) {
         Type methodType = Type.getMethodType(asmMethod.getDesc());
-
         mv.visitCode();
-        // load this
-        if (!asmMethod.isStatic())
-            mv.visitVarInsn(Opcodes.ALOAD, 0);
 
-        AsmUtil.loadArgs(mv, methodType.getArgumentTypes(), asmMethod.isStatic());
+        mv.visitTypeInsn(Opcodes.NEW, ClassUtil.className2path(PatchedInvocation.class.getName()));
+        mv.visitInsn(Opcodes.DUP);
+
+        // load this
+        if (!asmMethod.isStatic()) {
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+        } else {
+
+        }
+        mv.visitLdcInsn(patchedClass);
+        mv.visitLdcInsn(accessor);
+        Type[] argumentTypes = methodType.getArgumentTypes();
+        mv.visitIntInsn(Opcodes.BIPUSH, argumentTypes.length);
+        mv.visitTypeInsn(Opcodes.ANEWARRAY, ObjectVar.TYPE.getInternalName());
+        for (int i = 0; i < argumentTypes.length; i++) {
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitIntInsn(Opcodes.BIPUSH, i);
+            mv.visitVarInsn(argumentTypes[i].getOpcode(Opcodes.ILOAD), i+(asmMethod.isStatic() ? 0 : 1));
+            mv.visitInsn(ObjectVar.TYPE.getOpcode(Opcodes.IASTORE));
+        }
+
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, ClassUtil.className2path(PatchedInvocation.class.getName()), "<init>",
+                "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V", false);
+
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, delegationMd.getOwner(), delegationMd.getMethodName(), delegationMd.getDesc(), false);
         mv.visitInsn(methodType.getReturnType().getOpcode(IRETURN));
         mv.visitMaxs(0, 0);

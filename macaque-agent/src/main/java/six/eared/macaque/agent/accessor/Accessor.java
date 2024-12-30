@@ -18,8 +18,8 @@ import static six.eared.macaque.agent.accessor.AccessorClassBuilder.GET_ORIGIN_M
 
 
 public class Accessor {
-    public static final String FIELD_GETTER_PREFIX = "macaque$get$field$";
-    public static final String FIELD_SETTER_PREFIX = "macaque$set$field$";
+    public static final String FIELD_GETTER_PREFIX = "macaque$get$$";
+    public static final String FIELD_SETTER_PREFIX = "macaque$set$";
     public String this$0;
 
     /**

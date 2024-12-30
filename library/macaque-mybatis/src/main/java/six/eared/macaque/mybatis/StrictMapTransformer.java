@@ -13,11 +13,11 @@ import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.library.patch.MethodPatchWriter;
 import six.eared.macaque.mybatis.mapping.MybatisStrictMap;
+import six.eared.macaque.preload.PatchedInvocation;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
-import java.util.Map;
 
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
@@ -43,7 +43,7 @@ public class StrictMapTransformer implements ClassFileTransformer {
                                 .desc(descriptor)
                                 .build();
                         methodVisitor = MethodPatchWriter.patchMethod(loader, ClassUtil.classpath2name(classPath), methodVisitor, asmMethod,
-                                MethodDescriptor.of(StrictMapTransformer.class.getDeclaredMethod("put", Map.class, Object.class, Object.class)));
+                                MethodDescriptor.of(StrictMapTransformer.class.getDeclaredMethod("put", PatchedInvocation.class)));
                     } catch (Exception e) {
                         if (Environment.isDebug()) {
                             e.printStackTrace();
@@ -56,7 +56,15 @@ public class StrictMapTransformer implements ClassFileTransformer {
         return classWriter.toByteArray();
     }
 
-    public static Object put(Map strictMap, Object key, Object value) throws LinkerException {
-        return LinkerFactory.createLinker(MybatisStrictMap.class, strictMap).put(key, value);
+    public static Object put(PatchedInvocation invocation) throws LinkerException {
+        try {
+            return invocation.invoke();
+        } catch (Exception e) {
+            Object strictMap = invocation.getOriginObject();
+            Object[] args = invocation.getArgs();
+            Object key = args[0];
+            Object value = args[1];
+            return LinkerFactory.createLinker(MybatisStrictMap.class, strictMap).put(key, value);
+        }
     }
 }

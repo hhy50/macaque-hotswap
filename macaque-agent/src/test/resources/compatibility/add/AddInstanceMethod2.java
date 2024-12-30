@@ -40,7 +40,7 @@ public class TestAddMethodClass {
         field2 = "5678";
         field3 = "90";
         System.out.println((String) field1+field2+test1()+test3("")+test4("")+field3);
-        System.out.println(this == this);
+        System.out.println(this.getClass() == this.getClass());
         return this;
     }
 }
