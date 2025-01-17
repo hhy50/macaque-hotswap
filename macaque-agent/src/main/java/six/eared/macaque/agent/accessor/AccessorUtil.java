@@ -1,12 +1,10 @@
 package six.eared.macaque.agent.accessor;
 
-import io.github.hhy50.linker.asm.AsmClassBuilder;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.enhance.AccessorClassNameGenerator;
-import six.eared.macaque.agent.enhance.EnhanceBytecodeClassLoader;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.AccessorCreateException;
 import six.eared.macaque.common.util.StringUtil;
@@ -20,7 +18,7 @@ import static six.eared.macaque.common.util.ClassUtil.isSystemClass;
 
 public class AccessorUtil {
 
-    private static final Map<String, Accessor> LOADED = new HashMap<>();
+    private static final Map<String, Accessor> ACCESSOR = new HashMap<>();
 
     /**
      * @param className          外部类类名
@@ -29,8 +27,8 @@ public class AccessorUtil {
      * @return
      */
     public static Accessor createAccessor(String className, AccessorClassNameGenerator classNameGenerator, int deepth) {
-        if (LOADED.containsKey(className)) {
-            return LOADED.get(className);
+        if (ACCESSOR.containsKey(className)) {
+            return ACCESSOR.get(className);
         }
         String accessorName = classNameGenerator.generate(className);
         try {
@@ -50,10 +48,7 @@ public class AccessorUtil {
             collectSuperMember(clazzDefinition, accessorClassBuilder, superAccessor);
 
             Accessor accessor = ((AccessorClassBuilder) accessorClassBuilder.end()).toAccessor();
-            AsmClassBuilder linker = accessorClassBuilder.getLinkerClassBuilder().end();
-            EnhanceBytecodeClassLoader.loadClass(linker.getClassName(), linker.toBytecode());
-            EnhanceBytecodeClassLoader.loadClass(accessorClassBuilder.getClassName(), accessorClassBuilder.toBytecode());
-            LOADED.put(className, accessor);
+            ACCESSOR.put(className, accessor);
             return accessor;
         } catch (Exception e) {
             throw new AccessorCreateException(e);

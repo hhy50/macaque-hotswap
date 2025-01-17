@@ -56,7 +56,10 @@ public class AgentMain {
     }
 
     private static File getTempJar(String innerJarName) throws IOException {
-        File file = new File(System.getProperty("java.io.tmpdir"), "macaque"+File.pathSeparator+innerJarName);
+        File file = new File(System.getProperty("java.io.tmpdir"), "macaque"+File.separator+innerJarName);
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
         try (InputStream in = AgentMain.class.getClassLoader().getResourceAsStream(innerJarName);
              OutputStream out = Files.newOutputStream(file.toPath())) {
             byte[] buffer = new byte[4*1024];

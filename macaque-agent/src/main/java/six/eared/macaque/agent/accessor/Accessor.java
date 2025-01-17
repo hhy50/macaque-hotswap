@@ -7,12 +7,14 @@ import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodInsnNode;
 import six.eared.macaque.agent.asm2.ClassFieldUniqueDesc;
 import six.eared.macaque.agent.asm2.ClassMethodUniqueDesc;
-import six.eared.macaque.agent.enhance.ClazzDataDefinition;
+import six.eared.macaque.agent.enhance.EnhanceBytecodeClassLoader;
 import six.eared.macaque.agent.enhance.MethodBindInfo;
 import six.eared.macaque.agent.enhance.MethodBindManager;
 import six.eared.macaque.common.util.ClassUtil;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static six.eared.macaque.agent.accessor.AccessorClassBuilder.GET_ORIGIN_MNAME;
 
@@ -21,6 +23,7 @@ public class Accessor {
     public static final String FIELD_GETTER_PREFIX = "macaque$get$$";
     public static final String FIELD_SETTER_PREFIX = "macaque$set$";
     public String this$0;
+    public AccessorClassBuilder builder;
 
     /**
      * 表示当前的访问器属于哪个类的
@@ -28,16 +31,13 @@ public class Accessor {
     Map<ClassMethodUniqueDesc, MethodAccessRule> methodAccessRules;
     Map<ClassFieldUniqueDesc, FieldAccessRule> fieldAccessRules;
     @Getter
-    ClazzDataDefinition definition;
+    String className;
     Accessor parent;
-
-    public String getClassName() {
-        return definition.getClassName();
-    }
+    private Set<ClassLoader> LOADED = new HashSet<>();
 
     public void accessSelf(InsnList instructions, AbstractInsnNode load0) {
         instructions.insert(load0,
-                new MethodInsnNode(Opcodes.INVOKEVIRTUAL, ClassUtil.className2path(definition.getClassName()),
+                new MethodInsnNode(Opcodes.INVOKEVIRTUAL, ClassUtil.className2path(className),
                         GET_ORIGIN_MNAME, "()L"+ClassUtil.className2path(this$0)+";")
         );
     }
@@ -86,5 +86,17 @@ public class Accessor {
         if (rule != null) return rule;
         if (parent != null) return parent.findFieldAccessRule(uniqueDesc);
         return null;
+    }
+
+    public synchronized void load(ClassLoader classLoader) {
+        if (LOADED.contains(classLoader)) {
+            return;
+        }
+        if (parent != null) {
+            parent.load(classLoader);
+        }
+        EnhanceBytecodeClassLoader.loadClass(classLoader, builder.getLinkerClassBuilder().getClassName(), builder.getLinkerClassBuilder().toBytecode());
+        EnhanceBytecodeClassLoader.loadClass(classLoader, builder.getClassName(), builder.toBytecode());
+        LOADED.add(classLoader);
     }
 }

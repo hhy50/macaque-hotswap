@@ -1,21 +1,15 @@
 package six.eared.macaque.agent.enhance;
 
 
-import io.github.hhy50.linker.LinkerFactory;
-import io.github.hhy50.linker.syslinker.ClassLoaderLinker;
 import lombok.SneakyThrows;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.FileUtil;
+import six.eared.macaque.common.util.ReflectUtil;
 
 import java.io.File;
 
 public class EnhanceBytecodeClassLoader {
-
-    @SneakyThrows
-    public synchronized static Class<?> loadClass(String className, byte[] bytes) {
-        return loadClass(getClassLoader(), className, bytes);
-    }
 
     @SneakyThrows
     public synchronized static Class<?> loadClass(ClassLoader cl, String className, byte[] bytes) {
@@ -24,8 +18,9 @@ public class EnhanceBytecodeClassLoader {
                     new File(FileUtil.getProcessTmpPath()+"/compatibility/"+ClassUtil.toSimpleName(className)+".class"),
                     bytes);
         }
-        ClassLoaderLinker clLinker = LinkerFactory.createLinker(ClassLoaderLinker.class, cl);
-        return clLinker.defineClass(className, bytes, 0, bytes.length);
+        System.out.println("classloader: " + cl + ", className: " + className);
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        return (Class<?>) ReflectUtil.invokeMethod(systemClassLoader, "defineClass", className, bytes, 0, bytes.length);
     }
 
     public static ClassLoader getClassLoader() {

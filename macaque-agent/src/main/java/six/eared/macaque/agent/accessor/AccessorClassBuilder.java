@@ -203,13 +203,20 @@ public class AccessorClassBuilder extends AsmClassBuilder {
         return setter;
     }
 
+    @Override
+    public AsmClassBuilder end() {
+        linkerClassBuilder.end();
+        return super.end();
+    }
+
     public Accessor toAccessor() {
         Accessor accessor = new Accessor();
+        accessor.className = className;
         accessor.this$0 = this$0;
         accessor.parent = parent;
         accessor.fieldAccessRules = fieldAccessRules;
         accessor.methodAccessRules = methodAccessRules;
-        accessor.definition = AsmUtil.readClass(this.toBytecode());
+        accessor.builder = this;
         return accessor;
     }
 }

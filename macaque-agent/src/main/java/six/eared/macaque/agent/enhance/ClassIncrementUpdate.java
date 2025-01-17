@@ -1,13 +1,16 @@
 package six.eared.macaque.agent.enhance;
 
 import lombok.Data;
+import lombok.Getter;
 import six.eared.macaque.agent.accessor.Accessor;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
 import six.eared.macaque.agent.asm2.classes.CorrelationClazzDefinition;
 import six.eared.macaque.agent.enums.CorrelationEnum;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 类更新的增量信息
@@ -49,6 +52,9 @@ public class ClassIncrementUpdate {
     private List<CorrelationClazzDefinition> correlationClasses;
 
     private byte[] enhancedByteCode;
+
+    @Getter
+    private Set<ClassLoader> classLoaders = new HashSet<>();
 
     public ClassIncrementUpdate(ClazzDataDefinition definition,ClazzDefinition originDefinition, Accessor accessor) {
         this.className = definition.getClassName();

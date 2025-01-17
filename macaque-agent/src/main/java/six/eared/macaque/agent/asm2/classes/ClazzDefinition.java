@@ -1,10 +1,13 @@
 package six.eared.macaque.agent.asm2.classes;
 
+import io.github.hhy50.linker.LinkerFactory;
+import io.github.hhy50.linker.exceptions.LinkerException;
 import lombok.Data;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
+import sun.reflect.ConstantPool;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -74,6 +77,10 @@ public abstract class ClazzDefinition implements Cloneable {
         return method != null && method.isStatic() == asmMethod.isStatic();
     }
 
+    public static ClazzDefinition from(Class<?> next) {
+        return new InMemory(next);
+    }
+
     public static class InMemory extends ClazzDefinition {
 
         public InMemory(Class<?> clazz) {
@@ -102,7 +109,7 @@ public abstract class ClazzDefinition implements Cloneable {
                 addAsmMethod(asmMethod);
             }
 
-            boolean hasStatic = false;
+            boolean hasClinit = false;
             for (Field field : clazz.getDeclaredFields()) {
                 AsmField asmField = AsmField.AsmFieldBuilder
                         .builder()
@@ -111,25 +118,35 @@ public abstract class ClazzDefinition implements Cloneable {
                         .fieldDesc(Type.getDescriptor(field.getType()))
                         .build();
                 addAsmField(asmField);
-                hasStatic = hasStatic | (asmField.getModifier() | ACC_STATIC) > 0;
+                hasClinit = hasClinit | (asmField.isStatic() && asmField.isFinal());
             }
+            if (!hasClinit) {
+                try {
+                    ConstantPool constantPool = LinkerFactory.createLinker(Class_.class, clazz).getConstantPool();
+                    int size = constantPool.getSize();
+                    for (int i = 0; i < size; i++) {
+                        try {
+                            String constItem = constantPool.getUTF8At(i);
+                            if (constItem.equals("<clinit>")) {
+                                hasClinit = true;
+                                break;
+                            }
+                        } catch (Throwable e) {
 
-            if (hasStatic) {
+                        }
+                    }
+                } catch (LinkerException e) {
+                    //
+                }
+            }
+            if (hasClinit) {
                 addAsmMethod(AsmMethod.AsmMethodBuilder
-                    .builder()
-                    .modifier(toAsmOpcode(ACC_STATIC))
-                    .methodName("<clinit>")
-                    .desc("()V")
-                    .build());
+                        .builder()
+                        .modifier(toAsmOpcode(ACC_STATIC))
+                        .methodName("<clinit>")
+                        .desc("()V")
+                        .build());
             }
-
-//            AsmField asmField = AsmField.AsmFieldBuilder
-//                    .builder()
-//                    .modifier(toAsmOpcode(field.getModifiers()))
-//                    .fieldName(field.getName())
-//                    .fieldDesc(Type.getDescriptor(field.getType()))
-//                    .build();
-//            addAsmField(asmField);
         }
 
         public static int toAsmOpcode(int modifier) {
@@ -148,5 +165,9 @@ public abstract class ClazzDefinition implements Cloneable {
             if ((modifier & Modifier.STRICT) != 0) asmOpcode |= ACC_STRICT;
             return asmOpcode;
         }
+    }
+
+    interface Class_ {
+        ConstantPool getConstantPool();
     }
 }

@@ -22,18 +22,20 @@ import six.eared.macaque.agent.exceptions.EnhanceException;
 import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.CollectionUtil;
 import six.eared.macaque.common.util.FileUtil;
+import six.eared.macaque.common.util.InstrumentationUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 public class CompatibilityModeByteCodeEnhancer {
 
     public static List<ClassIncrementUpdate> enhance(List<ClazzDataDefinition> definitions) throws Exception {
-
         List<ClassIncrementUpdate> changedClass = new ArrayList<>();
         for (ClazzDataDefinition definition : definitions) {
             // 准备
@@ -48,9 +50,13 @@ public class CompatibilityModeByteCodeEnhancer {
     }
 
     private static ClassIncrementUpdate prepare(ClazzDataDefinition definition) throws IOException, ClassNotFoundException {
-        Accessor accessor = createAccessor(definition.getClassName());
-        ClazzDefinition originDefinition = AsmUtil.readOriginClass(definition.getClassName());
+        Set<Class<?>> loadedClass = InstrumentationUtil.findLoadedClass(Environment.getInst(), definition.getClassName());
+        Set<ClassLoader> classLoaders = loadedClass.stream().map(Class::getClassLoader).collect(Collectors.toSet());
+        ClazzDefinition originDefinition = ClazzDefinition.from(loadedClass.iterator().next());
+        Accessor accessor = createAccessor(classLoaders, definition.getClassName());
+
         ClassIncrementUpdate incrementUpdate = new ClassIncrementUpdate(definition, originDefinition, accessor);
+        incrementUpdate.getClassLoaders().addAll(classLoaders);
 
         AsmUtil.visitClass(definition.getBytecode(), new ClassVisitorDelegation(null) {
             @Override
@@ -94,18 +100,20 @@ public class CompatibilityModeByteCodeEnhancer {
                 }
 
                 BindMethodWriter bindMethodWriter = (BindMethodWriter) newMethod.getVisitorCaller();
-                AsmClassBuilder classBuilder = new AsmClassBuilder(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null)
-                        .defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+                AsmClassBuilder classBuilder = new AsmClassBuilder(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null);
+                classBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
                                 bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
                                 newMethod.getExceptions())
-                        .acceptWithEnd(body -> bindMethodWriter.accept(body.getWriter()));
+                        .accept(body -> bindMethodWriter.accept(body.getWriter()));
 
                 ClazzDataDefinition bindClazzDefinition = AsmClassBuilderExt.toDefinition(classBuilder);
                 if (bindInfo.isLoaded()) {
                     classUpdateInfo.addCorrelationClasses(CorrelationEnum.METHOD_BIND, bindClazzDefinition);
                 } else {
-                    EnhanceBytecodeClassLoader.loadClass(bindInfo.getBindClass(), bindClazzDefinition.getBytecode());
-                    bindInfo.setLoaded(true);
+                    for (ClassLoader classLoader : classUpdateInfo.getClassLoaders()) {
+                        EnhanceBytecodeClassLoader.loadClass(classLoader, bindInfo.getBindClass(), bindClazzDefinition.getBytecode());
+                        bindInfo.setLoaded(true);
+                    }
                 }
                 iterator.remove();
             }
@@ -162,10 +170,13 @@ public class CompatibilityModeByteCodeEnhancer {
      *
      * @param className
      */
-    private static Accessor createAccessor(String className) {
+    private static Accessor createAccessor(Set<ClassLoader> classLoaders, String className) {
         // 计算深度
         int deepth = 3;
         Accessor accessor = AccessorUtil.createAccessor(className, new AccessorClassNameGenerator(), deepth);
+        for (ClassLoader classLoader : classLoaders) {
+            accessor.load(classLoader);
+        }
         return accessor;
     }
 }

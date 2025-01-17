@@ -1,26 +1,25 @@
 package six.eared.macaque.mybatis;
 
 import io.github.hhy50.linker.LinkerFactory;
+import io.github.hhy50.linker.asm.MethodBuilder;
 import io.github.hhy50.linker.define.MethodDescriptor;
 import io.github.hhy50.linker.exceptions.LinkerException;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import six.eared.macaque.agent.asm2.AsmMethod;
 import six.eared.macaque.agent.asm2.AsmUtil;
+import six.eared.macaque.agent.asm2.EnhancedAsmClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClassVisitorDelegation;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.library.patch.MethodPatchWriter;
 import six.eared.macaque.mybatis.mapping.MybatisStrictMap;
 import six.eared.macaque.preload.PatchedInvocation;
 
+import java.io.File;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
-
-import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
-import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 
 public class StrictMapTransformer implements ClassFileTransformer {
     @Override
@@ -28,32 +27,33 @@ public class StrictMapTransformer implements ClassFileTransformer {
         if (!classPath.equals("org/apache/ibatis/session/Configuration$StrictMap")) {
             return new byte[0];
         }
-
-        ClassWriter classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
-        AsmUtil.visitClass(classfileBuffer, new ClassVisitorDelegation(classWriter) {
+        final EnhancedAsmClassBuilder classBuilder = new EnhancedAsmClassBuilder();
+        AsmUtil.visitClass(classfileBuffer, new ClassVisitorDelegation(classBuilder.getClassWriter()) {
+            @Override
+            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                classBuilder.visit(access, ClassUtil.classpath2name(name), superName, interfaces, signature);
+            }
             @Override
             public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-                MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
+                MethodBuilder methodBuilder = classBuilder.defineMethod(access, name, descriptor, exceptions);
                 if (name.equals("put") && (access & Opcodes.ACC_SYNTHETIC) == 0) {
                     try {
-                        AsmMethod asmMethod = AsmMethod.AsmMethodBuilder
-                                .builder()
-                                .modifier(access)
-                                .methodName(name)
-                                .desc(descriptor)
-                                .build();
-                        methodVisitor = MethodPatchWriter.patchMethod(loader, ClassUtil.classpath2name(classPath), methodVisitor, asmMethod,
-                                MethodDescriptor.of(StrictMapTransformer.class.getDeclaredMethod("put", PatchedInvocation.class)));
+                        return MethodPatchWriter.patchMethod(loader, classBuilder, methodBuilder, MethodDescriptor.of(StrictMapTransformer.class.getDeclaredMethod("put", PatchedInvocation.class)));
                     } catch (Exception e) {
                         if (Environment.isDebug()) {
                             e.printStackTrace();
                         }
                     }
                 }
-                return methodVisitor;
+                return methodBuilder.getMethodBody().getWriter();
             }
         });
-        return classWriter.toByteArray();
+        byte[] bytecode = classBuilder.toBytecode();
+        if (Environment.isDebug()) {
+            FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/patched/a.class"),
+                    bytecode);
+        }
+        return bytecode;
     }
 
     public static Object put(PatchedInvocation invocation) throws LinkerException {
