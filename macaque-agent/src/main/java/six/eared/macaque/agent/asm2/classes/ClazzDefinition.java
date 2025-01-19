@@ -1,13 +1,10 @@
 package six.eared.macaque.agent.asm2.classes;
 
-import io.github.hhy50.linker.LinkerFactory;
-import io.github.hhy50.linker.exceptions.LinkerException;
 import lombok.Data;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.AsmField;
 import six.eared.macaque.agent.asm2.AsmMethod;
-import sun.reflect.ConstantPool;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -118,26 +115,8 @@ public abstract class ClazzDefinition implements Cloneable {
                         .fieldDesc(Type.getDescriptor(field.getType()))
                         .build();
                 addAsmField(asmField);
-                hasClinit = hasClinit | (asmField.isStatic() && asmField.isFinal());
-            }
-            if (!hasClinit) {
-                try {
-                    ConstantPool constantPool = LinkerFactory.createLinker(Class_.class, clazz).getConstantPool();
-                    int size = constantPool.getSize();
-                    for (int i = 0; i < size; i++) {
-                        try {
-                            String constItem = constantPool.getUTF8At(i);
-                            if (constItem.equals("<clinit>")) {
-                                hasClinit = true;
-                                break;
-                            }
-                        } catch (Throwable e) {
-
-                        }
-                    }
-                } catch (LinkerException e) {
-                    //
-                }
+//                hasClinit = hasClinit | (asmField.isStatic() && asmField.isFinal());
+                hasClinit = hasClinit | asmField.isStatic();
             }
             if (hasClinit) {
                 addAsmMethod(AsmMethod.AsmMethodBuilder
@@ -165,9 +144,5 @@ public abstract class ClazzDefinition implements Cloneable {
             if ((modifier & Modifier.STRICT) != 0) asmOpcode |= ACC_STRICT;
             return asmOpcode;
         }
-    }
-
-    interface Class_ {
-        ConstantPool getConstantPool();
     }
 }

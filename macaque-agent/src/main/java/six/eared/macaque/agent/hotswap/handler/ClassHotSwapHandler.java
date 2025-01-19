@@ -2,17 +2,23 @@ package six.eared.macaque.agent.hotswap.handler;
 
 import six.eared.macaque.agent.annotation.HotSwapFileType;
 import six.eared.macaque.agent.asm2.AsmUtil;
+import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
+import six.eared.macaque.agent.asm2.classes.CorrelationClazzDefinition;
 import six.eared.macaque.agent.enhance.ClassIncrementUpdate;
 import six.eared.macaque.agent.enhance.ClazzDataDefinition;
 import six.eared.macaque.agent.enhance.CompatibilityModeByteCodeEnhancer;
+import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.hotswap.ClassHotSwapper;
 import six.eared.macaque.agent.vcs.VersionChainTool;
 import six.eared.macaque.agent.vcs.VersionView;
 import six.eared.macaque.common.ExtPropertyName;
 import six.eared.macaque.common.type.FileType;
+import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 import six.eared.macaque.mbean.rmi.RmiResult;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +54,25 @@ public class ClassHotSwapHandler extends FileHookHandler {
         Map<String, byte[]> flatMap = new HashMap<>();
         for (ClassIncrementUpdate item : enhanced) {
             flatMap.put(item.getClassName(), item.getEnhancedByteCode());
+            if (Environment.isDebug()) {
+                FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/compatibility/"+
+                                ClassUtil.toSimpleName(item.getClassName())+".class"),
+                        item.getEnhancedByteCode());
+            }
+
+            if (item.getCorrelationClasses() == null) continue;
+            for (CorrelationClazzDefinition itemCorrelation : item.getCorrelationClasses()) {
+                ClazzDefinition clazzDefinition = itemCorrelation.getClazzDefinition();
+                if (clazzDefinition instanceof ClazzDataDefinition) {
+                    flatMap.put(clazzDefinition.getClassName(), ((ClazzDataDefinition) clazzDefinition).getBytecode());
+                    if (Environment.isDebug()) {
+                        FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/compatibility/"+
+                                        ClassUtil.toSimpleName(clazzDefinition.getClassName())+".class"),
+                                ((ClazzDataDefinition) clazzDefinition).getBytecode());
+                    }
+                }
+
+            }
 //            versionView.addDefinition(item);
         }
         return flatMap;

@@ -11,8 +11,6 @@ import javax.management.MBeanServer;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * JMX MBean 管理器
@@ -24,8 +22,6 @@ public class JmxMBeanManager {
      * 用于管理MBean的生命周期，注册MBean，注销MBean等
      */
     private final MBeanServer mBeanServer;
-
-    private static final Map<String, MBean> M_BEAN_MAP = new ConcurrentHashMap<>();
 
     public JmxMBeanManager() {
         // 获取MBeanServer，如果不存在则创建，一般情况下，JVM中只有一个MBeanServer，所以这里直接获取。
@@ -50,7 +46,6 @@ public class JmxMBeanManager {
             MBean<? extends RmiData> mBean = createMBean(clazz);
             try {
                 // 注册MBean
-                M_BEAN_MAP.put(mBean.getMBeanName().toString(), mBean);
                 mBeanServer.registerMBean(mBean, mBean.getMBeanName());
             } catch (Exception e) {
                 if (Environment.isDebug()) {

@@ -19,12 +19,9 @@ import six.eared.macaque.agent.enums.CorrelationEnum;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.exceptions.ByteCodeConvertException;
 import six.eared.macaque.agent.exceptions.EnhanceException;
-import six.eared.macaque.common.util.ClassUtil;
 import six.eared.macaque.common.util.CollectionUtil;
-import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.common.util.InstrumentationUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -159,10 +156,6 @@ public class CompatibilityModeByteCodeEnhancer {
             classIncrementUpdate.remove(mi);
         }
         classIncrementUpdate.setEnhancedByteCode(classBuilder.toBytecode());
-        if (Environment.isDebug()) {
-            FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/compatibility/"+ClassUtil.toSimpleName(classIncrementUpdate.getClassName())+".class"),
-                    classIncrementUpdate.getEnhancedByteCode());
-        }
     }
 
     /**
