@@ -53,7 +53,7 @@ public class StrictMapTransformer implements ClassFileTransformer {
         try {
             return invocation.invoke();
         } catch (Exception e) {
-            Object strictMap = invocation.getOriginObject();
+            Object strictMap = invocation.getOrigin();
             Object[] args = invocation.getArgs();
             Object key = args[0];
             Object value = args[1];

@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'java'
     id 'java-library'
@@ -36,6 +38,10 @@ test {
 
 shadowJar {
     exclude 'six/eared/macaque/preload/**'
+    dependencies {
+        exclude(dependency('io.github.hhy50:reflect-linker'))
+        exclude(dependency('org.ow2.asm:asm'))
+    }
 
     def libs = allLibrary()
     libs.collect { File libDir ->
@@ -54,9 +60,14 @@ shadowJar {
     archiveClassifier = null
 }
 
-task preloadJar(type: Jar) {
+task preloadJar(type: ShadowJar) {
+    configurations = [project.configurations.runtimeClasspath]
     from(sourceSets.main.output) {
         include 'six/eared/macaque/preload/**'
+    }
+    dependencies {
+        include(dependency('io.github.hhy50:reflect-linker'))
+        include(dependency('org.ow2.asm:asm'))
     }
     archiveBaseName = "preload"
 }

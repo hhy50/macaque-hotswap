@@ -71,7 +71,6 @@ public class ClassHotSwapHandler extends FileHookHandler {
                                 ((ClazzDataDefinition) clazzDefinition).getBytecode());
                     }
                 }
-
             }
 //            versionView.addDefinition(item);
         }
