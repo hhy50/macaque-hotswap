@@ -3,6 +3,7 @@ package six.eared.macaque.agent.asm2;
 
 import lombok.Data;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 @Data
 public class AsmField {
@@ -16,6 +17,10 @@ public class AsmField {
     private String fieldSign;
 
     private Object value;
+
+    public Type getType() {
+        return Type.getType(this.desc);
+    }
 
     public boolean isPrivate() {
         return (modifier & Opcodes.ACC_PRIVATE) > 0;

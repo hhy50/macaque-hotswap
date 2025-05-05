@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.enhance;
 
 import lombok.Data;
+import org.objectweb.asm.Type;
 import six.eared.macaque.agent.accessor.MethodAccessRule;
 import six.eared.macaque.agent.accessor.NewMethodAccessRule;
 
@@ -68,5 +69,9 @@ public class MethodBindInfo implements Cloneable {
             return MethodAccessRule.forward(true, bindClass, bindMethod, bindMethodDesc);
         }
         return new NewMethodAccessRule(this, bindAccess);
+    }
+
+    public Type getBindMethodType() {
+        return Type.getMethodType(this.bindMethodDesc);
     }
 }

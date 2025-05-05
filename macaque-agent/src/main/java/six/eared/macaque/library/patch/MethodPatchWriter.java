@@ -6,7 +6,6 @@ import io.github.hhy50.linker.asm.MethodBuilder;
 import io.github.hhy50.linker.define.MethodDescriptor;
 import io.github.hhy50.linker.generate.bytecode.action.*;
 import io.github.hhy50.linker.generate.bytecode.utils.Methods;
-import io.github.hhy50.linker.generate.bytecode.vars.ClassVar;
 import io.github.hhy50.linker.generate.bytecode.vars.ObjectVar;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -29,7 +28,7 @@ public class MethodPatchWriter {
     public static MethodVisitor patchMethod(ClassLoader classLoader, AsmClassBuilder classBuilder, MethodBuilder methodBuilder,
                                             MethodDescriptor delegationMd) {
         String className = classBuilder.getClassName();
-        MethodDescriptor methodDescriptor = methodBuilder.getMethodDescriptor();
+        MethodDescriptor methodDescriptor = methodBuilder.getDescriptor();
         Accessor accessor = AccessorUtil.createAccessor(className, new AccessorClassNameGenerator(), 1);
         MethodBindInfo bindInfo = MethodBindManager.createPatchedBindInfo(
                 className,
@@ -57,7 +56,7 @@ public class MethodPatchWriter {
                 LdcLoadAction.of(AsmUtil.getType(patchedClass)));
 
         methodBuilder.intercept(new MethodInvokeAction(delegationMd)
-                .setArgs(new NewObjectAction(Type.getType(PatchedInvocation.class), ObjectVar.TYPE, Type.getType(PatchMethodInvoker.class), ClassVar.TYPE, Type.getType(Object[].class))
+                .setArgs(new NewObjectAction(Type.getType(PatchedInvocation.class), ObjectVar.TYPE, Type.getType(PatchMethodInvoker.class), Type.getType(Class.class), Type.getType(Object[].class))
                         .setArgs(methodBuilder.isStatic() ? Actions.loadNull() : LoadAction.LOAD0, invoker, LdcLoadAction.of(AsmUtil.getType(accessor)),
                                 Actions.asArray(ObjectVar.TYPE, methodBuilder.getMethodBody().getArgs())))
                 .thenReturn());
@@ -84,7 +83,7 @@ class PatchedMethodUpdater extends BindMethodWriter {
 
         // 这里不需要调用MethodBuilder的end()，不然回导致visitMax调用两次
         this.bindClassBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-                        bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(), null)
+                        bindInfo.getBindMethod(), bindInfo.getBindMethodType(), null)
                 .accept(body -> PatchedMethodUpdater.this.accept(body.getWriter()));
         this.bindClassBuilder.end();
         this.bindInfo.setLoaded(true);

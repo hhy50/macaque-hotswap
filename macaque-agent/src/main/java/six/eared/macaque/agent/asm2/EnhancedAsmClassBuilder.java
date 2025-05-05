@@ -2,6 +2,7 @@ package six.eared.macaque.agent.asm2;
 
 import io.github.hhy50.linker.asm.AsmClassBuilder;
 import io.github.hhy50.linker.util.ClassUtil;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
@@ -15,6 +16,7 @@ public class EnhancedAsmClassBuilder extends AsmClassBuilder {
     }
 
     public void visit(int access, String className, String superName, String[] interfaces, String signature) {
+        this.flags = AUTO_COMPUTE;
         this.className = className;
         this.classOwner = ClassUtil.className2path(className);
         this.superOwner = Optional.ofNullable(superName).map(ClassUtil::className2path).orElse("java/lang/Object");
@@ -24,7 +26,7 @@ public class EnhancedAsmClassBuilder extends AsmClassBuilder {
                         Arrays.stream(interfaces == null ? new String[0] : interfaces).map(ClassUtil::className2path).toArray(String[]::new));
     }
 
-    public ClassWriter getClassWriter() {
+    public ClassVisitor getClassWriter() {
         if (this.classWriter == null) {
             this.classWriter = new ClassWriter(AUTO_COMPUTE);
         }

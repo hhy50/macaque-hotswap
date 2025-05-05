@@ -13,8 +13,8 @@ public interface XMLMapperBuilder {
 
     @Method.Constructor
     XMLMapperBuilder newInstance(InputStream in,
-                                 @Typed(type = "org.apache.ibatis.session.Configuration") MybatisConfigure configure,
+                                 @Typed("org.apache.ibatis.session.Configuration") MybatisConfigure configure,
                                  String resource,
-                                 @Typed(type = "java.util.Map") Object sqlFragments,
+                                 @Typed( "java.util.Map") Object sqlFragments,
                                  String namespace);
 }

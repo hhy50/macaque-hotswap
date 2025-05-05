@@ -6,6 +6,7 @@ import io.github.hhy50.linker.define.MethodDescriptor;
 import io.github.hhy50.linker.exceptions.LinkerException;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.asm2.EnhancedAsmClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClassVisitorDelegation;
@@ -33,7 +34,7 @@ public class StrictMapTransformer implements ClassFileTransformer {
             }
             @Override
             public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-                MethodBuilder methodBuilder = classBuilder.defineMethod(access, name, descriptor, exceptions);
+                MethodBuilder methodBuilder = classBuilder.defineMethod(access, name, Type.getMethodType(descriptor), exceptions);
                 if (name.equals("put") && (access & Opcodes.ACC_SYNTHETIC) == 0) {
                     try {
                         return MethodPatchWriter.patchMethod(loader, classBuilder, methodBuilder, MethodDescriptor.of(StrictMapTransformer.class.getDeclaredMethod("put", PatchedInvocation.class)));

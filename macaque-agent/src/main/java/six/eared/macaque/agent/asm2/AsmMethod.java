@@ -1,9 +1,9 @@
 package six.eared.macaque.agent.asm2;
 
 
-import io.github.hhy50.linker.define.MethodDescriptor;
 import lombok.Data;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import java.util.Objects;
 
@@ -66,8 +66,8 @@ public class AsmMethod {
         return Objects.hash(methodName, desc);
     }
 
-    public MethodDescriptor toMd() {
-        return MethodDescriptor.of(null, methodName, desc);
+    public Type getMethodType() {
+        return Type.getMethodType(this.desc);
     }
 
     public static final class AsmMethodBuilder {

@@ -99,7 +99,7 @@ public class CompatibilityModeByteCodeEnhancer {
                 BindMethodWriter bindMethodWriter = (BindMethodWriter) newMethod.getVisitorCaller();
                 AsmClassBuilder classBuilder = new AsmClassBuilder(Opcodes.ACC_PUBLIC, bindInfo.getBindClass(), null, null, null);
                 classBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-                                bindInfo.getBindMethod(), bindInfo.getBindMethodDesc(),
+                                bindInfo.getBindMethod(), bindInfo.getBindMethodType(),
                                 newMethod.getExceptions())
                         .accept(body -> bindMethodWriter.accept(body.getWriter()));
 
@@ -133,7 +133,7 @@ public class CompatibilityModeByteCodeEnhancer {
             classIncrementUpdate.remove(fi);
         }
         for (AsmMethod method : originClass.getAsmMethods()) {
-            MethodBuilder methodBuilder = classBuilder.defineMethod(method.getModifier(), method.getMethodName(), method.getDesc(), method.getExceptions());
+            MethodBuilder methodBuilder = classBuilder.defineMethod(method.getModifier(), method.getMethodName(), method.getMethodType(), method.getExceptions());
             MethodVisitor methodWrite = methodBuilder.getMethodBody().getWriter();
             MethodUpdateInfo mi = classIncrementUpdate.getMethod(method.getMethodName(), method.getDesc());
             if (mi == null || mi.getAsmMethod().isStatic() ^ method.isStatic()) {

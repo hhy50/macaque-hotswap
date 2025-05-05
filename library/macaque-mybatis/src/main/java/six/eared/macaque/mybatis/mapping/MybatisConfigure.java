@@ -18,7 +18,7 @@ public interface MybatisConfigure {
 
     @Method.InvokeSuper
     @Method.Name("mappedStatements.put")
-    void putStatement(String key, @Typed(type = "java.lang.Object") MybatisStatement value);
+    void putStatement(String key, @Typed("java.lang.Object") MybatisStatement value);
 
     @Method.Name("getSqlFragments")
     Object getSqlFragments();

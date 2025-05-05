@@ -3,7 +3,6 @@ package six.eared.macaque.agent.spi;
 import io.github.hhy50.linker.LinkerFactory;
 import io.github.hhy50.linker.annotations.Method;
 import io.github.hhy50.linker.annotations.Runtime;
-import io.github.hhy50.linker.annotations.Static;
 import io.github.hhy50.linker.exceptions.LinkerException;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.agent.hotswap.handler.FileHookHandler;
@@ -27,7 +26,7 @@ public class LibrarySpiLoader {
 
     @Runtime
     interface LibraryClassLinker {
-        @Static
+        @Runtime.Static
         void init();
     }
 

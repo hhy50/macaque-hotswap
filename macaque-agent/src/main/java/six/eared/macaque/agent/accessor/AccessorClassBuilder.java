@@ -3,7 +3,6 @@ package six.eared.macaque.agent.accessor;
 import io.github.hhy50.linker.asm.AsmClassBuilder;
 import io.github.hhy50.linker.asm.MethodBuilder;
 import io.github.hhy50.linker.define.MethodDescriptor;
-import io.github.hhy50.linker.define.provider.DefaultTargetProviderImpl;
 import io.github.hhy50.linker.generate.bytecode.action.Actions;
 import io.github.hhy50.linker.generate.bytecode.action.LdcLoadAction;
 import io.github.hhy50.linker.generate.bytecode.action.MethodInvokeAction;
@@ -64,12 +63,12 @@ public class AccessorClassBuilder extends AsmClassBuilder {
     public AccessorClassBuilder setThis$0(String this$0) {
         this.this$0 = this$0;
         Type this$0Type = Type.getType(AsmUtil.toTypeDesc(this$0));
-        String methodType = Type.getMethodDescriptor(this$0Type);
+        Type methodType = Type.getMethodType(this$0Type);
         this.linkerClassBuilder.addAnnotation(TARGET_BIND_ANNO, Maps.of("value", this$0))
                 .defineMethod(Opcodes.ACC_PUBLIC, GET_ORIGIN_MNAME, methodType, null)
                 .intercept(Actions.multi(
-                        new MethodInvokeAction(MethodDescriptor.DEFAULT_PROVIDER_GET_TARGET)
-                                .setInstance(new TypeCastAction(LOAD0, Type.getType(DefaultTargetProviderImpl.class))),
+                        Methods.invokeInterface(MethodDescriptor.TARGET_PROVIDER_GET_TARGET)
+                                .setInstance(LOAD0),
                         new TypeCastAction(Actions.stackTop(), this$0Type).thenReturn()
                 ));
 
@@ -95,7 +94,7 @@ public class AccessorClassBuilder extends AsmClassBuilder {
 
     public void addMethod(String owner, AsmMethod method) {
         String methodName = owner.replace('.', '_')+"_"+method.getMethodName();
-        MethodBuilder methodBuilder = linkerClassBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, methodName, method.getDesc(), method.getExceptions());
+        MethodBuilder methodBuilder = linkerClassBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, methodName, method.getMethodType(), method.getExceptions());
         methodBuilder.addAnnotation(METHOD_NAME_ANNO, Maps.of("value", method.getMethodName()));
 
         MethodAccessRule rule = null;
@@ -127,8 +126,9 @@ public class AccessorClassBuilder extends AsmClassBuilder {
     private MethodAccessRule invokeStatic(String owner, String methodName, AsmMethod method) {
         if (method.isPrivate()) {
             Type linkerType = AsmUtil.getType(linkerClassBuilder.getClassName());
-            super.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, methodName, method.getDesc(), method.getExceptions())
-                    .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), methodName, method.getDesc()))
+            Type mType = method.getMethodType();
+            super.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, methodName, mType, method.getExceptions())
+                    .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), methodName, mType))
                             .setInstance(Members.ofStatic(STATIC_LINKER_FIELD_NAME, linkerType))
                             .setArgs(Args.loadArgs())
                             .thenReturn()
@@ -140,8 +140,9 @@ public class AccessorClassBuilder extends AsmClassBuilder {
 
     private MethodAccessRule invokeInstance(String owner, String methodName, AsmMethod method) {
         Type linkerType = AsmUtil.getType(linkerClassBuilder.getClassName());
-        super.defineMethod(Opcodes.ACC_PUBLIC, methodName, method.getDesc(), method.getExceptions())
-                .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), methodName, method.getDesc()))
+        Type mType = method.getMethodType();
+        super.defineMethod(Opcodes.ACC_PUBLIC, methodName, mType, method.getExceptions())
+                .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), methodName, mType))
                         .setInstance(Members.ofLoad(LINKER_FIELD_NAME))
                         .setArgs(Args.loadArgs())
                         .thenReturn()
@@ -151,9 +152,9 @@ public class AccessorClassBuilder extends AsmClassBuilder {
 
     public void addField(String owner, AsmField filed) {
         String fullName = owner.replace('.', '_')+"_"+filed.getFieldName();
-        linkerClassBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, fullName, "()"+filed.getDesc(), null)
+        linkerClassBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, fullName,  Type.getMethodType(filed.getType()), null)
                 .addAnnotation(FIELD_GETTER_ANNO, Maps.of("value", filed.getFieldName()));
-        linkerClassBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, fullName, "("+filed.getDesc()+")V", null)
+        linkerClassBuilder.defineMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, fullName, Type.getMethodType(Type.VOID_TYPE, filed.getType()), null)
                 .addAnnotation(FIELD_SETTER_ANNO, Maps.of("value", filed.getFieldName()));
 
         String getter = generateGetter(className, fullName, filed);
@@ -179,10 +180,9 @@ public class AccessorClassBuilder extends AsmClassBuilder {
     private String generateGetter(String owner, String getterName, AsmField asmField) {
         String getter = Accessor.FIELD_GETTER_PREFIX+getterName;
         Type linkerType = AsmUtil.getType(linkerClassBuilder.getClassName());
-        String methodDesc = "()"+asmField.getDesc();
-
-        super.defineMethod(Opcodes.ACC_PUBLIC | (Opcodes.ACC_STATIC & asmField.getModifier()), getter, methodDesc, null)
-                .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), getterName, methodDesc))
+        Type mType = Type.getMethodType(asmField.getType());
+        super.defineMethod(Opcodes.ACC_PUBLIC | (Opcodes.ACC_STATIC & asmField.getModifier()), getter, mType, null)
+                .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), getterName, mType))
                         .setInstance(Members.ofLoad(asmField.isStatic() ? STATIC_LINKER_FIELD_NAME : LINKER_FIELD_NAME))
                         .setArgs(Args.loadArgs())
                         .thenReturn()
@@ -193,9 +193,9 @@ public class AccessorClassBuilder extends AsmClassBuilder {
     private String generateSetter(String owner, String setterName, AsmField asmField) {
         String setter = Accessor.FIELD_SETTER_PREFIX+setterName;
         Type linkerType = AsmUtil.getType(linkerClassBuilder.getClassName());
-        String methodDesc = "("+asmField.getDesc()+")V";
-        super.defineMethod(Opcodes.ACC_PUBLIC | (Opcodes.ACC_STATIC & asmField.getModifier()), setter, methodDesc, null)
-                .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), setterName, methodDesc))
+        Type mType = Type.getMethodType(Type.VOID_TYPE, asmField.getType());
+        super.defineMethod(Opcodes.ACC_PUBLIC | (Opcodes.ACC_STATIC & asmField.getModifier()), setter, mType, null)
+                .intercept(Methods.invokeInterface(MethodDescriptor.of(linkerType.getInternalName(), setterName, mType))
                         .setInstance(Members.ofLoad(asmField.isStatic() ? STATIC_LINKER_FIELD_NAME : LINKER_FIELD_NAME))
                         .setArgs(Args.loadArgs())
                         .thenReturn()

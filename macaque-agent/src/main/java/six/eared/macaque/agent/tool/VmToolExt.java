@@ -17,6 +17,7 @@ public class VmToolExt {
         if (libPath == null) {
             libPath = System.getenv("macaque.arthas.lib");
         }
+        libPath = "C:\\Users\\49168\\IdeaProjects\\macaque-hotswap\\macaque-agent\\src\\main\\resources\\arthas";
         if (libPath != null) {
             String osName = System.getProperty("os.name").toLowerCase();
             String libName = "libArthasJniLibrary-x64.dll";
