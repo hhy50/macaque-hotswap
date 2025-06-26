@@ -153,7 +153,7 @@ public class JavaSourceCompiler implements Compiler {
         DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
 
         DynamicJavaFileManager fileManager = new DynamicJavaFileManager(baseFileManager, this.classPathRoots);
-        JavaCompiler.CompilationTask task = this.compiler.getTask(null, fileManager, collector, buildOption(fileManager), null, javaFileObjects);
+        JavaCompiler.CompilationTask task = this.compiler.getTask(null, fileManager, collector, buildOption(fileManager.getProcessors().keySet()), null, javaFileObjects);
         boolean result = task.call();
         Map<String, List<Diagnostic<? extends JavaFileObject>>> errors = collector.getDiagnostics().stream()
                 .filter(item -> item.getKind() == Diagnostic.Kind.ERROR)
@@ -164,17 +164,13 @@ public class JavaSourceCompiler implements Compiler {
         return fileManager.getByteCodes();
     }
 
-    private List<String> buildOption(DynamicJavaFileManager fileManager) {
+    private List<String> buildOption(Set<String> annotationProcessors) {
         List<String> options = new ArrayList<>();
         options.add("-Xlint:unchecked");
         options.add("-g");
-        Set<String> annotationProcessor = null;
-        try {
-            annotationProcessor = fileManager.findAnnotationProcessor();
-        } catch (IOException ignored) {}
-        if (CollectionUtil.isNotEmpty(annotationProcessor)) {
+        if (CollectionUtil.isNotEmpty(annotationProcessors)) {
             options.add("-processor");
-            options.add(String.join(",", annotationProcessor));
+            options.add(String.join(",", annotationProcessors));
         }
         return options;
     }

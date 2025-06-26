@@ -1,14 +1,11 @@
 package six.eared.macaque.agent.compiler.java;
 
-import six.eared.macaque.agent.exceptions.CompileException;
+import lombok.Getter;
 import six.eared.macaque.common.util.CollectionUtil;
-import six.eared.macaque.common.util.FileUtil;
 
 import javax.tools.*;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,22 +21,19 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
     /**
      * 注解处理器的搜索路径
      */
-    private final Set<URL> processorPaths;
+    @Getter
+    private final Map<String, ClassLoader> processors;
 
     public DynamicJavaFileManager(JavaFileManager fileManager, Set<SearchRoot> classRootPath) {
         super(fileManager);
         this.classRootPath = classRootPath != null ? new HashSet<>(classRootPath) : new HashSet<>();
-        this.processorPaths = new HashSet<>();
-
-        // 添加macaque自己引入的注解处理器, 比如 lombok
-        addProcessorPath(DynamicJavaFileManager.class.getProtectionDomain().getCodeSource().getLocation());
+        this.processors = findAnnotationProcessor();
     }
 
     @Override
     public ClassLoader getClassLoader(Location location) {
         if (location == StandardLocation.ANNOTATION_PROCESSOR_PATH) {
-            return new AnnotationProcessorClassloader(processorPaths.toArray(new URL[0]),
-                    this.fileManager.getClass().getClassLoader());
+            return new AnnotationProcessorClassloader(new HashSet<>(this.processors.values()));
         }
         return ClassLoader.getSystemClassLoader();
     }
@@ -116,32 +110,12 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         }
     }
 
-    public void addProcessorPath(URL processorPath) {
-        File file = new File(processorPath.getPath());
-        if (file.exists()) {
-            this.processorPaths.add(processorPath);
-            try {
-                if (file.isDirectory()) {
-                    this.classRootPath.add(new ClasspathSearchRoot(file.getPath()));
-                } else {
-                    this.classRootPath.add(new ClassLoaderSearchRoot.JarFileIndex(processorPath.toExternalForm(), processorPath.toURI()));
-                }
-            } catch (Exception e) {
-                throw new CompileException(e);
-            }
-        }
-    }
+    public Map<String, ClassLoader> findAnnotationProcessor() {
+        Map<String, ClassLoader> processors = new HashMap<>();
 
-    public Set<String> findAnnotationProcessor() throws IOException {
-        Set<String> processors = new HashSet<>();
-
-        if (CollectionUtil.isNotEmpty(this.processorPaths)) {
-            ClassLoader apClassloader = getClassLoader(StandardLocation.ANNOTATION_PROCESSOR_PATH);
-            Enumeration<URL> resources = apClassloader.getResources("META-INF/services/javax.annotation.processing.Processor");
-            while (resources.hasMoreElements()) {
-                try (InputStream in = resources.nextElement().openStream()) {
-                    processors.addAll(Arrays.asList(new String(FileUtil.is2bytes(in)).split("\n")));
-                }
+        if (CollectionUtil.isNotEmpty(this.classRootPath)) {
+            for (SearchRoot searchRoot : this.classRootPath) {
+                processors.putAll(searchRoot.searchAnnotationProcessors());
             }
         }
         return processors;

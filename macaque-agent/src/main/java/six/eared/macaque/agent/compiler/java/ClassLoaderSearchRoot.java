@@ -1,11 +1,15 @@
 package six.eared.macaque.agent.compiler.java;
 
+import six.eared.macaque.common.util.FileUtil;
+
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -32,6 +36,24 @@ public class ClassLoaderSearchRoot implements SearchRoot {
             result.addAll(listUnder(packageName, packageFolderURL));
         }
         return result;
+    }
+
+    @Override
+    public Map<String, ClassLoader> searchAnnotationProcessors() {
+        Enumeration<URL> resources;
+        try {
+            resources = classLoader.getResources("META-INF/services/javax.annotation.processing.Processor");
+        } catch (IOException e) {
+            return Collections.emptyMap();
+        }
+        Map<String, ClassLoader> processors = new HashMap<>();
+        while (resources.hasMoreElements()) {
+            try (InputStream in = resources.nextElement().openStream()) {
+                processors.putAll(Arrays.stream(new String(FileUtil.is2bytes(in)).split("\n")).collect(Collectors.toMap(Function.identity(), (k) -> classLoader)));
+            } catch (IOException ignore) {
+            }
+        }
+        return processors;
     }
 
     private Collection<JavaFileObject> listUnder(String packageName, URL packageFolderURL) {
