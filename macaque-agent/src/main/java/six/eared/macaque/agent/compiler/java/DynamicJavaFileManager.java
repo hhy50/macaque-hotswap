@@ -6,6 +6,7 @@ import six.eared.macaque.common.util.CollectionUtil;
 import javax.tools.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,7 +23,7 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
      * 注解处理器的搜索路径
      */
     @Getter
-    private final Map<String, ClassLoader> processors;
+    private final Map<String, URL> processors;
 
     public DynamicJavaFileManager(JavaFileManager fileManager, Set<SearchRoot> classRootPath) {
         super(fileManager);
@@ -33,7 +34,8 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
     @Override
     public ClassLoader getClassLoader(Location location) {
         if (location == StandardLocation.ANNOTATION_PROCESSOR_PATH) {
-            return new AnnotationProcessorClassloader(new HashSet<>(this.processors.values()));
+            return new AnnotationProcessorClassloader(this.processors.values().toArray(new URL[0]),
+                    this.fileManager.getClass().getClassLoader());
         }
         return ClassLoader.getSystemClassLoader();
     }
@@ -110,8 +112,8 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         }
     }
 
-    public Map<String, ClassLoader> findAnnotationProcessor() {
-        Map<String, ClassLoader> processors = new HashMap<>();
+    public Map<String, URL> findAnnotationProcessor() {
+        Map<String, URL> processors = new HashMap<>();
 
         if (CollectionUtil.isNotEmpty(this.classRootPath)) {
             for (SearchRoot searchRoot : this.classRootPath) {

@@ -2,6 +2,7 @@ package six.eared.macaque.agent.compiler.java;
 
 import javax.tools.JavaFileObject;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,7 @@ public interface SearchRoot {
      *
      * @return
      */
-    default Map<String, ClassLoader> searchAnnotationProcessors() {
+    default Map<String, URL> searchAnnotationProcessors() {
         return Collections.emptyMap();
     }
 

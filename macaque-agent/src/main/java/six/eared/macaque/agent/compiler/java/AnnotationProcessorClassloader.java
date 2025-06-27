@@ -1,21 +1,11 @@
 package six.eared.macaque.agent.compiler.java;
 
-import java.util.Set;
+import java.net.URL;
+import java.net.URLClassLoader;
 
-public class AnnotationProcessorClassloader extends ClassLoader {
+public class AnnotationProcessorClassloader extends URLClassLoader {
 
-    private final Set<ClassLoader> classloaders;
-
-    public AnnotationProcessorClassloader(Set<ClassLoader> classloaders) {
-        this.classloaders = classloaders;
-    }
-
-    @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
-        for (ClassLoader classloader : classloaders) {
-            Class<?> c = classloader.loadClass(name);
-            if (c != null) return c;
-        }
-        return null;
+    public AnnotationProcessorClassloader(URL[] urls, ClassLoader parent) {
+        super(urls, parent);
     }
 }

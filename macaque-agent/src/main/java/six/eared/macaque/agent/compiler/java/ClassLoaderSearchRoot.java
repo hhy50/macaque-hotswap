@@ -39,17 +39,18 @@ public class ClassLoaderSearchRoot implements SearchRoot {
     }
 
     @Override
-    public Map<String, ClassLoader> searchAnnotationProcessors() {
+    public Map<String, URL> searchAnnotationProcessors() {
         Enumeration<URL> resources;
         try {
             resources = classLoader.getResources("META-INF/services/javax.annotation.processing.Processor");
         } catch (IOException e) {
             return Collections.emptyMap();
         }
-        Map<String, ClassLoader> processors = new HashMap<>();
+        Map<String, URL> processors = new HashMap<>();
         while (resources.hasMoreElements()) {
-            try (InputStream in = resources.nextElement().openStream()) {
-                processors.putAll(Arrays.stream(new String(FileUtil.is2bytes(in)).split("\n")).collect(Collectors.toMap(Function.identity(), (k) -> classLoader)));
+            URL ele = resources.nextElement();
+            try (InputStream in = ele.openStream()) {
+                processors.putAll(Arrays.stream(new String(FileUtil.is2bytes(in)).split("\n")).collect(Collectors.toMap(Function.identity(), (k) -> ele)));
             } catch (IOException ignore) {
             }
         }
@@ -70,7 +71,7 @@ public class ClassLoaderSearchRoot implements SearchRoot {
             String jarUri = packageFolderURL.toExternalForm().substring(0, packageFolderURL.toExternalForm().lastIndexOf("!/"));
             JarFileIndex jarFileIndex = INDEXS.get(jarUri);
             if (jarFileIndex == null) {
-                jarFileIndex = new JarFileIndex(jarUri, URI.create(jarUri + "!/"));
+                jarFileIndex = new JarFileIndex(jarUri, URI.create(jarUri+"!/"));
                 INDEXS.put(jarUri, jarFileIndex);
             }
             List<JavaFileObject> result = jarFileIndex.search(packageName, EnumSet.of(JavaFileObject.Kind.CLASS));
@@ -90,22 +91,22 @@ public class ClassLoaderSearchRoot implements SearchRoot {
 
             JarURLConnection jarConn = (JarURLConnection) packageFolderURL.openConnection();
             String rootEntryName = jarConn.getEntryName();
-            int rootEnd = rootEntryName.length() + 1;
+            int rootEnd = rootEntryName.length()+1;
 
             Enumeration<JarEntry> entryEnum = jarConn.getJarFile().entries();
             while (entryEnum.hasMoreElements()) {
                 JarEntry jarEntry = entryEnum.nextElement();
                 String name = jarEntry.getName();
                 if (name.startsWith(rootEntryName) && name.indexOf('/', rootEnd) == -1 && name.endsWith(CLASS_FILE_EXTENSION)) {
-                    URI uri = URI.create(jarUri + "!/" + name);
+                    URI uri = URI.create(jarUri+"!/"+name);
                     String binaryName = name.replaceAll("/", ".");
-                    binaryName = binaryName.replaceAll(CLASS_FILE_EXTENSION + "$", "");
+                    binaryName = binaryName.replaceAll(CLASS_FILE_EXTENSION+"$", "");
 
                     result.add(new JavaClassFileObject(uri, binaryName, JavaFileObject.Kind.CLASS));
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Wasn't able to open " + packageFolderURL + " as a jar file", e);
+            throw new RuntimeException("Wasn't able to open "+packageFolderURL+" as a jar file", e);
         }
         return result;
     }
@@ -115,8 +116,8 @@ public class ClassLoaderSearchRoot implements SearchRoot {
                 item.isFile() && DynamicJavaFileManager.getKind(item.getName()) == JavaFileObject.Kind.CLASS);
         if (files != null) {
             return Arrays.stream(files).map(item -> {
-                String className = packageName + "." + item.getName()
-                        .replaceAll(CLASS_FILE_EXTENSION + "$", "");
+                String className = packageName+"."+item.getName()
+                        .replaceAll(CLASS_FILE_EXTENSION+"$", "");
                 return new JavaClassFileObject(item.toURI(), className, JavaFileObject.Kind.CLASS);
             }).collect(Collectors.toList());
         }
@@ -155,7 +156,7 @@ public class ClassLoaderSearchRoot implements SearchRoot {
                 jarFile = ((JarURLConnection) jarConn).getJarFile();
             } else {
                 jarFile = new JarFile(new File(uri));
-                this.jarUri = "jar:" + this.jarUri;
+                this.jarUri = "jar:"+this.jarUri;
             }
             try {
                 Enumeration<JarEntry> entriesIt = jarFile.entries();
@@ -164,7 +165,7 @@ public class ClassLoaderSearchRoot implements SearchRoot {
                     String entryName = jarEntry.getName();
                     if (entryName.startsWith(rootEntryName) && entryName.endsWith(CLASS_FILE_EXTENSION)) {
                         String className = entryName
-                                .substring(0, entryName.length() - CLASS_FILE_EXTENSION.length())
+                                .substring(0, entryName.length()-CLASS_FILE_EXTENSION.length())
                                 .replace(rootEntryName, "")
                                 .replace("/", ".");
                         if (className.startsWith(".")) className = className.substring(1);
@@ -179,7 +180,7 @@ public class ClassLoaderSearchRoot implements SearchRoot {
                             classes = new ArrayList<>();
                             packages.put(packageName, classes);
                         }
-                        classes.add(new ClassUriWrapper(className, URI.create(jarUri + "!/" + entryName)));
+                        classes.add(new ClassUriWrapper(className, URI.create(jarUri+"!/"+entryName)));
                     }
                 }
             } finally {
