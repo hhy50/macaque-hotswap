@@ -23,7 +23,7 @@ public interface SearchRoot {
      *
      * @return
      */
-    default Map<String, URL> searchAnnotationProcessors() {
+    default Map<String, ClassLoader> searchAnnotationProcessors(List<URL> processorClasspath) {
         return Collections.emptyMap();
     }
 

@@ -23,7 +23,9 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
      * 注解处理器的搜索路径
      */
     @Getter
-    private final Map<String, URL> processors;
+    private final Map<String, ClassLoader> processors;
+    private final List<URL> processorClasspath = new ArrayList<>();
+
 
     public DynamicJavaFileManager(JavaFileManager fileManager, Set<SearchRoot> classRootPath) {
         super(fileManager);
@@ -34,8 +36,11 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
     @Override
     public ClassLoader getClassLoader(Location location) {
         if (location == StandardLocation.ANNOTATION_PROCESSOR_PATH) {
-            return new AnnotationProcessorClassloader(this.processors.values().toArray(new URL[0]),
-                    this.fileManager.getClass().getClassLoader());
+            URL[] array = this.processorClasspath.toArray(new URL[0]);
+            return new AnnotationProcessorClassloader(new URL[] {DynamicJavaFileManager.class.getProtectionDomain().getCodeSource().getLocation(), array[2]},
+                    this.fileManager.getClass().getClassLoader(), new HashSet<>(this.processors.values()));
+//            return new AnnotationProcessorClassloader(array,
+//                    this.fileManager.getClass().getClassLoader(), new HashSet<>(this.processors.values()));
         }
         return ClassLoader.getSystemClassLoader();
     }
@@ -112,12 +117,12 @@ public class DynamicJavaFileManager extends ForwardingJavaFileManager<JavaFileMa
         }
     }
 
-    public Map<String, URL> findAnnotationProcessor() {
-        Map<String, URL> processors = new HashMap<>();
+    public Map<String, ClassLoader> findAnnotationProcessor() {
+        Map<String, ClassLoader> processors = new HashMap<>();
 
         if (CollectionUtil.isNotEmpty(this.classRootPath)) {
             for (SearchRoot searchRoot : this.classRootPath) {
-                processors.putAll(searchRoot.searchAnnotationProcessors());
+                processors.putAll(searchRoot.searchAnnotationProcessors(this.processorClasspath));
             }
         }
         return processors;

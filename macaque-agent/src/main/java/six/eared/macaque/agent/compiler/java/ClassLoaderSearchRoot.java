@@ -38,20 +38,20 @@ public class ClassLoaderSearchRoot implements SearchRoot {
     }
 
     @Override
-    public Map<String, URL> searchAnnotationProcessors() {
+    public Map<String, ClassLoader> searchAnnotationProcessors(List<URL> processorClasspath) {
         Enumeration<URL> resources;
         try {
             resources = classLoader.getResources("META-INF/services/javax.annotation.processing.Processor");
         } catch (IOException e) {
             return Collections.emptyMap();
         }
-        Map<String, URL> processors = new HashMap<>();
+        Map<String, ClassLoader> processors = new HashMap<>();
         while (resources.hasMoreElements()) {
             URL ele = resources.nextElement();
             try (InputStream in = ele.openStream()) {
                 for (String p : new String(FileUtil.is2bytes(in)).split("\n")) {
-                    URL location = classLoader.loadClass(p).getProtectionDomain().getCodeSource().getLocation();
-                    processors.put(p, location);
+                    processorClasspath.add(classLoader.loadClass(p).getProtectionDomain().getCodeSource().getLocation());
+                    processors.put(p, classLoader);
                 }
             } catch (IOException | ClassNotFoundException ignore) {
             }
