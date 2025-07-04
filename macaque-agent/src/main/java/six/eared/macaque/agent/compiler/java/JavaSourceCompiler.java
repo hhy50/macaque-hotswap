@@ -157,7 +157,7 @@ public class JavaSourceCompiler implements Compiler {
         boolean result = task.call();
         Map<String, List<Diagnostic<? extends JavaFileObject>>> errors = collector.getDiagnostics().stream()
                 .filter(item -> item.getKind() == Diagnostic.Kind.ERROR)
-                .collect(Collectors.groupingBy(diagnostic -> Optional.ofNullable(diagnostic.getSource().getName()).orElse("other")));
+                .collect(Collectors.groupingBy(diagnostic -> Optional.ofNullable(diagnostic.getSource()).map(FileObject::getName).orElse("other errors")));
         if (!result || !errors.isEmpty()) {
             throw new MemoryCompileException(formatCompileErrorText(errors));
         }
