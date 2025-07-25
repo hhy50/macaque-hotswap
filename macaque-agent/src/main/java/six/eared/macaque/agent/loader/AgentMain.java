@@ -32,11 +32,11 @@ public class AgentMain {
         if (!START_FLAG) {
             Class<?> bootstrapClass = null;
             try {
-                File agentJar = getTempJar("lib/agent.jar");
+                URL agentJar = AgentMain.class.getClassLoader().getResource("lib/agent.jar");
                 File preloadJar = getTempJar("lib/preload.jar");
 
                 // 加载引导类
-                ClassLoader classLoader = getClassLoader(agentJar.toURI().toURL());
+                ClassLoader classLoader = getClassLoader(agentJar);
                 bootstrapClass = classLoader.loadClass("six.eared.macaque.agent.AgentBootstrap");
 
                 inst.appendToBootstrapClassLoaderSearch(new JarFile(preloadJar));

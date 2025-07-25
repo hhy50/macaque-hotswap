@@ -12,10 +12,12 @@ import six.eared.macaque.agent.asm2.EnhancedAsmClassBuilder;
 import six.eared.macaque.agent.asm2.classes.ClassVisitorDelegation;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.util.ClassUtil;
+import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.library.patch.MethodPatchWriter;
 import six.eared.macaque.mybatis.mapping.MybatisStrictMap;
 import six.eared.macaque.preload.PatchedInvocation;
 
+import java.io.File;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
@@ -47,7 +49,11 @@ public class StrictMapTransformer implements ClassFileTransformer {
                 return methodBuilder.getMethodBody().getWriter();
             }
         });
-        return classBuilder.toBytecode();
+        byte[] bytecode = classBuilder.toBytecode();
+        FileUtil.writeBytes(new File(FileUtil.getProcessTmpPath()+"/patched/"+
+                        "Configuration$StrictMap$Enhanced.class"),
+                bytecode);
+        return bytecode;
     }
 
     public static Object put(PatchedInvocation invocation) throws LinkerException {
