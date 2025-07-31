@@ -1,6 +1,7 @@
 package six.eared.macaque.agent.asm2;
 
 import io.github.hhy50.linker.asm.AsmClassBuilder;
+import io.github.hhy50.linker.util.TypeUtil;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import six.eared.macaque.agent.asm2.classes.ClazzDefinition;
@@ -154,15 +155,7 @@ public class AsmUtil extends io.github.hhy50.linker.asm.AsmUtil {
     public static String addArgsDesc(String methodDesc, String newArg, boolean header) {
         String delimiter = header ? "\\(" : "\\)";
         String[] split = methodDesc.split(delimiter);
-        split[0] += AsmUtil.toTypeDesc(newArg);
+        split[0] += TypeUtil.toTypeDesc(newArg);
         return header ? ("(" + split[0] + split[1]) : (split[0] + ")" + split[1]);
-    }
-
-    public static void loadArgs(MethodVisitor visitor, Type[] argumentTypes, boolean isStatic) {
-        int i = isStatic ? 0 : 1;
-        for (Type argumentType : argumentTypes) {
-            visitor.visitVarInsn(argumentType.getOpcode(Opcodes.ILOAD), i++);
-            if (argumentType.getSort() == Type.DOUBLE || argumentType.getSort() == Type.LONG) i++;
-        }
     }
 }

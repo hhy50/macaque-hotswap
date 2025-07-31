@@ -7,13 +7,13 @@ import io.github.hhy50.linker.define.MethodDescriptor;
 import io.github.hhy50.linker.generate.bytecode.action.*;
 import io.github.hhy50.linker.generate.bytecode.utils.Methods;
 import io.github.hhy50.linker.generate.bytecode.vars.ObjectVar;
+import io.github.hhy50.linker.util.TypeUtil;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import six.eared.macaque.agent.accessor.Accessor;
 import six.eared.macaque.agent.accessor.AccessorUtil;
 import six.eared.macaque.agent.asm2.AsmMethod;
-import six.eared.macaque.agent.asm2.AsmUtil;
 import six.eared.macaque.agent.enhance.*;
 import six.eared.macaque.agent.env.Environment;
 import six.eared.macaque.common.util.ClassUtil;
@@ -53,11 +53,11 @@ public class MethodPatchWriter {
                                                MethodDescriptor delegationMd) {
         MethodInvokeAction invoker = new MethodInvokeAction(MethodDescriptor.LINKER_FACTORY_CREATE_STATIC_LINKER).setArgs(
                 LdcLoadAction.of(Type.getType(PatchMethodInvoker.class)),
-                LdcLoadAction.of(AsmUtil.getType(patchedClass)));
+                LdcLoadAction.of(TypeUtil.getType(patchedClass)));
 
         methodBuilder.intercept(new MethodInvokeAction(delegationMd)
                 .setArgs(new NewObjectAction(Type.getType(PatchedInvocation.class), ObjectVar.TYPE, Type.getType(PatchMethodInvoker.class), Type.getType(Class.class), Type.getType(Object[].class))
-                        .setArgs(methodBuilder.isStatic() ? Actions.loadNull() : LoadAction.LOAD0, invoker, LdcLoadAction.of(AsmUtil.getType(accessor)),
+                        .setArgs(methodBuilder.isStatic() ? Actions.loadNull() : LoadAction.LOAD0, invoker, LdcLoadAction.of(TypeUtil.getType(accessor)),
                                 Actions.asArray(ObjectVar.TYPE, methodBuilder.getMethodBody().getArgs())))
                 .thenReturn());
     }

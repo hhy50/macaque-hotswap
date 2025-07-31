@@ -6,6 +6,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -20,7 +21,7 @@ public class EnhancedAsmClassBuilder extends AsmClassBuilder {
         this.className = className;
         this.classOwner = ClassUtil.className2path(className);
         this.superOwner = Optional.ofNullable(superName).map(ClassUtil::className2path).orElse("java/lang/Object");
-        this.members = new java.util.HashMap<>();
+        this.fields = new ArrayList<>();
         this.getClassWriter()
                 .visit(Opcodes.V1_8, access, this.classOwner, signature, this.superOwner,
                         Arrays.stream(interfaces == null ? new String[0] : interfaces).map(ClassUtil::className2path).toArray(String[]::new));

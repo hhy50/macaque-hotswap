@@ -66,8 +66,13 @@ public class MybatisXmlMapperHandler implements HotswapHook {
 
     private String getNamespace(byte[] xmlData) {
         try (InputStream in = new ByteArrayInputStream(xmlData)) {
-            XMLEventReader reader = XMLInputFactory.newInstance()
-                    .createXMLEventReader(in);
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            // 禁用外部实体解析
+            factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+            factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+            factory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false);
+
+            XMLEventReader reader =  factory.createXMLEventReader(in);
             while (reader.hasNext()) {
                 XMLEvent next = reader.nextEvent();
                 if (next.getClass().getSimpleName().equals("StartElementEvent")) {
